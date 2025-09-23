@@ -1,0 +1,81 @@
+/* Alert Component Styles */
+@layer components {
+    .alert {
+        @apply rounded-sm border p-4;
+    }
+    
+    .alert-content {
+        @apply flex items-start;
+    }
+    
+    .alert-icon {
+        @apply flex-shrink-0 mr-3;
+    }
+    
+    .alert-body {
+        @apply flex-1 min-w-0;
+    }
+    
+    .alert-title {
+        @apply text-sm font-medium mb-1;
+        font-size: 12px;
+    }
+    
+    .alert-message {
+        @apply text-sm;
+        font-size: 12px;
+    }
+    
+    .alert-dismiss {
+        @apply flex-shrink-0 ml-3 p-1 rounded-sm hover:bg-black hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    }
+    
+    /* Alert variants */
+    .alert-success {
+        @apply bg-green-50 border-green-200 text-green-800;
+    }
+    
+    .alert-success .alert-icon {
+        @apply text-green-400;
+    }
+    
+    .alert-success .alert-dismiss {
+        @apply text-green-500 hover:text-green-600 focus:ring-green-600;
+    }
+    
+    .alert-warning {
+        @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+    }
+    
+    .alert-warning .alert-icon {
+        @apply text-yellow-400;
+    }
+    
+    .alert-warning .alert-dismiss {
+        @apply text-yellow-500 hover:text-yellow-600 focus:ring-yellow-600;
+    }
+    
+    .alert-danger {
+        @apply bg-red-50 border-red-200 text-red-800;
+    }
+    
+    .alert-danger .alert-icon {
+        @apply text-red-400;
+    }
+    
+    .alert-danger .alert-dismiss {
+        @apply text-red-500 hover:text-red-600 focus:ring-red-600;
+    }
+    
+    .alert-info {
+        @apply bg-blue-50 border-blue-200 text-blue-800;
+    }
+    
+    .alert-info .alert-icon {
+        @apply text-blue-400;
+    }
+    
+    .alert-info .alert-dismiss {
+        @apply text-blue-500 hover:text-blue-600 focus:ring-blue-600;
+    }
+}

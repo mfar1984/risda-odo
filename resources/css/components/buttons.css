@@ -1,0 +1,48 @@
+/* Button Components Styles */
+@layer components {
+    .btn-base {
+        @apply inline-flex items-center px-4 py-2 border font-medium rounded-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition ease-in-out duration-150;
+        font-size: 12px;
+        min-height: 36px;
+    }
+    
+    .btn-primary {
+        @apply btn-base border-transparent text-white bg-risda-primary hover:bg-blue-700 focus:ring-risda-primary;
+    }
+    
+    .btn-secondary {
+        @apply btn-base border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-gray-500;
+    }
+    
+    .btn-danger {
+        @apply btn-base border-transparent text-white bg-risda-danger hover:bg-red-700 focus:ring-risda-danger;
+    }
+    
+    .btn-success {
+        @apply btn-base border-transparent text-white bg-risda-success hover:bg-green-700 focus:ring-risda-success;
+    }
+    
+    .btn-warning {
+        @apply btn-base border-transparent text-white bg-risda-warning hover:bg-orange-700 focus:ring-risda-warning;
+    }
+    
+    .btn-info {
+        @apply btn-base border-transparent text-white bg-risda-info hover:bg-sky-700 focus:ring-risda-info;
+    }
+    
+    .btn-sm {
+        @apply px-3 py-1.5;
+        font-size: 10px;
+        min-height: 28px;
+    }
+    
+    .btn-lg {
+        @apply px-6 py-3;
+        font-size: 14px;
+        min-height: 44px;
+    }
+    
+    .btn-disabled {
+        @apply opacity-50 cursor-not-allowed;
+    }
+}

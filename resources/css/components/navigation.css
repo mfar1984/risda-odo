@@ -1,0 +1,73 @@
+/* Navigation Components Styles */
+@layer components {
+    .nav-link {
+        @apply inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none;
+        font-size: 12px;
+    }
+    
+    .nav-link-active {
+        @apply border-risda-primary text-gray-900 focus:border-risda-primary;
+    }
+    
+    .nav-link-inactive {
+        @apply border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:text-gray-700 focus:border-gray-300;
+    }
+    
+    .responsive-nav-link {
+        @apply block w-full pl-3 pr-4 py-2 border-l-4 text-left text-base font-medium transition duration-150 ease-in-out focus:outline-none;
+        font-size: 12px;
+    }
+    
+    .responsive-nav-link-active {
+        @apply border-risda-primary text-risda-primary bg-blue-50 focus:text-risda-primary focus:bg-blue-100 focus:border-blue-700;
+    }
+    
+    .responsive-nav-link-inactive {
+        @apply border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300;
+    }
+    
+    .dropdown-nav-link {
+        @apply block px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out;
+        font-size: 12px;
+    }
+    
+    /* Sidebar Navigation */
+    .sidebar-nav {
+        @apply flex flex-col space-y-1;
+    }
+    
+    .sidebar-nav-item {
+        @apply flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors duration-150;
+        font-size: 12px;
+    }
+    
+    .sidebar-nav-item-active {
+        @apply bg-risda-primary text-white;
+    }
+    
+    .sidebar-nav-item-inactive {
+        @apply text-gray-600 hover:bg-gray-100 hover:text-gray-900;
+    }
+    
+    .sidebar-nav-icon {
+        @apply mr-3 h-5 w-5 flex-shrink-0;
+    }
+    
+    /* Breadcrumb */
+    .breadcrumb {
+        @apply flex items-center space-x-2 text-sm text-gray-500;
+        font-size: 12px;
+    }
+    
+    .breadcrumb-item {
+        @apply hover:text-gray-700;
+    }
+    
+    .breadcrumb-separator {
+        @apply text-gray-400;
+    }
+    
+    .breadcrumb-current {
+        @apply text-gray-900 font-medium;
+    }
+}

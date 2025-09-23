@@ -1,0 +1,29 @@
+/* Dropdown Component Styles */
+@layer components {
+    .dropdown-container {
+        @apply relative inline-block text-left;
+    }
+    
+    .dropdown-trigger {
+        @apply inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-sm shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-risda-primary;
+        font-size: 12px;
+    }
+    
+    .dropdown-menu {
+        @apply absolute right-0 w-56 mt-2 origin-top-right bg-white border border-gray-200 rounded-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50;
+    }
+    
+    .dropdown-item {
+        @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150;
+        font-size: 12px;
+    }
+    
+    .dropdown-divider {
+        @apply border-t border-gray-100 my-1;
+    }
+    
+    .dropdown-header {
+        @apply px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider;
+        font-size: 10px;
+    }
+}

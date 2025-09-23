@@ -1,0 +1,61 @@
+/* Card Component Styles */
+@layer components {
+    .card {
+        @apply bg-white rounded-sm shadow-sm border border-gray-200;
+    }
+    
+    .card-header {
+        @apply flex items-center justify-between p-6 border-b border-gray-200;
+    }
+    
+    .card-header-content {
+        @apply flex-1 min-w-0;
+    }
+    
+    .card-title {
+        @apply text-lg font-semibold text-gray-900;
+        font-size: 14px;
+    }
+    
+    .card-subtitle {
+        @apply text-sm text-gray-600 mt-1;
+        font-size: 12px;
+    }
+    
+    .card-actions {
+        @apply flex items-center space-x-2;
+    }
+    
+    .card-body {
+        @apply p-6;
+    }
+    
+    .card-footer {
+        @apply px-6 py-4 bg-gray-50 border-t border-gray-200;
+    }
+    
+    /* Card variants */
+    .card-bordered {
+        @apply border-2;
+    }
+    
+    .card-elevated {
+        @apply shadow-lg;
+    }
+    
+    .card-flat {
+        @apply shadow-none border-0;
+    }
+    
+    .card-compact .card-body {
+        @apply p-4;
+    }
+    
+    .card-compact .card-header {
+        @apply p-4;
+    }
+    
+    .card-compact .card-footer {
+        @apply px-4 py-3;
+    }
+}

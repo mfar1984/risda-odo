@@ -1,0 +1,204 @@
+/* Header Component Styles */
+@layer components {
+    .header {
+        @apply bg-white border-b border-gray-200 sticky top-0 z-40;
+    }
+
+    /* Top Bar Styles */
+    .topbar {
+        @apply bg-gray-50 border-b border-gray-200;
+    }
+
+    .topbar-container {
+        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+        @apply flex items-center justify-between h-12;
+    }
+
+    .topbar-left {
+        @apply flex items-center space-x-2 text-sm text-gray-600;
+        font-size: 11px;
+    }
+
+    .welcome-text {
+        @apply font-medium text-gray-700;
+    }
+
+    .topbar-separator {
+        @apply text-gray-400;
+    }
+
+    .current-date {
+        @apply text-gray-600;
+    }
+
+    .topbar-right {
+        @apply flex items-center justify-center space-x-3;
+    }
+
+    /* Notification Bell Styles */
+    .topbar-notification-btn {
+        @apply relative text-gray-500 hover:text-risda-primary transition-colors duration-200;
+        @apply p-1 rounded bg-transparent border-none cursor-pointer;
+        @apply flex items-center justify-center;
+    }
+
+    .topbar-notification-btn .material-icons,
+    .topbar-notification-btn .material-icons-outlined,
+    .topbar-notification-btn .material-symbols-outlined {
+        font-size: 20px;
+    }
+
+    .notification-badge {
+        @apply absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full;
+        @apply flex items-center justify-center font-medium;
+        font-size: 10px;
+        line-height: 1;
+    }
+
+    /* Apps Grid Menu Styles */
+    .topbar-grid-btn {
+        @apply text-gray-500 hover:text-risda-primary transition-colors duration-200;
+        @apply p-1 rounded bg-transparent border-none cursor-pointer;
+        @apply flex items-center justify-center;
+    }
+
+    .topbar-grid-btn .material-icons,
+    .topbar-grid-btn .material-icons-outlined,
+    .topbar-grid-btn .material-symbols-outlined {
+        font-size: 20px;
+    }
+
+    .topbar-user-btn {
+        @apply flex items-center space-x-3 text-sm text-gray-700;
+        @apply hover:text-risda-primary transition-colors duration-200;
+        @apply px-2 py-1 rounded;
+        font-size: 11px;
+    }
+
+    .user-avatar {
+        @apply w-6 h-6 bg-risda-primary text-white rounded-full;
+        @apply flex items-center justify-center;
+    }
+
+    .user-email {
+        @apply hidden sm:block;
+    }
+
+    .topbar-dropdown {
+        @apply absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg;
+        @apply border border-gray-200 py-1 z-50;
+    }
+
+    .topbar-dropdown-item {
+        @apply flex items-center px-3 py-2 text-sm text-gray-700;
+        @apply hover:bg-gray-50 transition-colors duration-200;
+        font-size: 11px;
+        gap: 1px !important;
+    }
+
+    .topbar-dropdown-item svg {
+        margin-right: 12px !important;
+    }
+
+    /* Help & Support Styles */
+    .topbar-help-btn {
+        @apply text-gray-500 hover:text-risda-primary transition-colors duration-200;
+        @apply p-1 rounded bg-transparent border-none cursor-pointer;
+        @apply flex items-center justify-center;
+    }
+
+    .topbar-help-btn .material-icons,
+    .topbar-help-btn .material-icons-outlined,
+    .topbar-help-btn .material-symbols-outlined {
+        font-size: 20px;
+    }
+
+    .topbar-help-dropdown {
+        @apply absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg;
+        @apply border border-gray-200 py-1 z-50;
+    }
+
+    .help-dropdown-header {
+        @apply px-4 py-3 border-b border-gray-100;
+    }
+
+    .help-dropdown-title {
+        @apply text-sm font-semibold text-gray-900;
+        font-size: 12px;
+    }
+
+    .help-dropdown-subtitle {
+        @apply text-xs text-gray-500 mt-1;
+        font-size: 11px;
+    }
+
+    .help-dropdown-menu {
+        @apply py-1;
+    }
+
+    .help-dropdown-item {
+        @apply flex items-center space-x-3 px-4 py-2 text-sm text-gray-700;
+        @apply hover:bg-gray-50 transition-colors duration-200;
+        font-size: 11px;
+    }
+
+    .help-dropdown-item svg {
+        @apply text-gray-400;
+    }
+
+    .help-dropdown-item:hover svg {
+        @apply text-risda-primary;
+    }
+
+    /* Breadcrumb Bar Styles */
+    .breadcrumb-bar {
+        @apply bg-white;
+    }
+
+    .breadcrumb-container {
+        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+        @apply flex items-center h-8;
+    }
+
+    /* Ensure header and sidebar separator alignment */
+    .header-wrapper {
+        border-left: 1px solid transparent;
+    }
+
+    .header-wrapper.with-sidebar {
+        border-left: 1px solid #e5e7eb;
+    }
+
+    .mobile-menu-btn {
+        @apply p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100;
+        @apply focus:outline-none focus:ring-2 focus:ring-inset focus:ring-risda-primary;
+        @apply mr-3;
+    }
+
+    .breadcrumb-nav {
+        @apply flex items-center space-x-2 text-sm;
+        font-size: 12px;
+    }
+
+    .breadcrumb-item {
+        @apply text-risda-primary hover:text-blue-700;
+        @apply transition-colors duration-200;
+    }
+
+    .breadcrumb-separator {
+        @apply text-gray-400 mx-2;
+    }
+
+    .breadcrumb-current {
+        @apply text-gray-700 font-medium;
+    }
+
+    .breadcrumb-home {
+        @apply text-risda-primary hover:text-blue-700;
+    }
+
+    .breadcrumb-home .material-symbols-outlined {
+        font-size: 16px;
+        line-height: 1;
+    }
+}

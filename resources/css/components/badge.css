@@ -1,0 +1,85 @@
+/* Badge Component Styles */
+@layer components {
+    .badge {
+        @apply inline-flex items-center px-2 py-1 rounded-sm text-xs font-medium;
+        font-size: 10px;
+    }
+    
+    /* Badge sizes */
+    .badge-sm {
+        @apply px-1.5 py-0.5 text-xs;
+        font-size: 10px;
+    }
+    
+    .badge-md {
+        @apply px-2 py-1 text-xs;
+        font-size: 10px;
+    }
+    
+    .badge-lg {
+        @apply px-3 py-1.5 text-sm;
+        font-size: 12px;
+    }
+    
+    /* Badge variants */
+    .badge-default {
+        @apply bg-gray-100 text-gray-800;
+    }
+    
+    .badge-primary {
+        @apply bg-risda-primary text-white;
+    }
+    
+    .badge-secondary {
+        @apply bg-gray-500 text-white;
+    }
+    
+    .badge-success {
+        @apply bg-risda-success text-white;
+    }
+    
+    .badge-warning {
+        @apply bg-risda-warning text-white;
+    }
+    
+    .badge-danger {
+        @apply bg-risda-danger text-white;
+    }
+    
+    .badge-info {
+        @apply bg-risda-info text-white;
+    }
+    
+    /* Badge outline variants */
+    .badge-outline {
+        @apply bg-transparent border;
+    }
+    
+    .badge-outline.badge-default {
+        @apply border-gray-300 text-gray-700;
+    }
+    
+    .badge-outline.badge-primary {
+        @apply border-risda-primary text-risda-primary;
+    }
+    
+    .badge-outline.badge-secondary {
+        @apply border-gray-500 text-gray-500;
+    }
+    
+    .badge-outline.badge-success {
+        @apply border-risda-success text-risda-success;
+    }
+    
+    .badge-outline.badge-warning {
+        @apply border-risda-warning text-risda-warning;
+    }
+    
+    .badge-outline.badge-danger {
+        @apply border-risda-danger text-risda-danger;
+    }
+    
+    .badge-outline.badge-info {
+        @apply border-risda-info text-risda-info;
+    }
+}

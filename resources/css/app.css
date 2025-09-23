@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* Import Component Styles */
+@import './components/buttons.css';
+@import './components/forms.css';
+@import './components/dropdown.css';
+@import './components/modal.css';
+@import './components/navigation.css';
+@import './components/sidebar.css';
+@import './components/header.css';
+@import './components/footer.css';
+@import './components/dashboard.css';
+@import './components/card.css';
+@import './components/alert.css';
+@import './components/badge.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* RISDA Base Styles */
+@layer base {
+    body {
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+}

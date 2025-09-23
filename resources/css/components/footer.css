@@ -1,0 +1,60 @@
+/* Footer Component Styles */
+@layer components {
+    .footer {
+        @apply bg-white border-t border-gray-200 mt-auto;
+    }
+    
+    .footer-container {
+        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    }
+    
+    .footer-content {
+        @apply flex items-center justify-between py-2;
+        min-height: 32px;
+    }
+    
+    .footer-left {
+        @apply flex-1;
+    }
+    
+    .footer-copyright {
+        @apply text-gray-600;
+        font-size: 11px;
+        line-height: 1.4;
+    }
+    
+    .footer-right {
+        @apply flex items-center;
+    }
+    
+    .footer-links {
+        @apply flex items-center space-x-2;
+    }
+    
+    .footer-link {
+        @apply text-gray-600 hover:text-risda-primary transition-colors duration-200;
+        font-size: 11px;
+        text-decoration: none;
+    }
+    
+    .footer-separator {
+        @apply text-gray-400;
+        font-size: 11px;
+        margin: 0 4px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .footer-content {
+            @apply flex-col items-start space-y-2 py-4;
+        }
+        
+        .footer-right {
+            @apply w-full;
+        }
+        
+        .footer-links {
+            @apply flex-wrap;
+        }
+    }
+}
