@@ -23,6 +23,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'kumpulan_id',
+        'jenis_organisasi',
+        'organisasi_id',
+        'status',
     ];
 
     /**
@@ -107,5 +111,40 @@ class User extends Authenticatable
     {
         $hashService = app(RisdaHashService::class);
         return $hashService->generateSecurePassword($length);
+    }
+
+    /**
+     * Get the user group that owns the user.
+     */
+    public function kumpulan()
+    {
+        return $this->belongsTo(UserGroup::class, 'kumpulan_id');
+    }
+
+    /**
+     * Get organisation based on type.
+     */
+    public function organisasi()
+    {
+        switch($this->jenis_organisasi) {
+            case 'bahagian':
+                return $this->belongsTo(RisdaBahagian::class, 'organisasi_id');
+            case 'stesen':
+                return $this->belongsTo(RisdaStesen::class, 'organisasi_id');
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Check if user has specific permission.
+     */
+    public function adaKebenaran($modul, $aksi)
+    {
+        if (!$this->kumpulan) {
+            return false;
+        }
+
+        return $this->kumpulan->adaKebenaran($modul, $aksi);
     }
 }

@@ -1,33 +1,192 @@
 /* Button Components Styles */
 @layer components {
     .btn-base {
-        @apply inline-flex items-center px-4 py-2 border font-medium rounded-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition ease-in-out duration-150;
+        @apply inline-flex items-center justify-center px-4 py-2 border font-medium rounded-3 focus:outline-none focus:ring-2 focus:ring-offset-2 transition ease-in-out duration-150;
         font-size: 12px;
         min-height: 36px;
     }
     
     .btn-primary {
-        @apply btn-base border-transparent text-white bg-risda-primary hover:bg-blue-700 focus:ring-risda-primary;
+        @apply btn-base border-transparent text-white focus:ring-risda-primary;
+        background-color: #3f6ad7;
+        position: relative;
+        overflow: hidden;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        transition: left 0.5s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #3255ad;
+    }
+
+    .btn-primary:hover::before {
+        left: 100%;
     }
     
     .btn-secondary {
         @apply btn-base border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-gray-500;
+        position: relative;
+        overflow: hidden;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-secondary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(0, 0, 0, 0.1),
+            transparent
+        );
+        transition: left 0.5s ease;
+    }
+
+    .btn-secondary:hover::before {
+        left: 100%;
     }
     
     .btn-danger {
-        @apply btn-base border-transparent text-white bg-risda-danger hover:bg-red-700 focus:ring-risda-danger;
+        @apply btn-base border-transparent text-white bg-risda-danger focus:ring-risda-danger;
+        position: relative;
+        overflow: hidden;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-danger::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        transition: left 0.5s ease;
+    }
+
+    .btn-danger:hover {
+        background-color: #b91c1c;
+    }
+
+    .btn-danger:hover::before {
+        left: 100%;
     }
     
     .btn-success {
-        @apply btn-base border-transparent text-white bg-risda-success hover:bg-green-700 focus:ring-risda-success;
+        @apply btn-base border-transparent text-white bg-risda-success focus:ring-risda-success;
+        position: relative;
+        overflow: hidden;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-success::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        transition: left 0.5s ease;
+    }
+
+    .btn-success:hover {
+        background-color: #15803d;
+    }
+
+    .btn-success:hover::before {
+        left: 100%;
     }
     
     .btn-warning {
-        @apply btn-base border-transparent text-white bg-risda-warning hover:bg-orange-700 focus:ring-risda-warning;
+        @apply btn-base border-transparent text-white bg-risda-warning focus:ring-risda-warning;
+        position: relative;
+        overflow: hidden;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-warning::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        transition: left 0.5s ease;
+    }
+
+    .btn-warning:hover {
+        background-color: #c2410c;
+    }
+
+    .btn-warning:hover::before {
+        left: 100%;
     }
     
     .btn-info {
-        @apply btn-base border-transparent text-white bg-risda-info hover:bg-sky-700 focus:ring-risda-info;
+        @apply btn-base border-transparent text-white bg-risda-info focus:ring-risda-info;
+        position: relative;
+        overflow: hidden;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-info::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+        );
+        transition: left 0.5s ease;
+    }
+
+    .btn-info:hover {
+        background-color: #0369a1;
+    }
+
+    .btn-info:hover::before {
+        left: 100%;
     }
     
     .btn-sm {
@@ -44,5 +203,34 @@
     
     .btn-disabled {
         @apply opacity-50 cursor-not-allowed;
+    }
+
+    /* Border Radius Variants */
+    .btn-rounded-none {
+        @apply rounded-none;
+    }
+
+    .btn-rounded-sm {
+        @apply rounded-sm;
+    }
+
+    .btn-rounded {
+        @apply rounded;
+    }
+
+    .btn-rounded-3 {
+        @apply rounded-3;
+    }
+
+    .btn-rounded-4 {
+        @apply rounded-4;
+    }
+
+    .btn-rounded-6 {
+        @apply rounded-6;
+    }
+
+    .btn-rounded-8 {
+        @apply rounded-8;
     }
 }

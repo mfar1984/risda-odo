@@ -1,0 +1,171 @@
+/* Permission Matrix Styles */
+@layer components {
+    .permission-matrix {
+        @apply overflow-x-auto border border-gray-300 rounded-sm;
+    }
+    
+    .permission-matrix table {
+        @apply min-w-full divide-y divide-gray-300;
+    }
+    
+    .permission-matrix thead {
+        @apply bg-gray-50;
+    }
+    
+    .permission-matrix th {
+        @apply px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-300;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 10px !important;
+        min-width: 80px;
+    }
+    
+    .permission-matrix th:first-child {
+        @apply text-left;
+        min-width: 200px;
+        font-size: 11px !important;
+    }
+    
+    .permission-matrix tbody {
+        @apply bg-white divide-y divide-gray-200;
+    }
+    
+    .permission-matrix td {
+        @apply px-3 py-3 text-center border-r border-gray-300;
+    }
+    
+    .permission-matrix td:first-child {
+        @apply px-4 text-left whitespace-nowrap text-sm font-medium text-gray-900;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 12px !important;
+    }
+    
+    .permission-matrix tr:hover {
+        @apply bg-gray-50;
+    }
+    
+    .permission-matrix .permission-checkbox {
+        @apply h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded;
+    }
+    
+    .permission-matrix .permission-disabled {
+        @apply text-gray-400;
+    }
+    
+    .permission-matrix .permission-granted {
+        @apply text-green-600;
+    }
+    
+    .permission-matrix .permission-denied {
+        @apply text-red-600;
+    }
+    
+    /* Quick Actions Bar */
+    .permission-actions {
+        @apply flex justify-between items-center mt-6 p-4 bg-gray-50 rounded;
+    }
+    
+    .permission-actions .actions-label {
+        @apply text-sm text-gray-600;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 11px !important;
+    }
+    
+    .permission-actions .action-buttons {
+        @apply flex space-x-3;
+    }
+    
+    .permission-actions button {
+        @apply text-sm hover:underline;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 11px !important;
+    }
+    
+    .permission-actions .btn-select-all {
+        @apply text-blue-600 hover:text-blue-800;
+    }
+    
+    .permission-actions .btn-clear-all {
+        @apply text-red-600 hover:text-red-800;
+    }
+    
+    .permission-actions .btn-view-only {
+        @apply text-green-600 hover:text-green-800;
+    }
+    
+    /* Permission Status Indicators */
+    .permission-status {
+        @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 10px !important;
+    }
+    
+    .permission-status.granted {
+        @apply bg-green-100 text-green-800;
+    }
+    
+    .permission-status.denied {
+        @apply bg-red-100 text-red-800;
+    }
+    
+    .permission-status.partial {
+        @apply bg-yellow-100 text-yellow-800;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .permission-matrix {
+            @apply text-xs;
+        }
+        
+        .permission-matrix th,
+        .permission-matrix td {
+            @apply px-2 py-2;
+        }
+        
+        .permission-matrix th:first-child,
+        .permission-matrix td:first-child {
+            min-width: 150px;
+        }
+        
+        .permission-matrix th {
+            min-width: 60px;
+        }
+    }
+    
+    /* Matrix Legend */
+    .permission-legend {
+        @apply mt-4 p-3 bg-blue-50 rounded border border-blue-200;
+    }
+    
+    .permission-legend h4 {
+        @apply text-sm font-medium text-blue-900 mb-2;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 12px !important;
+    }
+    
+    .permission-legend ul {
+        @apply text-xs text-blue-800 space-y-1;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 11px !important;
+    }
+    
+    .permission-legend li {
+        @apply flex items-center;
+    }
+    
+    .permission-legend .legend-icon {
+        @apply w-3 h-3 mr-2 rounded;
+    }
+    
+    .permission-legend .legend-icon.granted {
+        @apply bg-green-500;
+    }
+    
+    .permission-legend .legend-icon.denied {
+        @apply bg-red-500;
+    }
+    
+    .permission-legend .legend-icon.disabled {
+        @apply bg-gray-400;
+    }
+}

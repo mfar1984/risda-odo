@@ -1,0 +1,144 @@
+/* Toast Notification Component */
+.toast-notification {
+    font-family: Poppins, sans-serif !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.toast-notification .toast-message {
+    font-family: Poppins, sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Toast Container for Multiple Toasts */
+.toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.toast-container .toast-notification {
+    pointer-events: auto;
+    position: relative;
+    top: auto;
+    right: auto;
+    min-width: 300px;
+    max-width: 400px;
+}
+
+/* Success Toast */
+.toast-success {
+    @apply bg-green-50 border-green-200 text-green-800;
+}
+
+.toast-success .material-symbols-outlined {
+    @apply text-green-600;
+}
+
+/* Error Toast */
+.toast-error {
+    @apply bg-red-50 border-red-200 text-red-800;
+}
+
+.toast-error .material-symbols-outlined {
+    @apply text-red-600;
+}
+
+/* Warning Toast */
+.toast-warning {
+    @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+}
+
+.toast-warning .material-symbols-outlined {
+    @apply text-yellow-600;
+}
+
+/* Info Toast */
+.toast-info {
+    @apply bg-blue-50 border-blue-200 text-blue-800;
+}
+
+.toast-info .material-symbols-outlined {
+    @apply text-blue-600;
+}
+
+/* Animation Classes */
+.toast-enter {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.toast-enter-active {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+.toast-exit {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-exit-active {
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 200ms ease-in, transform 200ms ease-in;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .toast-container {
+        top: 70px;
+        right: 10px;
+        left: 10px;
+    }
+    
+    .toast-container .toast-notification {
+        min-width: auto;
+        max-width: none;
+        width: 100%;
+    }
+}
+
+/* Dark Mode Support (if needed) */
+@media (prefers-color-scheme: dark) {
+    .toast-success {
+        @apply bg-green-900 border-green-700 text-green-100;
+    }
+    
+    .toast-success .material-symbols-outlined {
+        @apply text-green-400;
+    }
+    
+    .toast-error {
+        @apply bg-red-900 border-red-700 text-red-100;
+    }
+    
+    .toast-error .material-symbols-outlined {
+        @apply text-red-400;
+    }
+    
+    .toast-warning {
+        @apply bg-yellow-900 border-yellow-700 text-yellow-100;
+    }
+    
+    .toast-warning .material-symbols-outlined {
+        @apply text-yellow-400;
+    }
+    
+    .toast-info {
+        @apply bg-blue-900 border-blue-700 text-blue-100;
+    }
+    
+    .toast-info .material-symbols-outlined {
+        @apply text-blue-400;
+    }
+}

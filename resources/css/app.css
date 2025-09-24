@@ -6,13 +6,17 @@
 @import './components/dropdown.css';
 @import './components/modal.css';
 @import './components/navigation.css';
+@import './components/release-notes.css';
 @import './components/sidebar.css';
 @import './components/header.css';
 @import './components/footer.css';
 @import './components/dashboard.css';
 @import './components/card.css';
 @import './components/alert.css';
+@import './components/alerts.css';
+@import './components/toast.css';
 @import './components/badge.css';
+@import './components/permission-matrix.css';
 
 @tailwind base;
 @tailwind components;

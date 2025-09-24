@@ -1,36 +1,85 @@
 <x-dashboard-layout title="Senarai Kumpulan">
-    <x-slot name="breadcrumbs">
-        <!-- Home icon -->
-        <a href="{{ route('dashboard') }}" class="breadcrumb-home">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-            </svg>
-        </a>
-        <span class="breadcrumb-separator">></span>
-        <a href="#" class="breadcrumb-link">Pengurusan</a>
-        <span class="breadcrumb-separator">></span>
-        <span class="breadcrumb-current">Senarai Kumpulan</span>
-    </x-slot>
-
-    <!-- Senarai Kumpulan Container -->
-    <x-ui.page-header 
-        title="Senarai Kumpulan" 
-        description="Pengurusan kumpulan pengguna dan peranan dalam sistem"
+    <x-ui.page-header
+        title="Senarai Kumpulan"
+        description="Pengurusan kumpulan pengguna dan kebenaran akses"
     >
-        <div class="dashboard-maintenance-content">
-            <!-- Maintenance Icon -->
-            <div class="maintenance-icon">
-                <svg class="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
+        <!-- Header with Add Button -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <!-- Remove duplicate text here -->
             </div>
-            <!-- Maintenance Text -->
-            <div class="maintenance-text">
-                <h3 class="maintenance-title">Dalam Pembangunan</h3>
-                <p class="maintenance-subtitle">Senarai kumpulan sedang dalam proses pembangunan</p>
-            </div>
+            <a href="{{ route('pengurusan.tambah-kumpulan') }}">
+                <x-buttons.primary-button type="button">
+                    <span class="material-symbols-outlined mr-2" style="font-size: 16px;">add_circle</span>
+                    Kumpulan
+                </x-buttons.primary-button>
+            </a>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5">
+            <table class="min-w-full divide-y divide-gray-300">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama Kumpulan</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Keterangan</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Status</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Tindakan</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse($kumpulans ?? [] as $group)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $group->nama_kumpulan }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                {{ $group->keterangan ?? '-' }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            @if($group->status === 'aktif')
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
+                                    Aktif
+                                </span>
+                            @elseif($group->status === 'tidak_aktif')
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
+                                    Tidak Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
+                                    Gantung
+                                </span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                            <div class="flex justify-center space-x-2">
+                                <a href="{{ route('pengurusan.show-kumpulan', $group) }}" class="text-blue-600 hover:text-blue-900">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+                                </a>
+                                <a href="{{ route('pengurusan.edit-kumpulan', $group) }}" class="text-yellow-600 hover:text-yellow-900">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                                </a>
+                                <form action="{{ route('pengurusan.delete-kumpulan', $group) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $group->nama_kumpulan }}?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-900">
+                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                            Tiada data kumpulan pengguna dijumpai.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </x-ui.page-header>
 </x-dashboard-layout>

@@ -68,6 +68,36 @@ class BreadcrumbService
             'icon' => null,
             'parent' => 'pengurusan',
         ],
+        'pengurusan.tambah-bahagian' => [
+            'name' => 'Tambah RISDA Bahagian',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-risda',
+        ],
+        'pengurusan.show-bahagian' => [
+            'name' => 'Lihat RISDA Bahagian',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-risda',
+        ],
+        'pengurusan.edit-bahagian' => [
+            'name' => 'Edit RISDA Bahagian',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-risda',
+        ],
+        'pengurusan.tambah-stesen' => [
+            'name' => 'Tambah RISDA Stesen',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-risda',
+        ],
+        'pengurusan.show-stesen' => [
+            'name' => 'Lihat RISDA Stesen',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-risda',
+        ],
+        'pengurusan.edit-stesen' => [
+            'name' => 'Edit RISDA Stesen',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-risda',
+        ],
         'pengurusan.senarai-kumpulan' => [
             'name' => 'Senarai Kumpulan',
             'icon' => null,
@@ -75,6 +105,11 @@ class BreadcrumbService
         ],
         'pengurusan.senarai-pengguna' => [
             'name' => 'Senarai Pengguna',
+            'icon' => null,
+            'parent' => 'pengurusan',
+        ],
+        'pengurusan.senarai-kenderaan' => [
+            'name' => 'Senarai Kenderaan',
             'icon' => null,
             'parent' => 'pengurusan',
         ],
@@ -87,6 +122,60 @@ class BreadcrumbService
             'name' => 'Aktiviti Log Keselamatan',
             'icon' => null,
             'parent' => 'pengurusan',
+        ],
+
+        // Help Routes
+        'help' => [
+            'name' => 'Bantuan',
+            'icon' => 'help',
+            'parent' => null,
+        ],
+        'help.panduan-pengguna' => [
+            'name' => 'Panduan Pengguna',
+            'icon' => null,
+            'parent' => 'help',
+        ],
+        'help.faq' => [
+            'name' => 'Soalan Lazim (FAQ)',
+            'icon' => null,
+            'parent' => 'help',
+        ],
+        'help.hubungi-sokongan' => [
+            'name' => 'Hubungi Sokongan',
+            'icon' => null,
+            'parent' => 'help',
+        ],
+        'help.element' => [
+            'name' => 'Element',
+            'icon' => null,
+            'parent' => 'help',
+        ],
+        'help.komponen' => [
+            'name' => 'Komponen',
+            'icon' => null,
+            'parent' => 'help',
+        ],
+        'help.status-sistem' => [
+            'name' => 'Status Sistem',
+            'icon' => null,
+            'parent' => 'help',
+        ],
+        'help.nota-keluaran' => [
+            'name' => 'Nota Keluaran',
+            'icon' => null,
+            'parent' => 'help',
+        ],
+
+        // User Routes
+        'profile.edit' => [
+            'name' => 'Profile',
+            'icon' => 'profile',
+            'parent' => null,
+        ],
+        'settings.index' => [
+            'name' => 'Settings',
+            'icon' => 'settings',
+            'parent' => null,
         ],
     ];
 
