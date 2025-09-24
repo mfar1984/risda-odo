@@ -75,6 +75,14 @@ Route::middleware('auth')->group(function () {
         Route::put('/senarai-risda/stesen/{risdaStesen}', [App\Http\Controllers\RisdaStesenController::class, 'update'])->name('update-stesen');
         Route::delete('/senarai-risda/stesen/{risdaStesen}', [App\Http\Controllers\RisdaStesenController::class, 'destroy'])->name('delete-stesen');
 
+        // RISDA Staf specific routes
+        Route::get('/senarai-risda/tambah-staf', [App\Http\Controllers\RisdaStafController::class, 'create'])->name('tambah-staf');
+        Route::post('/senarai-risda/tambah-staf', [App\Http\Controllers\RisdaStafController::class, 'store'])->name('store-staf');
+        Route::get('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'show'])->name('show-staf');
+        Route::get('/senarai-risda/staf/{risdaStaf}/edit', [App\Http\Controllers\RisdaStafController::class, 'edit'])->name('edit-staf');
+        Route::put('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'update'])->name('update-staf');
+        Route::delete('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'destroy'])->name('delete-staf');
+
         // RISDA Bahagian dynamic routes (must be last)
         Route::get('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'show'])->name('show-bahagian');
         Route::get('/senarai-risda/{risdaBahagian}/edit', [App\Http\Controllers\RisdaBahagianController::class, 'edit'])->name('edit-bahagian');
@@ -90,9 +98,19 @@ Route::middleware('auth')->group(function () {
         Route::put('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'update'])->name('update-kumpulan');
         Route::delete('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'destroy'])->name('delete-kumpulan');
 
-        Route::get('/senarai-pengguna', function () {
-            return view('pengurusan.senarai-pengguna');
-        })->name('senarai-pengguna');
+        // Senarai Pengguna Routes
+        Route::get('/senarai-pengguna', [App\Http\Controllers\PenggunaController::class, 'index'])->name('senarai-pengguna');
+        Route::get('/senarai-pengguna/tambah-pengguna', [App\Http\Controllers\PenggunaController::class, 'create'])->name('tambah-pengguna');
+        Route::post('/senarai-pengguna/tambah-pengguna', [App\Http\Controllers\PenggunaController::class, 'store'])->name('store-pengguna');
+        Route::get('/senarai-pengguna/get-stesen/{bahagianId}', [App\Http\Controllers\PenggunaController::class, 'getStesenByBahagian'])->name('get-stesen-by-bahagian');
+Route::get('/senarai-pengguna/get-all-stesen', [App\Http\Controllers\PenggunaController::class, 'getAllStesen'])->name('get-all-stesen');
+        Route::get('/senarai-pengguna/{pengguna}', [App\Http\Controllers\PenggunaController::class, 'show'])->name('show-pengguna');
+        Route::get('/senarai-pengguna/{pengguna}/edit', [App\Http\Controllers\PenggunaController::class, 'edit'])->name('edit-pengguna');
+        Route::put('/senarai-pengguna/{pengguna}', [App\Http\Controllers\PenggunaController::class, 'update'])->name('update-pengguna');
+        Route::delete('/senarai-pengguna/{pengguna}', [App\Http\Controllers\PenggunaController::class, 'destroy'])->name('delete-pengguna');
+
+
+
 
         Route::get('/senarai-kenderaan', function () {
             return view('pengurusan.senarai-kenderaan');

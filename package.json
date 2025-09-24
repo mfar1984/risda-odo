@@ -19,6 +19,7 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
+        "@yaireo/tagify": "^4.35.4",
         "malaysia-postcodes": "^2.7.3"
     }
 }

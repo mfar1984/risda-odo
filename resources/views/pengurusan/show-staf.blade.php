@@ -1,30 +1,111 @@
 <x-dashboard-layout 
-    title="Lihat RISDA Bahagian"
-    description="Maklumat terperinci RISDA Bahagian"
+    title="Lihat RISDA Staf"
+    description="Maklumat terperinci RISDA Staf"
     >
         <x-ui.container class="w-full">
             <section>
                 <header>
                     <h2 class="text-lg font-medium text-gray-900">
-                        {{ __('RISDA Bahagian') }}
+                        {{ __('Maklumat RISDA Staf') }}
                     </h2>
 
                     <p class="mt-1 text-sm text-gray-600">
-                        {{ __('Maklumat terperinci RISDA Bahagian') }}
+                        {{ __('Maklumat terperinci RISDA Staf') }}
                     </p>
                 </header>
 
                 <div class="mt-6 space-y-6">
-                    <!-- Row 1: Nama Bahagian & No. Telefon -->
+                    <!-- Row 1: No. Pekerja & Nama Penuh -->
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">
-                            <x-forms.input-label for="nama_bahagian" value="Nama Bahagian" />
+                            <x-forms.input-label for="no_pekerja" value="No. Pekerja" />
                             <x-forms.text-input 
-                                id="nama_bahagian" 
-                                name="nama_bahagian" 
+                                id="no_pekerja" 
+                                name="no_pekerja" 
                                 type="text" 
                                 class="mt-1 block w-full" 
-                                value="{{ $risdaBahagian->nama_bahagian }}"
+                                value="{{ $risdaStaf->no_pekerja }}"
+                                readonly
+                            />
+                        </div>
+                        
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="nama_penuh" value="Nama Penuh" />
+                            <x-forms.text-input 
+                                id="nama_penuh" 
+                                name="nama_penuh" 
+                                type="text" 
+                                class="mt-1 block w-full" 
+                                value="{{ $risdaStaf->nama_penuh }}"
+                                readonly
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Row 2: No. Kad Pengenalan & Jantina -->
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="no_kad_pengenalan" value="No. Kad Pengenalan" />
+                            <x-forms.text-input 
+                                id="no_kad_pengenalan" 
+                                name="no_kad_pengenalan" 
+                                type="text" 
+                                class="mt-1 block w-full" 
+                                value="{{ $risdaStaf->no_kad_pengenalan }}"
+                                readonly
+                            />
+                        </div>
+                        
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="jantina" value="Jantina" />
+                            <x-forms.text-input 
+                                id="jantina" 
+                                name="jantina" 
+                                type="text" 
+                                class="mt-1 block w-full" 
+                                value="{{ ucfirst($risdaStaf->jantina) }}"
+                                readonly
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Bahagian & Stesen -->
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="bahagian" value="RISDA Bahagian" />
+                            <x-forms.text-input 
+                                id="bahagian" 
+                                name="bahagian" 
+                                type="text" 
+                                class="mt-1 block w-full" 
+                                value="{{ $risdaStaf->bahagian->nama_bahagian ?? 'N/A' }}"
+                                readonly
+                            />
+                        </div>
+
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="stesen" value="RISDA Stesen" />
+                            <x-forms.text-input 
+                                id="stesen" 
+                                name="stesen" 
+                                type="text" 
+                                class="mt-1 block w-full" 
+                                value="{{ $risdaStaf->stesen->nama_stesen ?? 'Semua Stesen dalam Bahagian' }}"
+                                readonly
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Jawatan & No. Telefon -->
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="jawatan" value="Jawatan" />
+                            <x-forms.text-input 
+                                id="jawatan" 
+                                name="jawatan" 
+                                type="text" 
+                                class="mt-1 block w-full" 
+                                value="{{ $risdaStaf->jawatan }}"
                                 readonly
                             />
                         </div>
@@ -34,61 +115,62 @@
                             <x-forms.text-input 
                                 id="no_telefon" 
                                 name="no_telefon" 
-                                type="tel" 
+                                type="text" 
                                 class="mt-1 block w-full" 
-                                value="{{ $risdaBahagian->no_telefon }}"
+                                value="{{ $risdaStaf->no_telefon }}"
                                 readonly
                             />
                         </div>
                     </div>
 
-                    <!-- Row 2: No. Fax & Email -->
+                    <!-- Row 5: Email & No. Fax -->
                     <div style="display: flex; gap: 20px;">
-                        <div style="flex: 1;">
-                            <x-forms.input-label for="no_fax" value="No. Fax" />
-                            <x-forms.text-input 
-                                id="no_fax" 
-                                name="no_fax" 
-                                type="tel" 
-                                class="mt-1 block w-full" 
-                                value="{{ $risdaBahagian->no_fax }}"
-                                readonly
-                            />
-                        </div>
-                        
                         <div style="flex: 1;">
                             <x-forms.input-label for="email" value="Email" />
                             <x-forms.text-input 
                                 id="email" 
                                 name="email" 
-                                type="email" 
+                                type="text" 
                                 class="mt-1 block w-full" 
-                                value="{{ $risdaBahagian->email }}"
+                                value="{{ $risdaStaf->email }}"
+                                readonly
+                            />
+                        </div>
+                        
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="no_fax" value="No. Fax" />
+                            <x-forms.text-input 
+                                id="no_fax" 
+                                name="no_fax" 
+                                type="text" 
+                                class="mt-1 block w-full" 
+                                value="{{ $risdaStaf->no_fax ?? 'Tiada' }}"
                                 readonly
                             />
                         </div>
                     </div>
 
-                    <!-- Row 3: Status -->
+                    <!-- Row 6: Status -->
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">
-                            <x-forms.input-label for="status_dropdown" value="Status" />
+                            <x-forms.input-label for="status" value="Status" />
                             <div class="mt-1">
-                                @if($risdaBahagian->status_dropdown === 'aktif')
+                                @if($risdaStaf->status === 'aktif')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                                         Aktif
                                     </span>
-                                @else
+                                @elseif($risdaStaf->status === 'tidak_aktif')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                                         Tidak Aktif
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                        Gantung
                                     </span>
                                 @endif
                             </div>
                         </div>
-
-                        <div style="flex: 1;">
-                            <!-- Empty space to maintain layout -->
-                        </div>
+                        <div style="flex: 1;"></div>
                     </div>
 
                     <!-- Separator -->
@@ -99,7 +181,7 @@
                         </h3>
                     </div>
 
-                    <!-- Row 4: Alamat 1 & Alamat 2 -->
+                    <!-- Row 7: Alamat 1 & Alamat 2 -->
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">
                             <x-forms.input-label for="alamat_1" value="Alamat 1" />
@@ -108,7 +190,7 @@
                                 name="alamat_1" 
                                 type="text" 
                                 class="mt-1 block w-full" 
-                                value="{{ $risdaBahagian->alamat_1 }}"
+                                value="{{ $risdaStaf->alamat_1 }}"
                                 readonly
                             />
                         </div>
@@ -120,13 +202,13 @@
                                 name="alamat_2" 
                                 type="text" 
                                 class="mt-1 block w-full" 
-                                value="{{ $risdaBahagian->alamat_2 }}"
+                                value="{{ $risdaStaf->alamat_2 ?? 'Tiada' }}"
                                 readonly
                             />
                         </div>
                     </div>
 
-                    <!-- Row 5: Poskod & Bandar -->
+                    <!-- Row 8: Poskod & Bandar -->
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">
                             <x-forms.input-label for="poskod" value="Poskod" />
@@ -135,7 +217,7 @@
                                 name="poskod" 
                                 type="text" 
                                 class="mt-1 block w-full" 
-                                value="{{ $risdaBahagian->poskod }}"
+                                value="{{ $risdaStaf->poskod }}"
                                 readonly
                             />
                         </div>
@@ -147,13 +229,13 @@
                                 name="bandar" 
                                 type="text" 
                                 class="mt-1 block w-full" 
-                                value="{{ $risdaBahagian->bandar }}"
+                                value="{{ $risdaStaf->bandar }}"
                                 readonly
                             />
                         </div>
                     </div>
 
-                    <!-- Row 6: Negeri & Malaysia -->
+                    <!-- Row 9: Negeri & Negara -->
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">
                             <x-forms.input-label for="negeri" value="Negeri" />
@@ -162,7 +244,7 @@
                                 name="negeri" 
                                 type="text" 
                                 class="mt-1 block w-full" 
-                                value="{{ $risdaBahagian->negeri }}"
+                                value="{{ $risdaStaf->negeri }}"
                                 readonly
                             />
                         </div>
@@ -174,7 +256,7 @@
                                 name="negara" 
                                 type="text" 
                                 class="mt-1 block w-full" 
-                                value="{{ $risdaBahagian->negara }}"
+                                value="{{ $risdaStaf->negara }}"
                                 readonly
                             />
                         </div>
@@ -188,28 +270,28 @@
                         </h3>
                     </div>
 
-                    <!-- Row 7: Created & Updated -->
+                    <!-- Row 10: Created & Updated -->
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">
                             <x-forms.input-label for="created_at" value="Dicipta Pada" />
-                            <x-forms.text-input
-                                id="created_at"
-                                name="created_at"
-                                type="text"
-                                class="mt-1 block w-full"
-                                value="{{ $risdaBahagian->created_at->format('d/m/Y H:i:s') }}"
+                            <x-forms.text-input 
+                                id="created_at" 
+                                name="created_at" 
+                                type="text" 
+                                class="mt-1 block w-full" 
+                                value="{{ $risdaStaf->created_at->format('d/m/Y H:i:s') }}"
                                 readonly
                             />
                         </div>
-
+                        
                         <div style="flex: 1;">
                             <x-forms.input-label for="updated_at" value="Dikemaskini Pada" />
-                            <x-forms.text-input
-                                id="updated_at"
-                                name="updated_at"
-                                type="text"
-                                class="mt-1 block w-full"
-                                value="{{ $risdaBahagian->updated_at->format('d/m/Y H:i:s') }}"
+                            <x-forms.text-input 
+                                id="updated_at" 
+                                name="updated_at" 
+                                type="text" 
+                                class="mt-1 block w-full" 
+                                value="{{ $risdaStaf->updated_at->format('d/m/Y H:i:s') }}"
                                 readonly
                             />
                         </div>
@@ -225,14 +307,14 @@
                         </a>
                         
                         <div class="flex space-x-3">
-                            <a href="{{ route('pengurusan.edit-bahagian', $risdaBahagian) }}">
+                            <a href="{{ route('pengurusan.edit-staf', $risdaStaf) }}">
                                 <x-buttons.warning-button type="button">
                                     <span class="material-symbols-outlined mr-2" style="font-size: 16px;">edit</span>
                                     Edit
                                 </x-buttons.warning-button>
                             </a>
                             
-                            <form action="{{ route('pengurusan.delete-bahagian', $risdaBahagian) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $risdaBahagian->nama_bahagian }}?')">
+                            <form action="{{ route('pengurusan.delete-staf', $risdaStaf) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $risdaStaf->nama_penuh }}?')">
                                 @csrf
                                 @method('DELETE')
                                 <x-buttons.danger-button type="submit">

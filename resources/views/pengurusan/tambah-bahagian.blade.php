@@ -35,13 +35,14 @@
                     
                     <div style="flex: 1;">
                         <x-forms.input-label for="no_telefon" value="No. Telefon" />
-                        <x-forms.text-input 
-                            id="no_telefon" 
-                            name="no_telefon" 
-                            type="tel" 
-                            class="mt-1 block w-full" 
-                            required 
-                            autocomplete="tel" 
+                        <x-forms.text-input
+                            id="no_telefon"
+                            name="no_telefon"
+                            type="tel"
+                            class="mt-1 block w-full"
+                            required
+                            maxlength="20"
+                            autocomplete="tel"
                         />
                         <x-forms.input-error class="mt-2" :messages="$errors->get('no_telefon')" />
                     </div>
@@ -56,6 +57,7 @@
                             name="no_fax"
                             type="tel"
                             class="mt-1 block w-full"
+                            maxlength="20"
                             autocomplete="tel"
                         />
                         <x-forms.input-error class="mt-2" :messages="$errors->get('no_fax')" />
@@ -101,6 +103,9 @@
                 <!-- Separator -->
                 <div class="my-6">
                     <div class="border-t border-gray-200"></div>
+                    <h3 class="text-lg font-medium text-gray-900 mt-4" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">
+                        Maklumat Alamat
+                    </h3>
                 </div>
 
                 <!-- Row 4: Alamat 1 & Alamat 2 -->
@@ -213,6 +218,8 @@
 
     <!-- Malaysia Postcodes Script -->
     <script src="/js/malaysia-postcodes.min.js"></script>
+    <!-- Custom Postcodes Extension -->
+    <script src="/js/custom-postcodes.js"></script>
     <script>
         function postcodeHandler() {
             return {
@@ -223,9 +230,9 @@
                 handlePostcodeChange() {
                     if (this.poskod.length === 5) {
                         try {
-                            // Use the global malaysiaPostcodes object
-                            const result = malaysiaPostcodes.findPostcode(this.poskod);
-                            
+                            // Use enhanced postcode finder (checks custom postcodes first)
+                            const result = findPostcodeEnhanced(this.poskod);
+
                             if (result.found) {
                                 this.bandar = result.city;
                                 this.negeri = result.state;
