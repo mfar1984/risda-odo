@@ -1,0 +1,336 @@
+/* Tagtify Component Styles - Matches Form-Select Design Pattern */
+/* High priority styles to override default Tagify CSS */
+
+/* Main Tagify Container - Match form-select with centered content */
+.tagify,
+input.tagify,
+tags.tagify {
+    display: flex !important; /* Changed to flex for proper centering */
+    align-items: center !important; /* Center content vertically */
+    width: 100% !important;
+    border: 1px solid #d1d5db !important; /* border-gray-300 */
+    border-radius: 0.0625rem !important; /* rounded-sm to match form-select exactly */
+    background-color: white !important;
+    cursor: text !important;
+    
+    /* Match RISDA create.blade.php: text-xs px-3 with consistent height */
+    font-size: 0.75rem !important; /* text-xs = 12px */
+    line-height: 1rem !important;
+    padding: 0 0.75rem !important; /* Only horizontal padding - center vertically */
+    min-height: 2.05rem !important; /* Match your preferred height */
+    font-family: 'Poppins', sans-serif !important;
+    box-sizing: border-box !important;
+    
+    /* Focus states like RISDA */
+    transition: all 0.15s ease-in-out !important;
+    
+    /* Relative positioning for placeholder absolute positioning */
+    position: relative !important;
+    
+    /* Override default tagify styles */
+    --tag-bg: #1e40af;
+    --tag-hover: #1d4ed8;
+    --tag-text-color: white;
+    --tag-remove-bg: rgba(255, 255, 255, 0.2);
+    --tag-remove-btn-color: rgba(255, 255, 255, 0.8);
+    --tag-pad: 4px 8px;
+    --tag-inset-shadow-size: 0;
+    --tag-border-radius: 4px;
+    --tags-border-color: #d1d5db;
+    --tags-hover-border-color: #9ca3af;
+    --tags-focus-border-color: #3b82f6;
+    --placeholder-color: #9ca3af;
+    --input-color: #374151;
+    
+    /* Additional styling */
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+/* Focus state - match RISDA create.blade.php exactly */
+.tagify:focus-within,
+.tagify.tagify--focus,
+input.tagify:focus-within,
+input.tagify.tagify--focus,
+tags.tagify:focus-within,
+tags.tagify.tagify--focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important; /* focus:ring-2 focus:ring-blue-200 */
+    border-color: #3b82f6 !important; /* focus:border-blue-500 */
+}
+
+/* Tag container - perfect center alignment */
+.tagify__input,
+.tagify > span {
+    display: flex !important;
+    align-items: center !important; /* Perfect vertical center */
+    justify-content: flex-start !important; /* Start from left */
+    flex-wrap: wrap !important;
+    height: 100% !important; /* Fill parent height */
+    width: 100% !important;
+    gap: 3px !important; /* Small gap between elements */
+}
+
+/* Input field inside tagify - properly aligned */
+.tagify__input {
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.75rem !important; /* text-xs like RISDA */
+    line-height: 1rem !important;
+    color: #374151 !important;
+    margin: 0 !important;
+    padding: 0 !important; /* No padding - container handles spacing */
+    border: none !important;
+    background: transparent !important;
+    min-width: 60px !important; /* Smaller for compact design */
+    flex: 1 !important;
+    outline: none !important;
+    text-indent: 0 !important; /* Ensure no extra indentation */
+}
+
+/* Placeholder styling - centered and match RISDA text-xs */
+.tagify__input::before,
+.tagify__input::placeholder {
+    color: #9ca3af !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.75rem !important; /* text-xs like RISDA */
+    line-height: 1rem !important;
+}
+
+/* Placeholder aligned with container padding */
+.tagify__input::before,
+.tagify__input::placeholder {
+    /* Align with container padding so it's not too far left */
+    padding-left: 4px !important; /* Reset any default padding */
+    margin-left: 4px !important; /* Reset any default margin */
+    text-indent: 0 !important; /* No extra indentation */
+    margin-top: 6px !important;
+}
+
+/* Selected tags - minimal padding, match form-select border radius */
+.tagify__tag {
+    background: #1e40af !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 0.0625rem !important; /* rounded-sm to match form-select */
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.625rem !important; /* Smaller than text-xs for compact look */
+    font-weight: 500 !important;
+    margin: 1px 3px 1px 0 !important; /* Minimal margins */
+    padding: 1px 6px !important; /* Minimal vertical padding - no top/bottom space wasted */
+    display: inline-flex !important;
+    align-items: center !important;
+    animation: none !important;
+    line-height: 1.2 !important; /* Slightly taller for readability but compact */
+    height: auto !important;
+    min-height: unset !important; /* Remove any minimum height constraints */
+}
+
+/* Tag text - compact RISDA style */
+.tagify__tag-text {
+    font-size: 0.625rem !important; /* Same as tag size */
+    font-family: 'Poppins', sans-serif !important;
+    color: white !important;
+    line-height: 1 !important;
+}
+
+/* Remove button styling - compact */
+.tagify__tag__removeBtn {
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin-left: 4px !important; /* Smaller margin */
+    font-size: 0.625rem !important; /* Smaller size */
+    cursor: pointer !important;
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+    width: 10px !important; /* Smaller button */
+    height: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 2px !important;
+    transition: all 0.15s ease-in-out !important;
+}
+
+    .tagify__tag__removeBtn:hover {
+        color: white !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-radius: 50% !important;
+    }
+
+/* Dropdown - match form-select dropdown styling with rounded-sm */
+.tagify__dropdown {
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.0625rem !important; /* rounded-sm to match form-select */
+    background: white !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    margin-top: 4px !important;
+    z-index: 1000 !important;
+    font-family: 'Poppins', sans-serif !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
+}
+
+/* Dropdown items - match RISDA text-xs */
+.tagify__dropdown__item {
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.75rem !important; /* text-xs like RISDA */
+    line-height: 1rem !important;
+    color: #374151 !important;
+    padding: 0.5rem 0.75rem !important; /* py-2 px-3 like RISDA */
+    cursor: pointer !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    background: white !important;
+    transition: background-color 0.15s ease-in-out !important;
+    animation: none !important;
+}
+
+    .tagify__dropdown__item:last-child {
+        border-bottom: none !important;
+    }
+
+    /* Hover state - light gray like form-select options */
+    .tagify__dropdown__item:hover {
+        background: #f9fafb !important;
+        color: #374151 !important;
+    }
+
+    /* Active/Selected state - subtle blue */
+    .tagify__dropdown__item--active {
+        background: #eff6ff !important;
+        color: #1e40af !important;
+    }
+
+    /* Small variant for smaller forms */
+    .tagify-sm {
+        font-size: 10px !important;
+        min-height: 26px !important;
+        padding: 0px 8px !important;
+    }
+
+    .tagify-sm .tagify__input {
+        font-size: 10px !important;
+    }
+
+    .tagify-sm .tagify__tag {
+        font-size: 9px !important;
+        padding: 2px 6px !important;
+    }
+
+    .tagify-sm .tagify__dropdown__item {
+        font-size: 10px !important;
+        padding: 6px 8px !important;
+    }
+
+    /* Large variant for larger forms */
+    .tagify-lg {
+        font-size: 14px !important;
+        min-height: 40px !important;
+        padding: 0px 16px !important;
+    }
+
+    .tagify-lg .tagify__input {
+        font-size: 14px !important;
+    }
+
+    .tagify-lg .tagify__tag {
+        font-size: 13px !important;
+        padding: 6px 10px !important;
+    }
+
+    .tagify-lg .tagify__dropdown__item {
+        font-size: 14px !important;
+        padding: 10px 16px !important;
+    }
+
+    /* Error state - match form-input-error */
+    .tagify-error {
+        border-color: #ef4444 !important;
+    }
+
+    .tagify-error:focus-within {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+    }
+
+    /* Success state - match form-input-success */
+    .tagify-success {
+        border-color: #10b981 !important;
+    }
+
+    .tagify-success:focus-within {
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+    }
+
+    /* Disabled state */
+    .tagify[disabled] {
+        background-color: #f9fafb !important;
+        color: #6b7280 !important;
+        cursor: not-allowed !important;
+        opacity: 0.6 !important;
+    }
+
+    .tagify[disabled] .tagify__input {
+        cursor: not-allowed !important;
+    }
+
+    /* Loading state */
+    .tagify--loading::after {
+        content: '' !important;
+        position: absolute !important;
+        right: 10px !important;
+        top: 50% !important;
+        width: 16px !important;
+        height: 16px !important;
+        margin-top: -8px !important;
+        border: 2px solid #e5e7eb !important;
+        border-top-color: #3b82f6 !important;
+        border-radius: 50% !important;
+        animation: tagify-loader 0.8s linear infinite !important;
+    }
+
+    @keyframes tagify-loader {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+/* Override default Tagify CSS - perfect center alignment */
+.tagify:not(.tagify--mix):not(.tagify--select) {
+    padding: 0.2rem 0.2rem !important; /* Only horizontal padding for center */
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.0625rem !important; /* rounded-sm to match form-select exactly */
+    min-height: 2.05rem !important; /* Match your preferred height */
+    line-height: 1rem !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.75rem !important; /* text-xs */
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important; /* Perfect vertical center */
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+}
+
+/* Ensure tag content perfectly centered */
+.tagify:not(.tagify--mix):not(.tagify--select) > span {
+    display: flex !important;
+    align-items: center !important; /* Perfect vertical center */
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    height: 100% !important; /* Fill parent height for center */
+    gap: 3px !important; /* Clean spacing between tags */
+}
+
+    /* Fix specific height issue that might cause cutting */
+    .tagify__tag + .tagify__input {
+        margin-left: 4px !important;
+        min-width: 60px !important;
+    }
+
+    /* Ensure tags don't break layout */
+    .tagify__tag {
+        margin: 2px 4px 2px 0 !important;
+        max-width: calc(100% - 80px) !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }

@@ -98,10 +98,45 @@ class BreadcrumbService
             'icon' => null,
             'parent' => 'pengurusan.senarai-risda',
         ],
+        'pengurusan.tambah-staf' => [
+            'name' => 'Tambah RISDA Staf',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-risda',
+        ],
+        'pengurusan.show-staf' => [
+            'name' => 'Lihat RISDA Staf',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-risda',
+        ],
+        'pengurusan.edit-staf' => [
+            'name' => 'Edit RISDA Staf',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-risda',
+        ],
         'pengurusan.senarai-kumpulan' => [
             'name' => 'Senarai Kumpulan',
             'icon' => null,
             'parent' => 'pengurusan',
+        ],
+        'pengurusan.senarai-pengguna' => [
+            'name' => 'Senarai Pengguna',
+            'icon' => null,
+            'parent' => 'pengurusan',
+        ],
+        'pengurusan.tambah-pengguna' => [
+            'name' => 'Tambah Pengguna',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-pengguna',
+        ],
+        'pengurusan.show-pengguna' => [
+            'name' => 'Lihat Pengguna',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-pengguna',
+        ],
+        'pengurusan.edit-pengguna' => [
+            'name' => 'Edit Pengguna',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-pengguna',
         ],
         'pengurusan.senarai-pengguna' => [
             'name' => 'Senarai Pengguna',

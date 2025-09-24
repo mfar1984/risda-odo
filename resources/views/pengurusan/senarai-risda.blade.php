@@ -22,6 +22,13 @@
                         <span class="material-symbols-outlined" style="font-size: 16px;">location_on</span>
                         RISDA Stesen
                     </button>
+                    <button @click="activeTab = 'staf'"
+                            :class="activeTab === 'staf' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="whitespace-nowrap py-3 px-2 font-medium transition-colors duration-200 flex items-center gap-2"
+                            :style="activeTab === 'staf' ? 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid #2563eb !important; color: #2563eb !important;' : 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid transparent !important;'">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">people</span>
+                        RISDA Staf
+                    </button>
                 </nav>
             </div>
 
@@ -178,6 +185,97 @@
                                 </tbody>
                             </table>
                         </div>
+                </div>
+
+                <!-- RISDA Staf Tab -->
+                <div x-show="activeTab === 'staf'" x-transition>
+                    <!-- Header with Add Button -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Senarai RISDA Staf</h3>
+                            <p class="text-sm text-gray-600 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Pengurusan RISDA Staf dalam sistem</p>
+                        </div>
+                        <a href="{{ route('pengurusan.tambah-staf') }}">
+                            <x-buttons.primary-button type="button">
+                                <span class="material-symbols-outlined mr-2" style="font-size: 16px;">add_circle</span>
+                                Staf
+                            </x-buttons.primary-button>
+                        </a>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">No. Pekerja</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama Penuh</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Bahagian</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Jawatan</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @forelse($stafs ?? [] as $staf)
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->no_pekerja }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->nama_penuh }}</div>
+                                        <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $staf->email }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->bahagian->nama_bahagian ?? 'N/A' }}</div>
+                                        <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $staf->stesen->nama_stesen ?? 'Semua Stesen' }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->jawatan }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($staf->status === 'aktif')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Aktif
+                                            </span>
+                                        @elseif($staf->status === 'tidak_aktif')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                Tidak Aktif
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Gantung
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                        <div class="flex justify-center space-x-2">
+                                            <a href="{{ route('pengurusan.show-staf', $staf) }}" class="text-blue-600 hover:text-blue-900">
+                                                <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+                                            </a>
+                                            <a href="{{ route('pengurusan.edit-staf', $staf) }}" class="text-yellow-600 hover:text-yellow-900">
+                                                <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                                            </a>
+                                            <form action="{{ route('pengurusan.delete-staf', $staf) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $staf->nama_penuh }}?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-900">
+                                                    <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        Tiada data RISDA Staf dijumpai.
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

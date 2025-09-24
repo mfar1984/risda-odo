@@ -85,20 +85,26 @@
                         
                         <div style="flex: 1;">
                             <x-forms.input-label for="status_dropdown" value="Status" />
-                            <x-forms.text-input 
-                                id="status_dropdown" 
-                                name="status_dropdown" 
-                                type="text" 
-                                class="mt-1 block w-full" 
-                                value="{{ ucfirst(str_replace('_', ' ', $risdaStesen->status_dropdown)) }}"
-                                readonly
-                            />
+                            <div class="mt-1">
+                                @if($risdaStesen->status_dropdown === 'aktif')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        Aktif
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                        Tidak Aktif
+                                    </span>
+                                @endif
+                            </div>
                         </div>
                     </div>
 
                     <!-- Separator -->
                     <div class="my-6">
                         <div class="border-t border-gray-200"></div>
+                        <h3 class="text-lg font-medium text-gray-900 mt-4" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">
+                            Maklumat Alamat
+                        </h3>
                     </div>
 
                     <!-- Row 4: Alamat 1 & Alamat 2 -->
@@ -177,6 +183,41 @@
                                 type="text" 
                                 class="mt-1 block w-full" 
                                 value="{{ $risdaStesen->negara }}"
+                                readonly
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Separator -->
+                    <div class="my-6">
+                        <div class="border-t border-gray-200"></div>
+                        <h3 class="text-lg font-medium text-gray-900 mt-4" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">
+                            Maklumat Sistem
+                        </h3>
+                    </div>
+
+                    <!-- Row 7: Created & Updated -->
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="created_at" value="Dicipta Pada" />
+                            <x-forms.text-input
+                                id="created_at"
+                                name="created_at"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ $risdaStesen->created_at->format('d/m/Y H:i:s') }}"
+                                readonly
+                            />
+                        </div>
+
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="updated_at" value="Dikemaskini Pada" />
+                            <x-forms.text-input
+                                id="updated_at"
+                                name="updated_at"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ $risdaStesen->updated_at->format('d/m/Y H:i:s') }}"
                                 readonly
                             />
                         </div>

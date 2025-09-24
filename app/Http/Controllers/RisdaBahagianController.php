@@ -15,7 +15,8 @@ class RisdaBahagianController extends Controller
     {
         $bahagians = RisdaBahagian::latest()->get();
         $stesens = \App\Models\RisdaStesen::with('risdaBahagian')->latest()->get();
-        return view('pengurusan.senarai-risda', compact('bahagians', 'stesens'));
+        $stafs = \App\Models\RisdaStaf::with(['bahagian', 'stesen'])->latest()->get();
+        return view('pengurusan.senarai-risda', compact('bahagians', 'stesens', 'stafs'));
     }
 
     /**

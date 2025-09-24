@@ -26,6 +26,7 @@ class User extends Authenticatable
         'kumpulan_id',
         'jenis_organisasi',
         'organisasi_id',
+        'stesen_akses_ids',
         'status',
     ];
 
@@ -48,6 +49,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'stesen_akses_ids' => 'array',
         ];
     }
 
@@ -134,6 +137,31 @@ class User extends Authenticatable
             default:
                 return null;
         }
+    }
+
+    /**
+     * Get multiple stesen akses (accessor method).
+     */
+    public function getStesenAksesAttribute()
+    {
+        if (!$this->stesen_akses_ids) {
+            return collect();
+        }
+
+        return RisdaStesen::whereIn('id', $this->stesen_akses_ids)->get();
+    }
+
+    /**
+     * Get stesen akses names as string.
+     */
+    public function getStesenAksesNamesAttribute()
+    {
+        $stesens = $this->stesen_akses; // Use accessor
+        if ($stesens->isEmpty()) {
+            return 'Semua Stesen';
+        }
+
+        return $stesens->pluck('nama_stesen')->join(', ');
     }
 
     /**

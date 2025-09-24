@@ -3,6 +3,7 @@
 /* Import Component Styles */
 @import './components/buttons.css';
 @import './components/forms.css';
+@import './components/tagtify.css';
 @import './components/dropdown.css';
 @import './components/modal.css';
 @import './components/navigation.css';
