@@ -1,0 +1,187 @@
+/* Success Alert Component */
+.success-alert {
+    @apply mb-4 rounded-md border border-green-200 bg-green-50 shadow-sm;
+    font-family: Poppins, sans-serif !important;
+}
+
+.success-alert-content {
+    @apply flex items-center justify-between p-3;
+    min-height: 48px; /* Compact height */
+}
+
+.success-alert-icon {
+    @apply flex-shrink-0 mr-3;
+}
+
+.success-alert-icon .material-symbols-outlined {
+    @apply text-green-600;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+}
+
+.success-alert-message {
+    @apply flex-1 text-green-800;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.success-alert-close {
+    @apply flex-shrink-0 ml-3 text-green-600 hover:text-green-800 transition-colors duration-200;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.success-alert-close:hover {
+    @apply bg-green-100;
+}
+
+.success-alert-close .material-symbols-outlined {
+    font-size: 18px !important;
+    font-weight: 500 !important;
+}
+
+/* Error Alert Component */
+.error-alert {
+    @apply mb-4 rounded-md border border-red-200 bg-red-50 shadow-sm;
+    font-family: Poppins, sans-serif !important;
+}
+
+.error-alert-content {
+    @apply flex items-center justify-between p-3;
+    min-height: 48px;
+}
+
+.error-alert-icon {
+    @apply flex-shrink-0 mr-3;
+}
+
+.error-alert-icon .material-symbols-outlined {
+    @apply text-red-600;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+}
+
+.error-alert-message {
+    @apply flex-1 text-red-800;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.error-alert-close {
+    @apply flex-shrink-0 ml-3 text-red-600 hover:text-red-800 transition-colors duration-200;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.error-alert-close:hover {
+    @apply bg-red-100;
+}
+
+.error-alert-close .material-symbols-outlined {
+    font-size: 18px !important;
+    font-weight: 500 !important;
+}
+
+/* Warning Alert Component */
+.warning-alert {
+    @apply mb-4 rounded-md border border-yellow-200 bg-yellow-50 shadow-sm;
+    font-family: Poppins, sans-serif !important;
+}
+
+.warning-alert-content {
+    @apply flex items-center justify-between p-3;
+    min-height: 48px;
+}
+
+.warning-alert-icon {
+    @apply flex-shrink-0 mr-3;
+}
+
+.warning-alert-icon .material-symbols-outlined {
+    @apply text-yellow-600;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+}
+
+.warning-alert-message {
+    @apply flex-1 text-yellow-800;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.warning-alert-close {
+    @apply flex-shrink-0 ml-3 text-yellow-600 hover:text-yellow-800 transition-colors duration-200;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.warning-alert-close:hover {
+    @apply bg-yellow-100;
+}
+
+.warning-alert-close .material-symbols-outlined {
+    font-size: 18px !important;
+    font-weight: 500 !important;
+}
+
+/* Info Alert Component */
+.info-alert {
+    @apply mb-4 rounded-md border border-blue-200 bg-blue-50 shadow-sm;
+    font-family: Poppins, sans-serif !important;
+}
+
+.info-alert-content {
+    @apply flex items-center justify-between p-3;
+    min-height: 48px;
+}
+
+.info-alert-icon {
+    @apply flex-shrink-0 mr-3;
+}
+
+.info-alert-icon .material-symbols-outlined {
+    @apply text-blue-600;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+}
+
+.info-alert-message {
+    @apply flex-1 text-blue-800;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.info-alert-close {
+    @apply flex-shrink-0 ml-3 text-blue-600 hover:text-blue-800 transition-colors duration-200;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.info-alert-close:hover {
+    @apply bg-blue-100;
+}
+
+.info-alert-close .material-symbols-outlined {
+    font-size: 18px !important;
+    font-weight: 500 !important;
+}

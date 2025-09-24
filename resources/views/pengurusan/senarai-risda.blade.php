@@ -1,35 +1,184 @@
 <x-dashboard-layout title="Senarai RISDA">
-    <x-slot name="breadcrumbs">
-        <!-- Home icon -->
-        <a href="{{ route('dashboard') }}" class="breadcrumb-home">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-            </svg>
-        </a>
-        <span class="breadcrumb-separator">></span>
-        <a href="#" class="breadcrumb-link">Pengurusan</a>
-        <span class="breadcrumb-separator">></span>
-        <span class="breadcrumb-current">Senarai RISDA</span>
-    </x-slot>
-
-    <!-- Senarai RISDA Container -->
-    <x-ui.page-header 
-        title="Senarai RISDA" 
-        description="Pengurusan senarai cawangan dan unit RISDA"
+    <x-ui.page-header
+        title="Senarai RISDA"
+        description="Pengurusan senarai RISDA Bahagian dan Stesen"
     >
-        <div class="dashboard-maintenance-content">
-            <!-- Maintenance Icon -->
-            <div class="maintenance-icon">
-                <svg class="h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
+
+        <!-- Tab Navigation -->
+        <div class="mb-8" x-data="{ activeTab: 'bahagian' }">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button @click="activeTab = 'bahagian'"
+                            :class="activeTab === 'bahagian' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="whitespace-nowrap py-3 px-2 font-medium transition-colors duration-200 flex items-center gap-2"
+                            :style="activeTab === 'bahagian' ? 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid #2563eb !important; color: #2563eb !important;' : 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid transparent !important;'">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">business</span>
+                        RISDA Bahagian
+                    </button>
+                    <button @click="activeTab = 'stesen'"
+                            :class="activeTab === 'stesen' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="whitespace-nowrap py-3 px-2 font-medium transition-colors duration-200 flex items-center gap-2"
+                            :style="activeTab === 'stesen' ? 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid #2563eb !important; color: #2563eb !important;' : 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid transparent !important;'">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">location_on</span>
+                        RISDA Stesen
+                    </button>
+                </nav>
             </div>
-            <!-- Maintenance Text -->
-            <div class="maintenance-text">
-                <h3 class="maintenance-title">Dalam Pembangunan</h3>
-                <p class="maintenance-subtitle">Senarai RISDA sedang dalam proses pembangunan</p>
+
+            <!-- Tab Content -->
+            <div class="mt-8">
+                <!-- RISDA Bahagian Tab -->
+                <div x-show="activeTab === 'bahagian'" x-transition>
+                    <!-- Header with Add Button -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Senarai RISDA Bahagian</h3>
+                            <p class="text-sm text-gray-600 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Pengurusan RISDA Bahagian dalam sistem</p>
+                        </div>
+                        <a href="{{ route('pengurusan.tambah-bahagian') }}">
+                            <x-buttons.primary-button type="button">
+                                <span class="material-symbols-outlined mr-2" style="font-size: 16px;">add_circle</span>
+                                Bahagian
+                            </x-buttons.primary-button>
+                        </a>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5">
+                            <table class="min-w-full divide-y divide-gray-300">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Alamat</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">No. Tel</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Tindakan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @forelse($bahagians ?? [] as $bahagian)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bahagian->nama_bahagian }}</div>
+                                            <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ ucfirst(str_replace('_', ' ', $bahagian->status_dropdown)) }}</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bahagian->alamat_1 }}{{ $bahagian->alamat_2 ? ', ' . $bahagian->alamat_2 : '' }}</div>
+                                            <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $bahagian->poskod }} {{ $bahagian->bandar }}, {{ $bahagian->negeri }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bahagian->no_telefon }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <div class="flex justify-center space-x-2">
+                                                <a href="{{ route('pengurusan.show-bahagian', $bahagian) }}" class="text-blue-600 hover:text-blue-900" title="Lihat">
+                                                    <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+                                                </a>
+                                                <a href="{{ route('pengurusan.edit-bahagian', $bahagian) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit">
+                                                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                                                </a>
+                                                <form action="{{ route('pengurusan.delete-bahagian', $bahagian) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $bahagian->nama_bahagian }}?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900" title="Hapus">
+                                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                            Tiada data RISDA Bahagian dijumpai.
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                    <!-- Sample Data Row 2 -->
+                                </tbody>
+                            </table>
+                        </div>
+                </div>
+
+                <!-- RISDA Stesen Tab -->
+                <div x-show="activeTab === 'stesen'" x-transition>
+                    <!-- Header with Add Button -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Senarai RISDA Stesen</h3>
+                            <p class="text-sm text-gray-600 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Pengurusan RISDA Stesen dalam sistem</p>
+                        </div>
+                        <a href="{{ route('pengurusan.tambah-stesen') }}">
+                            <x-buttons.primary-button type="button">
+                                <span class="material-symbols-outlined mr-2" style="font-size: 16px;">add_circle</span>
+                                Stesen
+                            </x-buttons.primary-button>
+                        </a>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5">
+                            <table class="min-w-full divide-y divide-gray-300">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Bahagian</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Alamat</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">No. Tel</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Tindakan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @forelse($stesens ?? [] as $stesen)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->nama_stesen }}</div>
+                                            <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ ucfirst(str_replace('_', ' ', $stesen->status_dropdown)) }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->risdaBahagian->nama_bahagian ?? 'N/A' }}</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->alamat_1 }}</div>
+                                            @if($stesen->alamat_2)
+                                                <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $stesen->alamat_2 }}</div>
+                                            @endif
+                                            <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $stesen->poskod }} {{ $stesen->bandar }}, {{ $stesen->negeri }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->no_telefon }}</div>
+                                            @if($stesen->email)
+                                                <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $stesen->email }}</div>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                            <div class="flex justify-center space-x-2">
+                                                <a href="{{ route('pengurusan.show-stesen', $stesen) }}" class="text-blue-600 hover:text-blue-900">
+                                                    <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+                                                </a>
+                                                <a href="{{ route('pengurusan.edit-stesen', $stesen) }}" class="text-yellow-600 hover:text-yellow-900">
+                                                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                                                </a>
+                                                <form action="{{ route('pengurusan.delete-stesen', $stesen) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $stesen->nama_stesen }}?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-900">
+                                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                            Tiada data RISDA Stesen dijumpai.
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                </div>
             </div>
         </div>
     </x-ui.page-header>

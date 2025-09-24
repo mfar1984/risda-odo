@@ -16,6 +16,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Settings Route
+    Route::get('/settings', function () {
+        return view('settings.index');
+    })->name('settings.index');
+
     // Program Routes
     Route::get('/program', function () {
         return view('program.index');
@@ -55,17 +60,43 @@ Route::middleware('auth')->group(function () {
             return view('pengurusan.tetapan-umum');
         })->name('tetapan-umum');
 
-        Route::get('/senarai-risda', function () {
-            return view('pengurusan.senarai-risda');
-        })->name('senarai-risda');
+        // RISDA Routes - Specific routes first, then dynamic routes
+        Route::get('/senarai-risda', [App\Http\Controllers\RisdaBahagianController::class, 'index'])->name('senarai-risda');
 
-        Route::get('/senarai-kumpulan', function () {
-            return view('pengurusan.senarai-kumpulan');
-        })->name('senarai-kumpulan');
+        // RISDA Bahagian specific routes
+        Route::get('/senarai-risda/tambah-bahagian', [App\Http\Controllers\RisdaBahagianController::class, 'create'])->name('tambah-bahagian');
+        Route::post('/senarai-risda/tambah-bahagian', [App\Http\Controllers\RisdaBahagianController::class, 'store'])->name('store-bahagian');
+
+        // RISDA Stesen specific routes
+        Route::get('/senarai-risda/tambah-stesen', [App\Http\Controllers\RisdaStesenController::class, 'create'])->name('tambah-stesen');
+        Route::post('/senarai-risda/tambah-stesen', [App\Http\Controllers\RisdaStesenController::class, 'store'])->name('store-stesen');
+        Route::get('/senarai-risda/stesen/{risdaStesen}', [App\Http\Controllers\RisdaStesenController::class, 'show'])->name('show-stesen');
+        Route::get('/senarai-risda/stesen/{risdaStesen}/edit', [App\Http\Controllers\RisdaStesenController::class, 'edit'])->name('edit-stesen');
+        Route::put('/senarai-risda/stesen/{risdaStesen}', [App\Http\Controllers\RisdaStesenController::class, 'update'])->name('update-stesen');
+        Route::delete('/senarai-risda/stesen/{risdaStesen}', [App\Http\Controllers\RisdaStesenController::class, 'destroy'])->name('delete-stesen');
+
+        // RISDA Bahagian dynamic routes (must be last)
+        Route::get('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'show'])->name('show-bahagian');
+        Route::get('/senarai-risda/{risdaBahagian}/edit', [App\Http\Controllers\RisdaBahagianController::class, 'edit'])->name('edit-bahagian');
+        Route::put('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'update'])->name('update-bahagian');
+        Route::delete('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'destroy'])->name('delete-bahagian');
+
+        // User Group Routes
+        Route::get('/senarai-kumpulan', [App\Http\Controllers\UserGroupController::class, 'index'])->name('senarai-kumpulan');
+        Route::get('/senarai-kumpulan/tambah-kumpulan', [App\Http\Controllers\UserGroupController::class, 'create'])->name('tambah-kumpulan');
+        Route::post('/senarai-kumpulan/tambah-kumpulan', [App\Http\Controllers\UserGroupController::class, 'store'])->name('store-kumpulan');
+        Route::get('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'show'])->name('show-kumpulan');
+        Route::get('/senarai-kumpulan/{userGroup}/edit', [App\Http\Controllers\UserGroupController::class, 'edit'])->name('edit-kumpulan');
+        Route::put('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'update'])->name('update-kumpulan');
+        Route::delete('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'destroy'])->name('delete-kumpulan');
 
         Route::get('/senarai-pengguna', function () {
             return view('pengurusan.senarai-pengguna');
         })->name('senarai-pengguna');
+
+        Route::get('/senarai-kenderaan', function () {
+            return view('pengurusan.senarai-kenderaan');
+        })->name('senarai-kenderaan');
 
         Route::get('/aktiviti-log', function () {
             return view('pengurusan.aktiviti-log');
@@ -74,6 +105,37 @@ Route::middleware('auth')->group(function () {
         Route::get('/aktiviti-log-keselamatan', function () {
             return view('pengurusan.aktiviti-log-keselamatan');
         })->name('aktiviti-log-keselamatan');
+    });
+
+    // Help Routes
+    Route::prefix('help')->name('help.')->group(function () {
+        Route::get('/panduan-pengguna', function () {
+            return view('help.panduan-pengguna');
+        })->name('panduan-pengguna');
+
+        Route::get('/faq', function () {
+            return view('help.faq');
+        })->name('faq');
+
+        Route::get('/hubungi-sokongan', function () {
+            return view('help.hubungi-sokongan');
+        })->name('hubungi-sokongan');
+
+        Route::get('/element', function () {
+            return view('help.element');
+        })->name('element');
+
+        Route::get('/komponen', function () {
+            return view('help.komponen');
+        })->name('komponen');
+
+        Route::get('/status-sistem', function () {
+            return view('help.status-sistem');
+        })->name('status-sistem');
+
+        Route::get('/nota-keluaran', function () {
+            return view('help.nota-keluaran');
+        })->name('nota-keluaran');
     });
 });
 

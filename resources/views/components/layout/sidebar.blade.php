@@ -44,7 +44,7 @@
 
             <!-- Laporan -->
             <div x-data="{ open: {{ request()->routeIs('laporan.*') ? 'true' : 'false' }} }">
-                <button @click="open = !open" class="sidebar-nav-item {{ request()->routeIs('laporan.*') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} w-full text-left">
+                <button @click="open = !open" class="sidebar-nav-item {{ request()->routeIs('laporan.*') ? 'sidebar-nav-item-parent-active' : 'sidebar-nav-item-inactive' }} w-full text-left">
                     <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
@@ -66,9 +66,14 @@
                 </div>
             </div>
 
+            <!-- Separator Line -->
+            <div class="sidebar-separator" x-show="!collapsed">
+                <hr class="sidebar-separator-line">
+            </div>
+
             <!-- Pengurusan -->
             <div x-data="{ open: {{ request()->routeIs('pengurusan.*') ? 'true' : 'false' }} }">
-                <button @click="open = !open" class="sidebar-nav-item {{ request()->routeIs('pengurusan.*') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} w-full text-left">
+                <button @click="open = !open" class="sidebar-nav-item {{ request()->routeIs('pengurusan.*') ? 'sidebar-nav-item-parent-active' : 'sidebar-nav-item-inactive' }} w-full text-left">
                     <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -87,6 +92,7 @@
                     <a href="{{ route('pengurusan.senarai-risda') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.senarai-risda') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Senarai RISDA</a>
                     <a href="{{ route('pengurusan.senarai-kumpulan') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.senarai-kumpulan') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Senarai Kumpulan</a>
                     <a href="{{ route('pengurusan.senarai-pengguna') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.senarai-pengguna') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Senarai Pengguna</a>
+                    <a href="{{ route('pengurusan.senarai-kenderaan') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.senarai-kenderaan') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Senarai Kenderaan</a>
                     <a href="{{ route('pengurusan.aktiviti-log') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.aktiviti-log') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Aktiviti Log</a>
                     <a href="{{ route('pengurusan.aktiviti-log-keselamatan') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.aktiviti-log-keselamatan') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Aktiviti Log Keselamatan</a>
                 </div>

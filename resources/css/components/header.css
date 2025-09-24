@@ -156,6 +156,7 @@
     }
 
     .breadcrumb-container {
+        /* Use EXACT same styling as topbar-container */
         @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
         @apply flex items-center h-8;
     }
@@ -177,28 +178,50 @@
 
     .breadcrumb-nav {
         @apply flex items-center space-x-2 text-sm;
-        font-size: 12px;
+        font-size: 12px !important;
+        /* Ensure proper alignment with topbar content */
+        margin-left: 0 !important;
+        padding-left: 0 !important;
     }
 
     .breadcrumb-item {
         @apply text-risda-primary hover:text-blue-700;
         @apply transition-colors duration-200;
+        text-decoration: none !important;
+    }
+
+    .breadcrumb-link {
+        @apply text-risda-primary hover:text-blue-700;
+        @apply transition-colors duration-200;
+        text-decoration: none !important;
     }
 
     .breadcrumb-separator {
-        @apply text-gray-400 mx-2;
+        @apply text-gray-400;
+        margin: 0 8px !important;
+        font-size: 12px !important;
     }
 
     .breadcrumb-current {
         @apply text-gray-700 font-medium;
+        font-size: 12px !important;
     }
 
     .breadcrumb-home {
         @apply text-risda-primary hover:text-blue-700;
+        @apply transition-colors duration-200;
+        text-decoration: none !important;
+        display: flex !important;
+        align-items: center !important;
     }
 
     .breadcrumb-home .material-symbols-outlined {
-        font-size: 16px;
-        line-height: 1;
+        font-size: 16px !important;
+        line-height: 1 !important;
+        color: #1e40af !important; /* risda-primary color */
+    }
+
+    .breadcrumb-home:hover .material-symbols-outlined {
+        color: #1d4ed8 !important; /* blue-700 color */
     }
 }

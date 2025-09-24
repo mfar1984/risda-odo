@@ -28,6 +28,10 @@ export default {
                 'xl': '2px',
                 '2xl': '2px',
                 '3xl': '2px',
+                '3': '3px',
+                '4': '4px',
+                '6': '6px',
+                '8': '8px',
                 'full': '9999px',
             },
             colors: {

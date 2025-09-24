@@ -1,0 +1,136 @@
+/* Release Notes Component Styles */
+@layer components {
+    /* Release Notes Container */
+    .release-notes-container {
+        @apply bg-white rounded-sm border shadow-sm p-6;
+        border-radius: 2px;
+    }
+
+    /* Version Header */
+    .version-header {
+        @apply flex items-center justify-between mb-4 pb-4 border-b border-gray-100;
+    }
+
+    .version-badge {
+        @apply flex items-center space-x-3;
+    }
+
+    .version-icon {
+        @apply text-green-600;
+        font-size: 20px !important;
+    }
+
+    .version-number {
+        @apply text-lg font-bold text-gray-900;
+        font-size: 16px;
+    }
+
+    .version-label {
+        @apply px-2 py-1 bg-green-100 text-green-800 rounded-sm text-sm font-medium;
+        border-radius: 2px;
+        font-size: 11px;
+    }
+
+    .version-date {
+        @apply text-sm text-gray-500;
+        font-size: 12px;
+    }
+
+    /* Version Description */
+    .version-description {
+        @apply mb-6;
+    }
+
+    .version-description p {
+        @apply text-gray-700 text-sm leading-relaxed;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    /* Features Grid */
+    .features-grid {
+        @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+    }
+
+    /* Feature Section */
+    .feature-section {
+        @apply space-y-4;
+    }
+
+    .feature-section-header {
+        @apply flex items-center space-x-2 mb-3;
+    }
+
+    .section-icon {
+        font-size: 18px !important;
+        @apply text-blue-600;
+    }
+
+    .section-icon-purple {
+        @apply text-purple-600;
+    }
+
+    .section-icon-pink {
+        @apply text-pink-600;
+    }
+
+    .section-icon-orange {
+        @apply text-orange-600;
+    }
+
+    .section-title {
+        @apply text-sm font-semibold text-gray-900;
+        font-size: 13px;
+    }
+
+    /* Feature List */
+    .feature-list {
+        @apply space-y-2;
+    }
+
+    .feature-item {
+        @apply flex items-start space-x-2;
+    }
+
+    .feature-icon {
+        @apply flex-shrink-0 mt-0.5;
+        font-size: 16px !important;
+    }
+
+    .feature-icon-green {
+        @apply text-green-600;
+    }
+
+    .feature-icon-blue {
+        @apply text-blue-600;
+    }
+
+    .feature-text {
+        @apply text-sm text-gray-700;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .release-notes-container {
+            @apply p-4;
+        }
+
+        .features-grid {
+            @apply grid-cols-1;
+        }
+
+        .version-header {
+            @apply flex-col items-start space-y-2;
+        }
+
+        .version-badge {
+            @apply flex-col items-start space-y-1 space-x-0;
+        }
+
+        .version-date {
+            @apply self-end;
+        }
+    }
+}

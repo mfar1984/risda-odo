@@ -17,35 +17,41 @@
         @csrf
         @method('patch')
 
-        <div>
-            <x-forms.input-label for="name" :value="__('Name')" />
-            <x-forms.text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-forms.input-error class="mt-2" :messages="$errors->get('name')" />
+        <!-- Name and Email Side by Side -->
+        <div style="display: flex; gap: 20px;">
+            <!-- Name Field -->
+            <div style="flex: 1;">
+                <x-forms.input-label for="name" :value="__('Name')" />
+                <x-forms.text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
+                <x-forms.input-error class="mt-2" :messages="$errors->get('name')" />
+            </div>
+
+            <!-- Email Field -->
+            <div style="flex: 1;">
+                <x-forms.input-label for="email" :value="__('Email')" />
+                <x-forms.text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
+                <x-forms.input-error class="mt-2" :messages="$errors->get('email')" />
+            </div>
         </div>
 
-        <div>
-            <x-forms.input-label for="email" :value="__('Email')" />
-            <x-forms.text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-forms.input-error class="mt-2" :messages="$errors->get('email')" />
+        <!-- Email Verification Notice (Full Width) -->
+        @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
+            <div>
+                <p class="text-sm mt-2 text-gray-800">
+                    {{ __('Your email address is unverified.') }}
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
+                    <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        {{ __('Click here to re-send the verification email.') }}
+                    </button>
+                </p>
 
-                        <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
+                @if (session('status') === 'verification-link-sent')
+                    <p class="mt-2 font-medium text-sm text-green-600">
+                        {{ __('A new verification link has been sent to your email address.') }}
                     </p>
-
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
-            @endif
-        </div>
+                @endif
+            </div>
+        @endif
 
         <div class="flex items-center gap-4">
             <x-buttons.primary-button>{{ __('Save') }}</x-buttons.primary-button>
