@@ -50,60 +50,82 @@
                         </a>
                     </div>
 
+                    <!-- Success/Error Messages -->
+                    @if(session('success'))
+                        <x-ui.success-alert class="mb-6">
+                            {{ session('success') }}
+                        </x-ui.success-alert>
+                    @endif
+
+                    @if(session('error'))
+                        <x-ui.error-alert class="mb-6">
+                            {{ session('error') }}
+                        </x-ui.error-alert>
+                    @endif
+
+                    <!-- Filter Section -->
+                    <x-ui.search-filter
+                        :action="route('pengurusan.senarai-risda')"
+                        search-placeholder="Masukkan nama bahagian, alamat atau telefon"
+                        search-name="search_bahagian"
+                        :search-value="request('search_bahagian')"
+                        :filters="[
+                            [
+                                'name' => 'status_bahagian',
+                                'type' => 'select',
+                                'placeholder' => 'Semua Status',
+                                'options' => [
+                                    'aktif' => 'Aktif',
+                                    'tidak_aktif' => 'Tidak Aktif',
+                                    'dalam_pembinaan' => 'Dalam Pembinaan'
+                                ]
+                            ]
+                        ]"
+                        :reset-url="route('pengurusan.senarai-risda')"
+                    />
+
                     <!-- Table -->
-                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5">
-                            <table class="min-w-full divide-y divide-gray-300">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Alamat</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">No. Tel</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Tindakan</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    @forelse($bahagians ?? [] as $bahagian)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bahagian->nama_bahagian }}</div>
-                                            <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ ucfirst(str_replace('_', ' ', $bahagian->status_dropdown)) }}</div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bahagian->alamat_1 }}{{ $bahagian->alamat_2 ? ', ' . $bahagian->alamat_2 : '' }}</div>
-                                            <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $bahagian->poskod }} {{ $bahagian->bandar }}, {{ $bahagian->negeri }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bahagian->no_telefon }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <div class="flex justify-center space-x-2">
-                                                <a href="{{ route('pengurusan.show-bahagian', $bahagian) }}" class="text-blue-600 hover:text-blue-900" title="Lihat">
-                                                    <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
-                                                </a>
-                                                <a href="{{ route('pengurusan.edit-bahagian', $bahagian) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit">
-                                                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
-                                                </a>
-                                                <form action="{{ route('pengurusan.delete-bahagian', $bahagian) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $bahagian->nama_bahagian }}?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900" title="Hapus">
-                                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @empty
-                                    <tr>
-                                        <td colspan="4" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                            Tiada data RISDA Bahagian dijumpai.
-                                        </td>
-                                    </tr>
-                                    @endforelse
-                                    <!-- Sample Data Row 2 -->
-                                </tbody>
-                            </table>
-                        </div>
+                    <x-ui.data-table
+                        :headers="[
+                            ['label' => 'Nama', 'align' => 'text-left'],
+                            ['label' => 'Alamat', 'align' => 'text-left'],
+                            ['label' => 'No. Tel', 'align' => 'text-left']
+                        ]"
+                        empty-message="Tiada data RISDA Bahagian dijumpai."
+                    >
+                        @forelse($bahagians ?? [] as $bahagian)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bahagian->nama_bahagian }}</div>
+                                <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ ucfirst(str_replace('_', ' ', $bahagian->status_dropdown)) }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bahagian->alamat_1 }}{{ $bahagian->alamat_2 ? ', ' . $bahagian->alamat_2 : '' }}</div>
+                                <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $bahagian->poskod }} {{ $bahagian->bandar }}, {{ $bahagian->negeri }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bahagian->no_telefon }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <x-ui.action-buttons
+                                    :show-url="route('pengurusan.show-bahagian', $bahagian)"
+                                    :edit-url="route('pengurusan.edit-bahagian', $bahagian)"
+                                    :delete-url="route('pengurusan.delete-bahagian', $bahagian)"
+                                    :delete-confirm-message="'Adakah anda pasti untuk memadam ' . $bahagian->nama_bahagian . '?'"
+                                />
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                Tiada data RISDA Bahagian dijumpai.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </x-ui.data-table>
+
+                    <!-- Pagination -->
+                    <x-ui.pagination :paginator="$bahagians" record-label="rekod" />
                 </div>
 
                 <!-- RISDA Stesen Tab -->
@@ -122,69 +144,98 @@
                         </a>
                     </div>
 
+                    <!-- Success/Error Messages -->
+                    @if(session('success'))
+                        <x-ui.success-alert class="mb-6">
+                            {{ session('success') }}
+                        </x-ui.success-alert>
+                    @endif
+
+                    @if(session('error'))
+                        <x-ui.error-alert class="mb-6">
+                            {{ session('error') }}
+                        </x-ui.error-alert>
+                    @endif
+
+                    <!-- Filter Section -->
+                    <x-ui.search-filter
+                        :action="route('pengurusan.senarai-risda')"
+                        search-placeholder="Masukkan nama stesen, bahagian atau alamat"
+                        search-name="search_stesen"
+                        :search-value="request('search_stesen')"
+                        :filters="[
+                            [
+                                'name' => 'status_stesen',
+                                'type' => 'select',
+                                'placeholder' => 'Semua Status',
+                                'options' => [
+                                    'aktif' => 'Aktif',
+                                    'tidak_aktif' => 'Tidak Aktif',
+                                    'dalam_pembinaan' => 'Dalam Pembinaan'
+                                ]
+                            ],
+                            [
+                                'name' => 'bahagian_stesen',
+                                'type' => 'select',
+                                'placeholder' => 'Semua Bahagian',
+                                'options' => collect(\App\Models\RisdaBahagian::where('status_dropdown', 'aktif')->orderBy('nama_bahagian')->get())->pluck('nama_bahagian', 'id')->toArray()
+                            ]
+                        ]"
+                        :reset-url="route('pengurusan.senarai-risda')"
+                    />
+
                     <!-- Table -->
-                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5">
-                            <table class="min-w-full divide-y divide-gray-300">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Bahagian</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Alamat</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">No. Tel</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Tindakan</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    @forelse($stesens ?? [] as $stesen)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->nama_stesen }}</div>
-                                            <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ ucfirst(str_replace('_', ' ', $stesen->status_dropdown)) }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->risdaBahagian->nama_bahagian ?? 'N/A' }}</div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->alamat_1 }}</div>
-                                            @if($stesen->alamat_2)
-                                                <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $stesen->alamat_2 }}</div>
-                                            @endif
-                                            <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $stesen->poskod }} {{ $stesen->bandar }}, {{ $stesen->negeri }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->no_telefon }}</div>
-                                            @if($stesen->email)
-                                                <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $stesen->email }}</div>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                            <div class="flex justify-center space-x-2">
-                                                <a href="{{ route('pengurusan.show-stesen', $stesen) }}" class="text-blue-600 hover:text-blue-900">
-                                                    <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
-                                                </a>
-                                                <a href="{{ route('pengurusan.edit-stesen', $stesen) }}" class="text-yellow-600 hover:text-yellow-900">
-                                                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
-                                                </a>
-                                                <form action="{{ route('pengurusan.delete-stesen', $stesen) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $stesen->nama_stesen }}?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900">
-                                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @empty
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                            Tiada data RISDA Stesen dijumpai.
-                                        </td>
-                                    </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
+                    <x-ui.data-table
+                        :headers="[
+                            ['label' => 'Nama', 'align' => 'text-left'],
+                            ['label' => 'Bahagian', 'align' => 'text-left'],
+                            ['label' => 'Alamat', 'align' => 'text-left'],
+                            ['label' => 'No. Tel', 'align' => 'text-left']
+                        ]"
+                        empty-message="Tiada data RISDA Stesen dijumpai."
+                    >
+                        @forelse($stesens ?? [] as $stesen)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->nama_stesen }}</div>
+                                <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ ucfirst(str_replace('_', ' ', $stesen->status_dropdown)) }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->risdaBahagian->nama_bahagian ?? 'N/A' }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->alamat_1 }}</div>
+                                @if($stesen->alamat_2)
+                                    <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $stesen->alamat_2 }}</div>
+                                @endif
+                                <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $stesen->poskod }} {{ $stesen->bandar }}, {{ $stesen->negeri }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $stesen->no_telefon }}</div>
+                                @if($stesen->email)
+                                    <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $stesen->email }}</div>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                <x-ui.action-buttons
+                                    :show-url="route('pengurusan.show-stesen', $stesen)"
+                                    :edit-url="route('pengurusan.edit-stesen', $stesen)"
+                                    :delete-url="route('pengurusan.delete-stesen', $stesen)"
+                                    :delete-confirm-message="'Adakah anda pasti untuk memadam ' . $stesen->nama_stesen . '?'"
+                                />
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                Tiada data RISDA Stesen dijumpai.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </x-ui.data-table>
+
+                    <!-- Pagination -->
+                    <x-ui.pagination :paginator="$stesens" record-label="rekod" />
                 </div>
 
                 <!-- RISDA Staf Tab -->
@@ -203,79 +254,96 @@
                         </a>
                     </div>
 
+                    <!-- Success/Error Messages -->
+                    @if(session('success'))
+                        <x-ui.success-alert class="mb-6">
+                            {{ session('success') }}
+                        </x-ui.success-alert>
+                    @endif
+
+                    @if(session('error'))
+                        <x-ui.error-alert class="mb-6">
+                            {{ session('error') }}
+                        </x-ui.error-alert>
+                    @endif
+
+                    <!-- Filter Section -->
+                    <x-ui.search-filter
+                        :action="route('pengurusan.senarai-risda')"
+                        search-placeholder="Masukkan no. pekerja, nama, email atau jawatan"
+                        search-name="search_staf"
+                        :search-value="request('search_staf')"
+                        :filters="[
+                            [
+                                'name' => 'status_staf',
+                                'type' => 'select',
+                                'placeholder' => 'Semua Status',
+                                'options' => [
+                                    'aktif' => 'Aktif',
+                                    'tidak_aktif' => 'Tidak Aktif',
+                                    'gantung' => 'Gantung'
+                                ]
+                            ],
+                            [
+                                'name' => 'bahagian_staf',
+                                'type' => 'select',
+                                'placeholder' => 'Semua Bahagian',
+                                'options' => collect(\App\Models\RisdaBahagian::where('status_dropdown', 'aktif')->orderBy('nama_bahagian')->get())->pluck('nama_bahagian', 'id')->toArray()
+                            ]
+                        ]"
+                        :reset-url="route('pengurusan.senarai-risda')"
+                    />
+
                     <!-- Table -->
-                    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">No. Pekerja</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama Penuh</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Bahagian</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Jawatan</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Status</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Tindakan</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse($stafs ?? [] as $staf)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->no_pekerja }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->nama_penuh }}</div>
-                                        <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $staf->email }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->bahagian->nama_bahagian ?? 'N/A' }}</div>
-                                        <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $staf->stesen->nama_stesen ?? 'Semua Stesen' }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->jawatan }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($staf->status === 'aktif')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                Aktif
-                                            </span>
-                                        @elseif($staf->status === 'tidak_aktif')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Tidak Aktif
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                Gantung
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                        <div class="flex justify-center space-x-2">
-                                            <a href="{{ route('pengurusan.show-staf', $staf) }}" class="text-blue-600 hover:text-blue-900">
-                                                <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
-                                            </a>
-                                            <a href="{{ route('pengurusan.edit-staf', $staf) }}" class="text-yellow-600 hover:text-yellow-900">
-                                                <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
-                                            </a>
-                                            <form action="{{ route('pengurusan.delete-staf', $staf) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $staf->nama_penuh }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900">
-                                                    <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                        Tiada data RISDA Staf dijumpai.
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                    <x-ui.data-table
+                        :headers="[
+                            ['label' => 'No. Pekerja', 'align' => 'text-left'],
+                            ['label' => 'Nama Penuh', 'align' => 'text-left'],
+                            ['label' => 'Bahagian', 'align' => 'text-left'],
+                            ['label' => 'Jawatan', 'align' => 'text-left'],
+                            ['label' => 'Status', 'align' => 'text-left']
+                        ]"
+                        empty-message="Tiada data RISDA Staf dijumpai."
+                    >
+                        @forelse($stafs ?? [] as $staf)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->no_pekerja }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->nama_penuh }}</div>
+                                <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $staf->email }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->bahagian->nama_bahagian ?? 'N/A' }}</div>
+                                <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">{{ $staf->stesen->nama_stesen ?? 'Semua Stesen' }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $staf->jawatan }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <x-ui.status-badge :status="$staf->status" />
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                <x-ui.action-buttons
+                                    :show-url="route('pengurusan.show-staf', $staf)"
+                                    :edit-url="route('pengurusan.edit-staf', $staf)"
+                                    :delete-url="route('pengurusan.delete-staf', $staf)"
+                                    :delete-confirm-message="'Adakah anda pasti untuk memadam ' . $staf->nama_penuh . '?'"
+                                />
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                Tiada data RISDA Staf dijumpai.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </x-ui.data-table>
+
+                    <!-- Pagination -->
+                    <x-ui.pagination :paginator="$stafs" record-label="rekod" />
                 </div>
             </div>
         </div>
