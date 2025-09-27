@@ -102,10 +102,10 @@
                                 @foreach($permissionLabels as $action => $label)
                                 <td class="px-3 py-3 text-center border-r border-gray-300">
                                     @if(isset($permissions[$action]))
-                                    <input 
-                                        type="checkbox" 
-                                        name="kebenaran_matrix[{{ $module }}][{{ $action }}]" 
-                                        value="true"
+                                    <input
+                                        type="checkbox"
+                                        name="kebenaran_matrix[{{ $module }}][{{ $action }}]"
+                                        value="1"
                                         class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                         {{ old("kebenaran_matrix.{$module}.{$action}") ? 'checked' : '' }}
                                     >

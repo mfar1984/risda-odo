@@ -16,70 +16,80 @@
             </a>
         </div>
 
+        <!-- Success/Error Messages -->
+        @if(session('success'))
+            <x-ui.success-alert class="mb-6">
+                {{ session('success') }}
+            </x-ui.success-alert>
+        @endif
+
+        @if(session('error'))
+            <x-ui.error-alert class="mb-6">
+                {{ session('error') }}
+            </x-ui.error-alert>
+        @endif
+
+        <!-- Filter Section -->
+        <x-ui.search-filter
+            :action="route('pengurusan.senarai-kumpulan')"
+            search-placeholder="Masukkan nama kumpulan atau keterangan"
+            :search-value="request('search')"
+            :filters="[
+                [
+                    'name' => 'status',
+                    'type' => 'select',
+                    'placeholder' => 'Semua Status',
+                    'options' => [
+                        'aktif' => 'Aktif',
+                        'tidak_aktif' => 'Tidak Aktif',
+                        'gantung' => 'Gantung'
+                    ]
+                ]
+            ]"
+            :reset-url="route('pengurusan.senarai-kumpulan')"
+        />
+
         <!-- Table -->
-        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5">
-            <table class="min-w-full divide-y divide-gray-300">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama Kumpulan</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Keterangan</th>
-                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Status</th>
-                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Tindakan</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($kumpulans ?? [] as $group)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $group->nama_kumpulan }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                {{ $group->keterangan ?? '-' }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            @if($group->status === 'aktif')
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
-                                    Aktif
-                                </span>
-                            @elseif($group->status === 'tidak_aktif')
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
-                                    Tidak Aktif
-                                </span>
-                            @else
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
-                                    Gantung
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                            <div class="flex justify-center space-x-2">
-                                <a href="{{ route('pengurusan.show-kumpulan', $group) }}" class="text-blue-600 hover:text-blue-900">
-                                    <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
-                                </a>
-                                <a href="{{ route('pengurusan.edit-kumpulan', $group) }}" class="text-yellow-600 hover:text-yellow-900">
-                                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
-                                </a>
-                                <form action="{{ route('pengurusan.delete-kumpulan', $group) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $group->nama_kumpulan }}?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900">
-                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="4" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                            Tiada data kumpulan pengguna dijumpai.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        <x-ui.data-table
+            :headers="[
+                ['label' => 'Nama Kumpulan', 'align' => 'text-left'],
+                ['label' => 'Keterangan', 'align' => 'text-left'],
+                ['label' => 'Status', 'align' => 'text-center']
+            ]"
+            empty-message="Tiada data kumpulan pengguna dijumpai."
+        >
+            @forelse($kumpulans ?? [] as $group)
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $group->nama_kumpulan }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                        {{ $group->keterangan ?? '-' }}
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <x-ui.status-badge :status="$group->status" />
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    <x-ui.action-buttons
+                        :show-url="route('pengurusan.show-kumpulan', $group)"
+                        :edit-url="route('pengurusan.edit-kumpulan', $group)"
+                        :delete-url="route('pengurusan.delete-kumpulan', $group)"
+                        :delete-confirm-message="'Adakah anda pasti untuk memadam ' . $group->nama_kumpulan . '?'"
+                    />
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="4" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                    Tiada data kumpulan pengguna dijumpai.
+                </td>
+            </tr>
+            @endforelse
+        </x-ui.data-table>
+
+        <!-- Pagination -->
+        <x-ui.pagination :paginator="$kumpulans" record-label="rekod" />
     </x-ui.page-header>
 </x-dashboard-layout>

@@ -127,10 +127,15 @@
                                 onchange="loadStesenByBahagian(this.value)"
                             >
                                 <option value="">Pilih Bahagian Akses</option>
-                                <!-- TEMP: Show for testing - login as admin@jara.my to see properly -->
+                                @php
+                                    $currentUser = auth()->user();
+                                    $isAdministrator = $currentUser && $currentUser->jenis_organisasi === 'semua';
+                                @endphp
+                                @if($isAdministrator)
                                 <option value="semua" {{ old('bahagian_akses_id', $pengguna->jenis_organisasi == 'semua' ? 'semua' : '') == 'semua' ? 'selected' : '' }}>
                                     Semua Bahagian
                                 </option>
+                                @endif
                                 @foreach($bahagians as $bahagian)
                                 @php
                                     // Determine selected bahagian based on user's jenis_organisasi
@@ -183,7 +188,7 @@
                                 Batal
                             </x-buttons.secondary-button>
                         </a>
-                        
+
                         <x-buttons.primary-button type="submit">
                             <span class="material-symbols-outlined mr-2" style="font-size: 16px;">save</span>
                             Kemaskini Pengguna
@@ -334,14 +339,10 @@
             const stesenInput = document.getElementById('stesen_akses_ids');
             const bahagianSelect = document.getElementById('bahagian_akses_id');
 
-            console.log('DOMContentLoaded - Bahagian value:', bahagianSelect.value);
-
             // Check if bahagian already selected (edit mode)
             if (bahagianSelect.value) {
-                console.log('Loading stesen for bahagian:', bahagianSelect.value);
                 loadStesenByBahagian(bahagianSelect.value);
             } else {
-                console.log('No bahagian selected, disabling stesen input');
                 // Initially disable stesen input
                 stesenInput.disabled = true;
                 stesenInput.placeholder = "Pilih Bahagian Akses dahulu";

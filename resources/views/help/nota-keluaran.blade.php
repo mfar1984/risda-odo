@@ -9,228 +9,294 @@
         <!-- Release Notes Content -->
         <div class="release-notes-container">
 
-            <!-- Version v1.1 Header -->
-            <div class="version-header">
-                <div class="version-badge">
-                    <span class="material-symbols-outlined version-icon">new_releases</span>
-                    <span class="version-number">v1.1</span>
-                    <span class="version-label">Nota Keluaran Blue</span>
-                </div>
-                <div class="version-date">24/09/2025</div>
-            </div>
-
-            <!-- Version Description -->
-            <div class="version-description">
-                <p>Kemaskini major dengan penambahan sistem pengurusan RISDA Bahagian dan Stesen, serta dokumentasi lengkap untuk data isolation.</p>
-            </div>
-
-            <!-- Features Grid -->
-            <div class="features-grid">
-
-                <!-- RISDA Management Features -->
-                <div class="feature-section">
-                    <div class="feature-section-header">
-                        <span class="material-symbols-outlined section-icon">business</span>
-                        <h3 class="section-title">RISDA Management</h3>
+            @foreach($releases as $index => $release)
+                @if($index === 0)
+                    <!-- Latest Version Header -->
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="material-symbols-outlined version-icon">{{ $release->is_latest ? 'new_releases' : 'history' }}</span>
+                            <span class="version-number">v{{ $release->versi }}</span>
+                            <span class="version-label">{{ $release->jenis_keluaran_label }}</span>
+                        </div>
+                        <div class="version-date">{{ $release->tarikh_keluaran->format('d/m/Y') }}</div>
                     </div>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">RISDA Bahagian CRUD Management</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">RISDA Stesen CRUD Management</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Parent-Child Relationship (Bahagian → Stesen)</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Tab-based Navigation (Bahagian & Stesen)</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Malaysia Postcodes Integration</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Auto-detect Bandar & Negeri</span>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Form & Validation -->
-                <div class="feature-section">
-                    <div class="feature-section-header">
-                        <span class="material-symbols-outlined section-icon section-icon-purple">edit_document</span>
-                        <h3 class="section-title">Form & Validation</h3>
+                    <!-- Version Description -->
+                    <div class="version-description">
+                        <p>{{ $release->penerangan }}</p>
                     </div>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Two-column Form Layout</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Comprehensive Field Validation</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Error Handling & Display</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Dropdown dengan Parent Selection</span>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- UI/UX Components -->
-                <div class="feature-section">
-                    <div class="feature-section-header">
-                        <span class="material-symbols-outlined section-icon section-icon-pink">palette</span>
-                        <h3 class="section-title">UI/UX Components</h3>
-                    </div>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Button Components (Warning, Info, Success)</span>
+                    <!-- Dynamic Content Sections -->
+                    @if($release->ciri_baharu && count($release->ciri_baharu) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon">new_releases</span>
+                                    <h3 class="section-title">Ciri Baharu</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->ciri_baharu as $feature)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
+                                            <span class="feature-text">{{ $feature }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
                         </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Shine Effect Animation</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Consistent Design Patterns</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Poppins Font (11-14px)</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Material Symbols Outlined</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Reusable Form Components</span>
-                        </div>
-                    </div>
-                </div>
+                    @endif
 
-                <!-- Documentation & Architecture -->
-                <div class="feature-section">
-                    <div class="feature-section-header">
-                        <span class="material-symbols-outlined section-icon section-icon-orange">description</span>
-                        <h3 class="section-title">Documentation & Architecture</h3>
-                    </div>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-blue">check_circle</span>
-                            <span class="feature-text">System Architecture Documentation</span>
+                    @if($release->penambahbaikan && count($release->penambahbaikan) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon section-icon-purple">upgrade</span>
+                                    <h3 class="section-title">Penambahbaikan</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->penambahbaikan as $improvement)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-blue">trending_up</span>
+                                            <span class="feature-text">{{ $improvement }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
                         </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-blue">check_circle</span>
-                            <span class="feature-text">Development Guidelines</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-blue">check_circle</span>
-                            <span class="feature-text">Data Isolation Implementation Guide</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-blue">check_circle</span>
-                            <span class="feature-text">API Documentation</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-blue">check_circle</span>
-                            <span class="feature-text">Multi-Tenant Architecture Planning</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-blue">check_circle</span>
-                            <span class="feature-text">Security & Performance Guidelines</span>
-                        </div>
-                    </div>
-                </div>
+                    @endif
 
-            </div>
+                    @if($release->pembetulan_pepijat && count($release->pembetulan_pepijat) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon section-icon-orange">bug_report</span>
+                                    <h3 class="section-title">Pembetulan Pepijat</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->pembetulan_pepijat as $bugfix)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-orange">build</span>
+                                            <span class="feature-text">{{ $bugfix }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
-            <!-- Previous Version Separator -->
-            <div style="margin: 40px 0; border-top: 2px solid #e5e7eb; padding-top: 40px;">
-                <h2 style="font-family: Poppins, sans-serif !important; font-size: 18px !important; font-weight: 600 !important; color: #6b7280; margin-bottom: 20px;">Previous Versions</h2>
-            </div>
+                    @if($release->perubahan_teknikal && count($release->perubahan_teknikal) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon section-icon-gray">settings</span>
+                                    <h3 class="section-title">Perubahan Teknikal</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->perubahan_teknikal as $technical)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-gray">code</span>
+                                            <span class="feature-text">{{ $technical }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
-            <!-- Version v1.0 Header -->
-            <div class="version-header">
-                <div class="version-badge">
-                    <span class="material-symbols-outlined version-icon">history</span>
-                    <span class="version-number">v1.0</span>
-                    <span class="version-label">Nota Keluaran Green</span>
-                </div>
-                <div class="version-date">15/10/2025</div>
-            </div>
-
-            <!-- Version Description -->
-            <div class="version-description">
-                <p>Pelancaran awal sistem dengan fungsi asas dashboard, authentication, dan component system.</p>
-            </div>
-
-            <!-- Features Grid for v1.0 -->
-            <div class="features-grid">
-                <!-- Core System -->
-                <div class="feature-section">
-                    <div class="feature-section-header">
-                        <span class="material-symbols-outlined section-icon">star</span>
-                        <h3 class="section-title">Core System</h3>
+                @elseif($index === 1)
+                    <!-- Previous Version Separator -->
+                    <div style="margin: 40px 0; border-top: 2px solid #e5e7eb; padding-top: 40px;">
+                        <h2 style="font-family: Poppins, sans-serif !important; font-size: 18px !important; font-weight: 600 !important; color: #6b7280; margin-bottom: 20px;">Previous Versions</h2>
                     </div>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Laravel 12.x Framework Setup</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Authentication System</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Dashboard Layout</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Sidebar Navigation</span>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- UI Components -->
-                <div class="feature-section">
-                    <div class="feature-section-header">
-                        <span class="material-symbols-outlined section-icon section-icon-pink">widgets</span>
-                        <h3 class="section-title">UI Components</h3>
+                    <!-- Previous Version Header -->
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="material-symbols-outlined version-icon">history</span>
+                            <span class="version-number">v{{ $release->versi }}</span>
+                            <span class="version-label">{{ $release->jenis_keluaran_label }}</span>
+                        </div>
+                        <div class="version-date">{{ $release->tarikh_keluaran->format('d/m/Y') }}</div>
                     </div>
-                    <div class="feature-list">
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Basic Button Components</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Form Input Components</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Page Header Component</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                            <span class="feature-text">Container Component</span>
-                        </div>
+
+                    <!-- Version Description -->
+                    <div class="version-description">
+                        <p>{{ $release->penerangan }}</p>
                     </div>
-                </div>
-            </div>
+
+                    <!-- Dynamic Content Sections -->
+                    @if($release->ciri_baharu && count($release->ciri_baharu) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon">new_releases</span>
+                                    <h3 class="section-title">Ciri Baharu</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->ciri_baharu as $feature)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
+                                            <span class="feature-text">{{ $feature }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($release->penambahbaikan && count($release->penambahbaikan) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon section-icon-purple">upgrade</span>
+                                    <h3 class="section-title">Penambahbaikan</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->penambahbaikan as $improvement)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-blue">trending_up</span>
+                                            <span class="feature-text">{{ $improvement }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($release->pembetulan_pepijat && count($release->pembetulan_pepijat) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon section-icon-orange">bug_report</span>
+                                    <h3 class="section-title">Pembetulan Pepijat</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->pembetulan_pepijat as $bugfix)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-orange">build</span>
+                                            <span class="feature-text">{{ $bugfix }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($release->perubahan_teknikal && count($release->perubahan_teknikal) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon section-icon-gray">settings</span>
+                                    <h3 class="section-title">Perubahan Teknikal</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->perubahan_teknikal as $technical)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-gray">code</span>
+                                            <span class="feature-text">{{ $technical }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                @else
+                    <!-- Subsequent Previous Versions -->
+                    <div style="margin: 40px 0; border-top: 2px solid #e5e7eb; padding-top: 40px;"></div>
+
+                    <!-- Previous Version Header -->
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="material-symbols-outlined version-icon">history</span>
+                            <span class="version-number">v{{ $release->versi }}</span>
+                            <span class="version-label">{{ $release->jenis_keluaran_label }}</span>
+                        </div>
+                        <div class="version-date">{{ $release->tarikh_keluaran->format('d/m/Y') }}</div>
+                    </div>
+
+                    <!-- Version Description -->
+                    <div class="version-description">
+                        <p>{{ $release->penerangan }}</p>
+                    </div>
+
+                    <!-- Dynamic Content Sections -->
+                    @if($release->ciri_baharu && count($release->ciri_baharu) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon">new_releases</span>
+                                    <h3 class="section-title">Ciri Baharu</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->ciri_baharu as $feature)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
+                                            <span class="feature-text">{{ $feature }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($release->penambahbaikan && count($release->penambahbaikan) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon section-icon-purple">upgrade</span>
+                                    <h3 class="section-title">Penambahbaikan</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->penambahbaikan as $improvement)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-blue">trending_up</span>
+                                            <span class="feature-text">{{ $improvement }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($release->pembetulan_pepijat && count($release->pembetulan_pepijat) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon section-icon-orange">bug_report</span>
+                                    <h3 class="section-title">Pembetulan Pepijat</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->pembetulan_pepijat as $bugfix)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-orange">build</span>
+                                            <span class="feature-text">{{ $bugfix }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($release->perubahan_teknikal && count($release->perubahan_teknikal) > 0)
+                        <div class="features-grid">
+                            <div class="feature-section">
+                                <div class="feature-section-header">
+                                    <span class="material-symbols-outlined section-icon section-icon-gray">settings</span>
+                                    <h3 class="section-title">Perubahan Teknikal</h3>
+                                </div>
+                                <div class="feature-list">
+                                    @foreach($release->perubahan_teknikal as $technical)
+                                        <div class="feature-item">
+                                            <span class="material-symbols-outlined feature-icon feature-icon-gray">code</span>
+                                            <span class="feature-text">{{ $technical }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                @endif
+            @endforeach
 
         </div>
     </x-ui.page-header>

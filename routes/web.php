@@ -9,7 +9,7 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'permission:dashboard,lihat'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -21,47 +21,90 @@ Route::middleware('auth')->group(function () {
         return view('settings.index');
     })->name('settings.index');
 
-    // Program Routes
-    Route::get('/program', function () {
-        return view('program.index');
-    })->name('program.index');
+    // Program Routes (Permission-based)
+    Route::middleware('permission:program,lihat')->group(function () {
+        Route::get('/program', [App\Http\Controllers\ProgramController::class, 'index'])->name('program.index');
+    });
 
-    // Log Pemandu Routes
-    Route::get('/log-pemandu', function () {
-        return view('log-pemandu.index');
-    })->name('log-pemandu.index');
+    Route::middleware('permission:program,tambah')->group(function () {
+        Route::get('/program/tambah-program', [App\Http\Controllers\ProgramController::class, 'create'])->name('tambah-program');
+        Route::post('/program/tambah-program', [App\Http\Controllers\ProgramController::class, 'store'])->name('store-program');
+    });
 
-    // Laporan Routes
+    Route::middleware('permission:program,kemaskini')->group(function () {
+        Route::get('/program/{program}/edit', [App\Http\Controllers\ProgramController::class, 'edit'])->name('edit-program');
+        Route::put('/program/{program}', [App\Http\Controllers\ProgramController::class, 'update'])->name('update-program');
+    });
+
+    Route::middleware('permission:program,lihat')->group(function () {
+        Route::get('/program/{program}', [App\Http\Controllers\ProgramController::class, 'show'])->name('show-program');
+    });
+
+    Route::middleware('permission:program,padam')->group(function () {
+        Route::delete('/program/{program}', [App\Http\Controllers\ProgramController::class, 'destroy'])->name('delete-program');
+    });
+
+    Route::middleware('permission:program,terima')->group(function () {
+        Route::patch('/program/{program}/approve', [App\Http\Controllers\ProgramController::class, 'approve'])->name('approve-program');
+    });
+
+    Route::middleware('permission:program,tolak')->group(function () {
+        Route::patch('/program/{program}/reject', [App\Http\Controllers\ProgramController::class, 'reject'])->name('reject-program');
+    });
+
+    // Log Pemandu Routes (Permission-based)
+    Route::middleware('permission:log_pemandu,lihat')->group(function () {
+        Route::get('/log-pemandu', function () {
+            return view('log-pemandu.index');
+        })->name('log-pemandu.index');
+    });
+
+    // Laporan Routes (Permission-based)
     Route::prefix('laporan')->name('laporan.')->group(function () {
-        Route::get('/senarai-program', function () {
-            return view('laporan.senarai-program');
-        })->name('senarai-program');
+        Route::middleware('permission:laporan_senarai_program,lihat')->group(function () {
+            Route::get('/senarai-program', function () {
+                return view('laporan.senarai-program');
+            })->name('senarai-program');
+        });
 
-        Route::get('/laporan-kenderaan', function () {
-            return view('laporan.laporan-kenderaan');
-        })->name('laporan-kenderaan');
+        Route::middleware('permission:laporan_kenderaan,lihat')->group(function () {
+            Route::get('/laporan-kenderaan', function () {
+                return view('laporan.laporan-kenderaan');
+            })->name('laporan-kenderaan');
+        });
 
-        Route::get('/laporan-kilometer', function () {
-            return view('laporan.laporan-kilometer');
-        })->name('laporan-kilometer');
+        Route::middleware('permission:laporan_kilometer,lihat')->group(function () {
+            Route::get('/laporan-kilometer', function () {
+                return view('laporan.laporan-kilometer');
+            })->name('laporan-kilometer');
+        });
 
-        Route::get('/laporan-kos', function () {
-            return view('laporan.laporan-kos');
-        })->name('laporan-kos');
+        Route::middleware('permission:laporan_kos,lihat')->group(function () {
+            Route::get('/laporan-kos', function () {
+                return view('laporan.laporan-kos');
+            })->name('laporan-kos');
+        });
 
-        Route::get('/laporan-pemandu', function () {
-            return view('laporan.laporan-pemandu');
-        })->name('laporan-pemandu');
+        Route::middleware('permission:laporan_pemandu,lihat')->group(function () {
+            Route::get('/laporan-pemandu', function () {
+                return view('laporan.laporan-pemandu');
+            })->name('laporan-pemandu');
+        });
     });
 
     // Pengurusan Routes
-    Route::prefix('pengurusan')->name('pengurusan.')->group(function () {
-        Route::get('/tetapan-umum', function () {
-            return view('pengurusan.tetapan-umum');
-        })->name('tetapan-umum');
+    Route::prefix('pengurusan')->name('pengurusan.')->middleware('auth')->group(function () {
+        // Tetapan Umum Routes (Permission-based)
+        Route::middleware('permission:tetapan_umum,lihat')->group(function () {
+            Route::get('/tetapan-umum', [App\Http\Controllers\TetapanUmumController::class, 'index'])->name('tetapan-umum');
+            Route::put('/tetapan-umum', [App\Http\Controllers\TetapanUmumController::class, 'update'])->name('update-tetapan-umum')->middleware('permission:tetapan_umum,kemaskini');
+        });
 
-        // RISDA Routes - Specific routes first, then dynamic routes
-        Route::get('/senarai-risda', [App\Http\Controllers\RisdaBahagianController::class, 'index'])->name('senarai-risda');
+
+
+        // RISDA Routes (Administrator Only)
+        Route::middleware('admin')->group(function () {
+            Route::get('/senarai-risda', [App\Http\Controllers\RisdaBahagianController::class, 'index'])->name('senarai-risda');
 
         // RISDA Bahagian specific routes
         Route::get('/senarai-risda/tambah-bahagian', [App\Http\Controllers\RisdaBahagianController::class, 'create'])->name('tambah-bahagian');
@@ -83,46 +126,88 @@ Route::middleware('auth')->group(function () {
         Route::put('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'update'])->name('update-staf');
         Route::delete('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'destroy'])->name('delete-staf');
 
-        // RISDA Bahagian dynamic routes (must be last)
-        Route::get('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'show'])->name('show-bahagian');
-        Route::get('/senarai-risda/{risdaBahagian}/edit', [App\Http\Controllers\RisdaBahagianController::class, 'edit'])->name('edit-bahagian');
-        Route::put('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'update'])->name('update-bahagian');
-        Route::delete('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'destroy'])->name('delete-bahagian');
+            // RISDA Bahagian dynamic routes (must be last)
+            Route::get('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'show'])->name('show-bahagian');
+            Route::get('/senarai-risda/{risdaBahagian}/edit', [App\Http\Controllers\RisdaBahagianController::class, 'edit'])->name('edit-bahagian');
+            Route::put('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'update'])->name('update-bahagian');
+            Route::delete('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'destroy'])->name('delete-bahagian');
+        });
 
-        // User Group Routes
-        Route::get('/senarai-kumpulan', [App\Http\Controllers\UserGroupController::class, 'index'])->name('senarai-kumpulan');
-        Route::get('/senarai-kumpulan/tambah-kumpulan', [App\Http\Controllers\UserGroupController::class, 'create'])->name('tambah-kumpulan');
-        Route::post('/senarai-kumpulan/tambah-kumpulan', [App\Http\Controllers\UserGroupController::class, 'store'])->name('store-kumpulan');
-        Route::get('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'show'])->name('show-kumpulan');
-        Route::get('/senarai-kumpulan/{userGroup}/edit', [App\Http\Controllers\UserGroupController::class, 'edit'])->name('edit-kumpulan');
-        Route::put('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'update'])->name('update-kumpulan');
-        Route::delete('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'destroy'])->name('delete-kumpulan');
+        // User Group Routes (Permission-based) - Specific routes first, then dynamic routes
+        Route::middleware('permission:senarai_kumpulan,lihat')->group(function () {
+            Route::get('/senarai-kumpulan', [App\Http\Controllers\UserGroupController::class, 'index'])->name('senarai-kumpulan');
+        });
+        Route::middleware('permission:senarai_kumpulan,tambah')->group(function () {
+            Route::get('/senarai-kumpulan/tambah-kumpulan', [App\Http\Controllers\UserGroupController::class, 'create'])->name('tambah-kumpulan');
+            Route::post('/senarai-kumpulan/tambah-kumpulan', [App\Http\Controllers\UserGroupController::class, 'store'])->name('store-kumpulan');
+        });
+        Route::middleware('permission:senarai_kumpulan,kemaskini')->group(function () {
+            Route::get('/senarai-kumpulan/{userGroup}/edit', [App\Http\Controllers\UserGroupController::class, 'edit'])->name('edit-kumpulan');
+            Route::put('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'update'])->name('update-kumpulan');
+        });
+        Route::middleware('permission:senarai_kumpulan,lihat')->group(function () {
+            Route::get('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'show'])->name('show-kumpulan');
+        });
+        Route::middleware('permission:senarai_kumpulan,padam')->group(function () {
+            Route::delete('/senarai-kumpulan/{userGroup}', [App\Http\Controllers\UserGroupController::class, 'destroy'])->name('delete-kumpulan');
+        });
 
-        // Senarai Pengguna Routes
-        Route::get('/senarai-pengguna', [App\Http\Controllers\PenggunaController::class, 'index'])->name('senarai-pengguna');
-        Route::get('/senarai-pengguna/tambah-pengguna', [App\Http\Controllers\PenggunaController::class, 'create'])->name('tambah-pengguna');
-        Route::post('/senarai-pengguna/tambah-pengguna', [App\Http\Controllers\PenggunaController::class, 'store'])->name('store-pengguna');
-        Route::get('/senarai-pengguna/get-stesen/{bahagianId}', [App\Http\Controllers\PenggunaController::class, 'getStesenByBahagian'])->name('get-stesen-by-bahagian');
-Route::get('/senarai-pengguna/get-all-stesen', [App\Http\Controllers\PenggunaController::class, 'getAllStesen'])->name('get-all-stesen');
-        Route::get('/senarai-pengguna/{pengguna}', [App\Http\Controllers\PenggunaController::class, 'show'])->name('show-pengguna');
-        Route::get('/senarai-pengguna/{pengguna}/edit', [App\Http\Controllers\PenggunaController::class, 'edit'])->name('edit-pengguna');
-        Route::put('/senarai-pengguna/{pengguna}', [App\Http\Controllers\PenggunaController::class, 'update'])->name('update-pengguna');
-        Route::delete('/senarai-pengguna/{pengguna}', [App\Http\Controllers\PenggunaController::class, 'destroy'])->name('delete-pengguna');
+        // Senarai Pengguna Routes (Permission-based) - Specific routes first, then dynamic routes
+        Route::middleware('permission:senarai_pengguna,lihat')->group(function () {
+            Route::get('/senarai-pengguna', [App\Http\Controllers\PenggunaController::class, 'index'])->name('senarai-pengguna');
+            Route::get('/senarai-pengguna/get-stesen/{bahagianId}', [App\Http\Controllers\PenggunaController::class, 'getStesenByBahagian'])->name('get-stesen-by-bahagian');
+            Route::get('/senarai-pengguna/get-all-stesen', [App\Http\Controllers\PenggunaController::class, 'getAllStesen'])->name('get-all-stesen');
+        });
+        Route::middleware('permission:senarai_pengguna,tambah')->group(function () {
+            Route::get('/senarai-pengguna/tambah-pengguna', [App\Http\Controllers\PenggunaController::class, 'create'])->name('tambah-pengguna');
+            Route::post('/senarai-pengguna/tambah-pengguna', [App\Http\Controllers\PenggunaController::class, 'store'])->name('store-pengguna');
+        });
+        Route::middleware('permission:senarai_pengguna,kemaskini')->group(function () {
+            Route::get('/senarai-pengguna/{pengguna}/edit', [App\Http\Controllers\PenggunaController::class, 'edit'])->name('edit-pengguna');
+            Route::put('/senarai-pengguna/{pengguna}', [App\Http\Controllers\PenggunaController::class, 'update'])->name('update-pengguna');
+        });
+        Route::middleware('permission:senarai_pengguna,lihat')->group(function () {
+            Route::get('/senarai-pengguna/{pengguna}', [App\Http\Controllers\PenggunaController::class, 'show'])->name('show-pengguna');
+        });
+        Route::middleware('permission:senarai_pengguna,padam')->group(function () {
+            Route::delete('/senarai-pengguna/{pengguna}', [App\Http\Controllers\PenggunaController::class, 'destroy'])->name('delete-pengguna');
+        });
 
 
 
 
-        Route::get('/senarai-kenderaan', function () {
-            return view('pengurusan.senarai-kenderaan');
-        })->name('senarai-kenderaan');
+        // Senarai Kenderaan Routes (Permission-based) - Specific routes first, then dynamic routes
+        Route::middleware('permission:senarai_kenderaan,lihat')->group(function () {
+            Route::get('/senarai-kenderaan', [App\Http\Controllers\KenderaanController::class, 'index'])->name('senarai-kenderaan');
+        });
+        Route::middleware('permission:senarai_kenderaan,tambah')->group(function () {
+            Route::get('/senarai-kenderaan/tambah-kenderaan', [App\Http\Controllers\KenderaanController::class, 'create'])->name('tambah-kenderaan');
+            Route::post('/senarai-kenderaan/tambah-kenderaan', [App\Http\Controllers\KenderaanController::class, 'store'])->name('store-kenderaan');
+        });
+        Route::middleware('permission:senarai_kenderaan,kemaskini')->group(function () {
+            Route::get('/senarai-kenderaan/{kenderaan}/edit', [App\Http\Controllers\KenderaanController::class, 'edit'])->name('edit-kenderaan');
+            Route::put('/senarai-kenderaan/{kenderaan}', [App\Http\Controllers\KenderaanController::class, 'update'])->name('update-kenderaan');
+        });
+        Route::middleware('permission:senarai_kenderaan,lihat')->group(function () {
+            Route::get('/senarai-kenderaan/{kenderaan}', [App\Http\Controllers\KenderaanController::class, 'show'])->name('show-kenderaan');
+        });
+        Route::middleware('permission:senarai_kenderaan,padam')->group(function () {
+            Route::delete('/senarai-kenderaan/{kenderaan}', [App\Http\Controllers\KenderaanController::class, 'destroy'])->name('delete-kenderaan');
+        });
 
-        Route::get('/aktiviti-log', function () {
-            return view('pengurusan.aktiviti-log');
-        })->name('aktiviti-log');
+        // Aktiviti Log Routes (Permission-based)
+        Route::middleware('permission:aktiviti_log,lihat')->group(function () {
+            Route::get('/aktiviti-log', function () {
+                return view('pengurusan.aktiviti-log');
+            })->name('aktiviti-log');
+        });
 
-        Route::get('/aktiviti-log-keselamatan', function () {
-            return view('pengurusan.aktiviti-log-keselamatan');
-        })->name('aktiviti-log-keselamatan');
+        // Aktiviti Log Keselamatan Routes (Permission-based)
+        Route::middleware('permission:aktiviti_log_keselamatan,lihat')->group(function () {
+            Route::get('/aktiviti-log-keselamatan', function () {
+                return view('pengurusan.aktiviti-log-keselamatan');
+            })->name('aktiviti-log-keselamatan');
+        });
     });
 
     // Help Routes
@@ -151,9 +236,7 @@ Route::get('/senarai-pengguna/get-all-stesen', [App\Http\Controllers\PenggunaCon
             return view('help.status-sistem');
         })->name('status-sistem');
 
-        Route::get('/nota-keluaran', function () {
-            return view('help.nota-keluaran');
-        })->name('nota-keluaran');
+        Route::get('/nota-keluaran', [App\Http\Controllers\NotaKeluaranController::class, 'index'])->name('nota-keluaran');
     });
 });
 

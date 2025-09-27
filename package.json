@@ -20,6 +20,7 @@
     },
     "dependencies": {
         "@yaireo/tagify": "^4.35.4",
+        "jquery": "^3.7.1",
         "malaysia-postcodes": "^2.7.3"
     }
 }

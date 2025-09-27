@@ -16,11 +16,49 @@ class PenggunaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $penggunas = User::with(['kumpulan'])
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+        $currentUser = auth()->user();
+
+        // Start building query
+        $query = User::with(['kumpulan']);
+
+        // Apply organizational scope
+        if ($this->isAdministrator()) {
+            // Administrator can see all users
+        } else {
+            // Regular users with permission can see users within their organizational scope
+            $query->where('jenis_organisasi', '!=', 'semua') // Hide administrators from regular users
+                ->where(function($q) use ($currentUser) {
+                    if ($currentUser->jenis_organisasi === 'bahagian') {
+                        // Bahagian users can see users in their bahagian
+                        $q->where('organisasi_id', $currentUser->organisasi_id)
+                          ->where('jenis_organisasi', 'stesen');
+                    } elseif ($currentUser->jenis_organisasi === 'stesen') {
+                        // Stesen users can only see themselves
+                        $q->where('id', $currentUser->id);
+                    }
+                });
+        }
+
+        // Apply filters
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Paginate results
+        $penggunas = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        // Append query parameters to pagination links
+        $penggunas->appends($request->query());
 
         return view('pengurusan.senarai-pengguna', compact('penggunas'));
     }
@@ -251,6 +289,50 @@ class PenggunaController extends Controller
      */
     public function destroy(User $pengguna)
     {
+        // Prevent deleting Administrator
+        if ($pengguna->jenis_organisasi === 'semua') {
+            return redirect()->route('pengurusan.senarai-pengguna')
+                ->with('error', 'Tidak dapat memadamkan Administrator sistem!');
+        }
+
+        // Check if other users are assigned to user groups created by this user
+        $createdGroups = UserGroup::where('dicipta_oleh', $pengguna->id)->get();
+        $groupsWithUsers = [];
+
+        foreach ($createdGroups as $group) {
+            $usersInGroup = User::where('kumpulan_id', $group->id)->where('id', '!=', $pengguna->id)->count();
+            if ($usersInGroup > 0) {
+                $groupsWithUsers[] = $group->nama_kumpulan . " ({$usersInGroup} pengguna)";
+            }
+        }
+
+        if (!empty($groupsWithUsers)) {
+            $groupList = implode(', ', $groupsWithUsers);
+            return redirect()->route('pengurusan.senarai-pengguna')
+                ->with('error', "Tidak dapat memadamkan pengguna kerana masih ada pengguna lain dalam kumpulan yang dicipta: {$groupList}. Sila pindahkan pengguna tersebut ke kumpulan lain terlebih dahulu.");
+        }
+
+        if ($createdGroups->count() > 0) {
+            // Find Administrator to transfer ownership
+            $administrator = User::where('jenis_organisasi', 'semua')->first();
+
+            if ($administrator) {
+                // Transfer ownership of all user groups to Administrator
+                foreach ($createdGroups as $group) {
+                    $group->dicipta_oleh = $administrator->id;
+                    $group->save();
+                }
+
+                $groupNames = $createdGroups->pluck('nama_kumpulan')->implode(', ');
+                \Log::info("Transferred ownership of user groups ({$groupNames}) from user {$pengguna->name} to Administrator before deletion.");
+            } else {
+                // No administrator found - prevent deletion
+                return redirect()->route('pengurusan.senarai-pengguna')
+                    ->with('error', 'Tidak dapat memadamkan pengguna kerana tiada Administrator untuk memindahkan pemilikan kumpulan pengguna.');
+            }
+        }
+
+        // Now safe to delete the user
         $pengguna->delete();
 
         return redirect()->route('pengurusan.senarai-pengguna')
@@ -289,15 +371,12 @@ class PenggunaController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user || !$user->kumpulan) {
+        if (!$user) {
             return false;
         }
 
-        // Check if user group contains "Admin" or has highest privileges
-        $kumpulanName = strtolower($user->kumpulan->nama_kumpulan);
-
-        return str_contains($kumpulanName, 'admin') ||
-               $user->jenis_organisasi === 'semua' ||
-               $user->organisasi_id === null;
+        // Only users with jenis_organisasi = 'semua' are true administrators
+        // This ensures only admin@jara.my (or similar) have full access
+        return $user->jenis_organisasi === 'semua';
     }
 }
