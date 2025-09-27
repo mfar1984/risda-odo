@@ -11,11 +11,96 @@ class RisdaBahagianController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $bahagians = RisdaBahagian::latest()->get();
-        $stesens = \App\Models\RisdaStesen::with('risdaBahagian')->latest()->get();
-        $stafs = \App\Models\RisdaStaf::with(['bahagian', 'stesen'])->latest()->get();
+        // Build query for bahagians with search and pagination
+        $bahagianQuery = RisdaBahagian::query();
+
+        if ($request->filled('search_bahagian')) {
+            $search = $request->search_bahagian;
+            $bahagianQuery->where(function($q) use ($search) {
+                $q->where('nama_bahagian', 'like', "%{$search}%")
+                  ->orWhere('alamat_1', 'like', "%{$search}%")
+                  ->orWhere('alamat_2', 'like', "%{$search}%")
+                  ->orWhere('bandar', 'like', "%{$search}%")
+                  ->orWhere('negeri', 'like', "%{$search}%")
+                  ->orWhere('no_telefon', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status_bahagian')) {
+            $bahagianQuery->where('status_dropdown', $request->status_bahagian);
+        }
+
+        $bahagians = $bahagianQuery->latest()->paginate(15, ['*'], 'bahagian_page');
+        $bahagians->appends($request->query());
+
+        // Build query for stesens with search and pagination
+        $stesenQuery = \App\Models\RisdaStesen::with('risdaBahagian');
+
+        if ($request->filled('search_stesen')) {
+            $search = $request->search_stesen;
+            $stesenQuery->where(function($q) use ($search) {
+                $q->where('nama_stesen', 'like', "%{$search}%")
+                  ->orWhere('alamat_1', 'like', "%{$search}%")
+                  ->orWhere('alamat_2', 'like', "%{$search}%")
+                  ->orWhere('bandar', 'like', "%{$search}%")
+                  ->orWhere('negeri', 'like', "%{$search}%")
+                  ->orWhere('no_telefon', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhereHas('risdaBahagian', function($subQ) use ($search) {
+                      $subQ->where('nama_bahagian', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('status_stesen')) {
+            $stesenQuery->where('status_dropdown', $request->status_stesen);
+        }
+
+        if ($request->filled('bahagian_stesen')) {
+            $stesenQuery->where('risda_bahagian_id', $request->bahagian_stesen);
+        }
+
+        $stesens = $stesenQuery->latest()->paginate(15, ['*'], 'stesen_page');
+        $stesens->appends($request->query());
+
+        // Build query for stafs with search and pagination
+        $stafQuery = \App\Models\RisdaStaf::with(['bahagian', 'stesen']);
+
+        if ($request->filled('search_staf')) {
+            $search = $request->search_staf;
+            $stafQuery->where(function($q) use ($search) {
+                $q->where('no_pekerja', 'like', "%{$search}%")
+                  ->orWhere('nama_penuh', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('jawatan', 'like', "%{$search}%")
+                  ->orWhere('no_telefon', 'like', "%{$search}%")
+                  ->orWhereHas('bahagian', function($subQ) use ($search) {
+                      $subQ->where('nama_bahagian', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('stesen', function($subQ) use ($search) {
+                      $subQ->where('nama_stesen', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('status_staf')) {
+            $stafQuery->where('status', $request->status_staf);
+        }
+
+        if ($request->filled('bahagian_staf')) {
+            $stafQuery->where('risda_bahagian_id', $request->bahagian_staf);
+        }
+
+        if ($request->filled('stesen_staf')) {
+            $stafQuery->where('risda_stesen_id', $request->stesen_staf);
+        }
+
+        $stafs = $stafQuery->latest()->paginate(15, ['*'], 'staf_page');
+        $stafs->appends($request->query());
+
         return view('pengurusan.senarai-risda', compact('bahagians', 'stesens', 'stafs'));
     }
 
