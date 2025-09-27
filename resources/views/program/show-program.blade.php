@@ -1,0 +1,392 @@
+<x-dashboard-layout title="Lihat Program">
+    <x-ui.page-header
+        title="Maklumat Program"
+        description="Maklumat terperinci program"
+    >
+        <!-- Header with Export Button -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <!-- Empty div for spacing -->
+            </div>
+            @if(auth()->user()->adaKebenaran('program', 'eksport'))
+                <x-buttons.primary-button type="button" onclick="exportProgram()">
+                    <span class="material-symbols-outlined mr-2" style="font-size: 16px;">download</span>
+                    Export
+                </x-buttons.primary-button>
+            @endif
+        </div>
+
+                <div class="mt-6 space-y-6">
+                    <!-- Row 1: Nama Program & Lokasi Program -->
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="nama_program" value="Nama Program" />
+                            <x-forms.text-input
+                                id="nama_program"
+                                name="nama_program"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ $program->nama_program }}"
+                                readonly
+                            />
+                        </div>
+
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="lokasi_program" value="Lokasi Program" />
+                            <x-forms.text-input
+                                id="lokasi_program"
+                                name="lokasi_program"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ $program->lokasi_program }}"
+                                readonly
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Tarikh Mula & Tarikh Selesai -->
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="tarikh_mula" value="Tarikh & Masa Mula" />
+                            <x-forms.text-input
+                                id="tarikh_mula"
+                                name="tarikh_mula"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ $program->tarikh_mula->format('d/m/Y H:i') }}"
+                                readonly
+                            />
+                        </div>
+
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="tarikh_selesai" value="Tarikh & Masa Selesai" />
+                            <x-forms.text-input
+                                id="tarikh_selesai"
+                                name="tarikh_selesai"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ $program->tarikh_selesai->format('d/m/Y H:i') }}"
+                                readonly
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Penerangan -->
+                    <div>
+                        <x-forms.input-label for="penerangan" value="Penerangan" />
+                        <textarea
+                            id="penerangan"
+                            name="penerangan"
+                            class="mt-1 block w-full form-input"
+                            rows="3"
+                            readonly
+                        >{{ $program->penerangan ?? 'Tiada penerangan' }}</textarea>
+                    </div>
+
+                    <!-- Row 4: Status -->
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="status" value="Status" />
+                            <div class="mt-1">
+                                @if($program->status === 'draf')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                        Draf
+                                    </span>
+                                @elseif($program->status === 'lulus')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        Lulus
+                                    </span>
+                                @elseif($program->status === 'tolak')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                        Tolak
+                                    </span>
+                                @elseif($program->status === 'aktif')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                        Aktif
+                                    </span>
+                                @elseif($program->status === 'tertunda')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                        Tertunda
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                                        Selesai
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <div style="flex: 1;"></div>
+                    </div>
+
+                    <!-- Separator -->
+                    <div class="my-6">
+                        <div class="border-t border-gray-200"></div>
+                        <h3 class="text-lg font-medium text-gray-900 mt-4" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">
+                            Maklumat Pemohon Program
+                        </h3>
+                    </div>
+
+                    <!-- Table: Maklumat Pemohon Program -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full border border-gray-300">
+                            <thead class="bg-blue-600">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">RISDA</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Jawatan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">No Tel</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Permohonan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Kelulusan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        {{ $program->pemohon->nama_penuh ?? 'N/A' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        @if($program->pemohon && $program->pemohon->bahagian)
+                                            {{ $program->pemohon->bahagian->nama_bahagian }}
+                                            @if($program->pemohon->stesen)
+                                                <br><span class="text-gray-500">{{ $program->pemohon->stesen->nama_stesen }}</span>
+                                            @else
+                                                <br><span class="text-gray-500">Semua Stesen</span>
+                                            @endif
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        {{ $program->pemohon->jawatan ?? 'N/A' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        {{ $program->pemohon->no_telefon ?? 'N/A' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        {{ $program->created_at->format('d/m/Y') }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        @if($program->status === 'lulus' && $program->updated_at > $program->created_at)
+                                            {{ $program->updated_at->format('d/m/Y') }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Separator -->
+                    <div class="my-6">
+                        <div class="border-t border-gray-200"></div>
+                        <h3 class="text-lg font-medium text-gray-900 mt-4" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">
+                            Maklumat Pemandu Program
+                        </h3>
+                    </div>
+
+                    <!-- Table: Maklumat Pemandu Program -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full border border-gray-300">
+                            <thead class="bg-blue-600">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">RISDA</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">No Tel</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Tarikh Aktif</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Tarikh Selesai</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        {{ $program->pemandu->nama_penuh ?? 'N/A' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        @if($program->pemandu && $program->pemandu->bahagian)
+                                            {{ $program->pemandu->bahagian->nama_bahagian }}
+                                            @if($program->pemandu->stesen)
+                                                <br><span class="text-gray-500">{{ $program->pemandu->stesen->nama_stesen }}</span>
+                                            @else
+                                                <br><span class="text-gray-500">Semua Stesen</span>
+                                            @endif
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        {{ $program->pemandu->no_telefon ?? 'N/A' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        @if($program->status === 'aktif')
+                                            {{ $program->tarikh_mula->format('d/m/Y') }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        @if($program->status === 'selesai')
+                                            {{ $program->tarikh_selesai->format('d/m/Y') }}
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Separator -->
+                    <div class="my-6">
+                        <div class="border-t border-gray-200"></div>
+                        <h3 class="text-lg font-medium text-gray-900 mt-4" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">
+                            Maklumat Kenderaan
+                        </h3>
+                    </div>
+
+                    <!-- Table: Maklumat Kenderaan -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full border border-gray-300">
+                            <thead class="bg-blue-600">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">No. Plat</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Jenama & Model</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Kapasiti & Muatan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Cukai Tamat</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        {{ $program->kenderaan->no_plat ?? 'N/A' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        @if($program->kenderaan)
+                                            {{ $program->kenderaan->jenama }} {{ $program->kenderaan->model }}
+                                            <br><span class="text-gray-500">{{ $program->kenderaan->tahun }}</span>
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        @if($program->kenderaan)
+                                            {{ $program->kenderaan->kapasiti_enjin ?? 'N/A' }}cc
+                                            <br><span class="text-gray-500">{{ $program->kenderaan->muatan_penumpang ?? 'N/A' }} penumpang</span>
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        @if($program->kenderaan && $program->kenderaan->tarikh_tamat_cukai)
+                                            {{ \Carbon\Carbon::parse($program->kenderaan->tarikh_tamat_cukai)->format('d/m/Y') }}
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Separator -->
+                    <div class="my-6">
+                        <div class="border-t border-gray-200"></div>
+                        <h3 class="text-lg font-medium text-gray-900 mt-4" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">
+                            Maklumat Audit
+                        </h3>
+                    </div>
+
+                    <!-- Row 7: Created & Updated -->
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="created_at" value="Dicipta Pada" />
+                            <x-forms.text-input
+                                id="created_at"
+                                name="created_at"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ $program->created_at->format('d/m/Y H:i:s') }}"
+                                readonly
+                            />
+                        </div>
+
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="updated_at" value="Dikemaskini Pada" />
+                            <x-forms.text-input
+                                id="updated_at"
+                                name="updated_at"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ $program->updated_at->format('d/m/Y H:i:s') }}"
+                                readonly
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center justify-between mt-6">
+                        <a href="{{ route('program.index') }}">
+                            <x-buttons.secondary-button type="button">
+                                <span class="material-symbols-outlined mr-2" style="font-size: 16px;">arrow_back</span>
+                                Kembali
+                            </x-buttons.secondary-button>
+                        </a>
+
+                        <div class="flex space-x-3">
+                            @if(auth()->user()->adaKebenaran('program', 'kemaskini'))
+                                <a href="{{ route('edit-program', $program) }}">
+                                    <x-buttons.warning-button type="button">
+                                        <span class="material-symbols-outlined mr-2" style="font-size: 16px;">edit</span>
+                                        Edit
+                                    </x-buttons.warning-button>
+                                </a>
+                            @endif
+
+                            @if(auth()->user()->adaKebenaran('program', 'padam'))
+                                <form action="{{ route('delete-program', $program) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $program->nama_program }}?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <x-buttons.danger-button type="submit">
+                                        <span class="material-symbols-outlined mr-2" style="font-size: 16px;">delete</span>
+                                        Padam
+                                    </x-buttons.danger-button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+    </x-ui.page-header>
+</x-dashboard-layout>
+
+<script>
+function exportProgram() {
+    // You can implement different export formats here
+    const programId = {{ $program->id }};
+    const programName = "{{ $program->nama_program }}";
+
+    // For now, let's create a simple text export
+    const exportData = {
+        'Nama Program': "{{ $program->nama_program }}",
+        'Lokasi Program': "{{ $program->lokasi_program }}",
+        'Tarikh Mula': "{{ $program->tarikh_mula->format('d/m/Y H:i') }}",
+        'Tarikh Selesai': "{{ $program->tarikh_selesai->format('d/m/Y H:i') }}",
+        'Status': "{{ $program->status_label }}",
+        'Penerangan': "{{ $program->penerangan ?? 'Tiada penerangan' }}",
+        'Pemohon': "{{ $program->pemohon->nama_penuh ?? 'N/A' }}",
+        'Pemandu': "{{ $program->pemandu->nama_penuh ?? 'N/A' }}",
+        'Kenderaan': "{{ $program->kenderaan->no_plat ?? 'N/A' }}"
+    };
+
+    // Convert to JSON and download
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `program_${programId}_${programName.replace(/\s+/g, '_')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+</script>

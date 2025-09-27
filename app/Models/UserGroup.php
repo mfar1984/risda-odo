@@ -45,8 +45,14 @@ class UserGroup extends Model
      */
     public function adaKebenaran($modul, $aksi)
     {
-        return isset($this->kebenaran_matrix[$modul][$aksi]) && 
-               $this->kebenaran_matrix[$modul][$aksi] === true;
+        if (!isset($this->kebenaran_matrix[$modul][$aksi])) {
+            return false;
+        }
+
+        $permission = $this->kebenaran_matrix[$modul][$aksi];
+
+        // Handle multiple truthy values: boolean true, string "1", integer 1, and string "true"
+        return $permission === true || $permission === "1" || $permission === 1 || $permission === "true";
     }
 
     /**
@@ -67,6 +73,7 @@ class UserGroup extends Model
                 'tolak' => false,
                 'gantung' => false,
                 'aktifkan' => false,
+                'eksport' => false,
             ],
             'log_pemandu' => [
                 'tambah' => false,

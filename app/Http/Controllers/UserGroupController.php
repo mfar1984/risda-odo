@@ -14,13 +14,59 @@ class UserGroupController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $kumpulans = UserGroup::with('pencipta')
-                            ->orderBy('created_at', 'desc')
-                            ->get();
+        $currentUser = auth()->user();
+
+        // Start building query
+        $query = UserGroup::with('pencipta');
+
+        // Apply organizational scope
+        if ($this->isAdministrator()) {
+            // Administrator can see all groups
+        } else {
+            // Regular users can only see groups within their organizational scope
+            $query->with(['pencipta', 'pengguna'])
+                ->whereHas('pengguna', function($q) use ($currentUser) {
+                    if ($currentUser->jenis_organisasi === 'bahagian') {
+                        // Bahagian users can see groups with users in their bahagian
+                        $q->where('organisasi_id', $currentUser->organisasi_id);
+                    } elseif ($currentUser->jenis_organisasi === 'stesen') {
+                        // Stesen users can see groups with users in their bahagian
+                        $q->where('organisasi_id', $currentUser->organisasi_id);
+                    }
+                });
+        }
+
+        // Apply filters
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama_kumpulan', 'like', "%{$search}%")
+                  ->orWhere('keterangan', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Paginate results
+        $kumpulans = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        // Append query parameters to pagination links
+        $kumpulans->appends($request->query());
 
         return view('pengurusan.senarai-kumpulan', compact('kumpulans'));
+    }
+
+    /**
+     * Check if current user is Administrator.
+     */
+    private function isAdministrator()
+    {
+        $user = auth()->user();
+        return $user && $user->jenis_organisasi === 'semua';
     }
 
     /**

@@ -119,18 +119,24 @@
                 <div style="display: flex; gap: 20px;">
                     <div style="flex: 1;">
                         <x-forms.input-label for="bahagian_akses_id" value="Bahagian Akses" />
-                        <select
-                            id="bahagian_akses_id"
-                            name="bahagian_akses_id"
-                            class="form-select mt-1"
+                        <select 
+                            id="bahagian_akses_id" 
+                            name="bahagian_akses_id" 
+                            class="form-select mt-1" 
                             required
                             onchange="loadStesenByBahagian(this.value)"
                         >
                             <option value="">Pilih Bahagian Akses</option>
-                            <!-- TEMP: Show for testing - login as admin@jara.my to see properly -->
+                            @php
+                                $currentUser = auth()->user();
+                                $isAdministrator = $currentUser && $currentUser->jenis_organisasi === 'semua';
+                                $canCreateAdmin = $isAdministrator || ($currentUser && $currentUser->adaKebenaran('senarai_pengguna', 'tambah'));
+                            @endphp
+                            @if($isAdministrator)
                             <option value="semua" {{ old('bahagian_akses_id') == 'semua' ? 'selected' : '' }}>
                                 Semua Bahagian
                             </option>
+                            @endif
                             @foreach($bahagians as $bahagian)
                             <option value="{{ $bahagian->id }}" {{ old('bahagian_akses_id') == $bahagian->id ? 'selected' : '' }}>
                                 {{ $bahagian->nama_bahagian }}
@@ -157,14 +163,7 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex items-center justify-between mt-6">
-                    <a href="{{ route('pengurusan.senarai-pengguna') }}">
-                        <x-buttons.secondary-button type="button">
-                            <span class="material-symbols-outlined mr-2" style="font-size: 16px;">arrow_back</span>
-                            Batal
-                        </x-buttons.secondary-button>
-                    </a>
-                    
+                <div class="flex justify-end mt-6">
                     <x-buttons.primary-button type="submit">
                         <span class="material-symbols-outlined mr-2" style="font-size: 16px;">save</span>
                         Tambah Pengguna

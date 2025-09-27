@@ -169,6 +169,11 @@ class User extends Authenticatable
      */
     public function adaKebenaran($modul, $aksi)
     {
+        // Administrator bypass - users with jenis_organisasi = 'semua' have all permissions
+        if ($this->jenis_organisasi === 'semua') {
+            return true;
+        }
+
         if (!$this->kumpulan) {
             return false;
         }

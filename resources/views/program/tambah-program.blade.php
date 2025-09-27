@@ -1,0 +1,183 @@
+<x-dashboard-layout
+    title="Tambah Program"
+    description="Daftarkan program baharu dalam sistem"
+    >
+        <x-ui.container class="w-full">
+            <section>
+                <header>
+                    <h2 class="text-lg font-medium text-gray-900">
+                        {{ __('Program') }}
+                    </h2>
+
+                    <p class="mt-1 text-sm text-gray-600">
+                        {{ __('Daftarkan program baharu dalam sistem') }}
+                    </p>
+                </header>
+
+                <form method="POST" action="{{ route('store-program') }}" class="mt-6 space-y-6">
+                    @csrf
+
+                    <!-- Maklumat Program Section -->
+                    <div class="space-y-4">
+                        <h3 class="text-md font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Maklumat Program</h3>
+                        
+                        <!-- Row 1: Nama Program -->
+                        <div>
+                            <x-forms.input-label for="nama_program" value="Nama Program" />
+                            <x-forms.text-input
+                                id="nama_program"
+                                name="nama_program"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ old('nama_program') }}"
+                                required
+                                autofocus
+                                placeholder="Contoh: Program Lawatan Ladang"
+                                style="font-family: Poppins, sans-serif !important; font-size: 12px !important;"
+                            />
+                            <x-forms.input-error class="mt-2" :messages="$errors->get('nama_program')" />
+                            <p class="mt-1 text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
+                                Status program akan ditetapkan sebagai 'Draf' secara automatik.
+                            </p>
+                        </div>
+
+                        <!-- Row 2: Tarikh Mula & Tarikh Selesai -->
+                        <div style="display: flex; gap: 20px;">
+                            <div style="flex: 1;">
+                                <x-forms.input-label for="tarikh_mula" value="Tarikh & Masa Mula" />
+                                <x-forms.datetime-input
+                                    id="tarikh_mula"
+                                    name="tarikh_mula"
+                                    class="mt-1 block w-full"
+                                    value="{{ old('tarikh_mula') }}"
+                                    required
+                                />
+                                <x-forms.input-error class="mt-2" :messages="$errors->get('tarikh_mula')" />
+                            </div>
+                            <div style="flex: 1;">
+                                <x-forms.input-label for="tarikh_selesai" value="Tarikh & Masa Selesai" />
+                                <x-forms.datetime-input
+                                    id="tarikh_selesai"
+                                    name="tarikh_selesai"
+                                    class="mt-1 block w-full"
+                                    value="{{ old('tarikh_selesai') }}"
+                                    required
+                                />
+                                <x-forms.input-error class="mt-2" :messages="$errors->get('tarikh_selesai')" />
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Lokasi Program -->
+                        <div>
+                            <x-forms.input-label for="lokasi_program" value="Lokasi Program" />
+                            <x-forms.text-input 
+                                id="lokasi_program" 
+                                name="lokasi_program" 
+                                type="text" 
+                                class="mt-1 block w-full" 
+                                value="{{ old('lokasi_program') }}"
+                                required 
+                                placeholder="Contoh: Ladang Getah Sungai Buloh"
+                            />
+                            <x-forms.input-error class="mt-2" :messages="$errors->get('lokasi_program')" />
+                        </div>
+
+                        <!-- Row 4: Penerangan -->
+                        <div>
+                            <x-forms.input-label for="penerangan" value="Penerangan" />
+                            <textarea
+                                id="penerangan"
+                                name="penerangan"
+                                rows="3"
+                                class="form-textarea mt-1"
+                                placeholder="Penerangan ringkas tentang program ini..."
+                            >{{ old('penerangan') }}</textarea>
+                            <x-forms.input-error class="mt-2" :messages="$errors->get('penerangan')" />
+                        </div>
+                    </div>
+
+                    <!-- Permohonan & Tugasan Section -->
+                    <div class="space-y-4 pt-6 border-t border-gray-200">
+                        <h3 class="text-md font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Permohonan & Tugasan</h3>
+                        
+                        <!-- Row 1: Permohonan dari & Pilih Pemandu -->
+                        <div style="display: flex; gap: 20px;">
+                            <div style="flex: 1;">
+                                <x-forms.input-label for="permohonan_dari" value="Permohonan dari" />
+                                <select
+                                    id="permohonan_dari"
+                                    name="permohonan_dari"
+                                    class="form-select mt-1"
+                                    required
+                                >
+                                    <option value="">Pilih Staf Pemohon</option>
+                                    @foreach($stafs as $staf)
+                                        <option value="{{ $staf->id }}" {{ old('permohonan_dari') == $staf->id ? 'selected' : '' }}>
+                                            {{ $staf->nama_penuh }} ({{ $staf->no_pekerja }})
+                                            @if($staf->bahagian)
+                                                - {{ $staf->bahagian->nama_bahagian }}
+                                            @endif
+                                            @if($staf->stesen)
+                                                - {{ $staf->stesen->nama_stesen }}
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <x-forms.input-error class="mt-2" :messages="$errors->get('permohonan_dari')" />
+                            </div>
+                            <div style="flex: 1;">
+                                <x-forms.input-label for="pemandu_id" value="Pilih Pemandu" />
+                                <select
+                                    id="pemandu_id"
+                                    name="pemandu_id"
+                                    class="form-select mt-1"
+                                    required
+                                >
+                                    <option value="">Pilih Staf Pemandu</option>
+                                    @foreach($stafs as $staf)
+                                        <option value="{{ $staf->id }}" {{ old('pemandu_id') == $staf->id ? 'selected' : '' }}>
+                                            {{ $staf->nama_penuh }} ({{ $staf->no_pekerja }})
+                                            @if($staf->bahagian)
+                                                - {{ $staf->bahagian->nama_bahagian }}
+                                            @endif
+                                            @if($staf->stesen)
+                                                - {{ $staf->stesen->nama_stesen }}
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <x-forms.input-error class="mt-2" :messages="$errors->get('pemandu_id')" />
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Pilih Kenderaan -->
+                        <div>
+                            <x-forms.input-label for="kenderaan_id" value="Pilih Kenderaan" />
+                            <select
+                                id="kenderaan_id"
+                                name="kenderaan_id"
+                                class="form-select mt-1"
+                                required
+                            >
+                                <option value="">Pilih Kenderaan</option>
+                                @foreach($kenderaans as $kenderaan)
+                                    <option value="{{ $kenderaan->id }}" {{ old('kenderaan_id') == $kenderaan->id ? 'selected' : '' }}>
+                                        {{ $kenderaan->no_plat }} - {{ $kenderaan->jenama }} {{ $kenderaan->model }} ({{ $kenderaan->tahun }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <x-forms.input-error class="mt-2" :messages="$errors->get('kenderaan_id')" />
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex items-center justify-end mt-8">
+                        <x-buttons.primary-button type="submit">
+                            <span class="material-symbols-outlined mr-2" style="font-size: 16px;">save</span>
+                            Simpan Program
+                        </x-buttons.primary-button>
+                    </div>
+                </form>
+            </section>
+        </x-ui.container>
+</x-dashboard-layout>

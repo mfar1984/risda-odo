@@ -34,7 +34,7 @@
     }
     
     .form-textarea {
-        @apply form-input resize-vertical;
+        @apply form-input resize-y;
         min-height: 80px;
     }
     
@@ -78,5 +78,97 @@
     
     .form-input-success {
         @apply border-risda-success focus:ring-risda-success focus:border-risda-success;
+    }
+
+    /* Native Date Input Styling - Cross-browser compatible */
+    .form-date-input-native {
+        position: relative;
+        background-color: white !important;
+        color: #374151 !important; /* text-gray-700 */
+        font-family: 'Poppins', sans-serif !important;
+        cursor: pointer !important;
+
+        /* Remove default browser styling */
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+
+        /* Custom calendar icon */
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3e%3c/svg%3e") !important;
+        background-position: right 8px center !important;
+        background-repeat: no-repeat !important;
+        background-size: 16px 16px !important;
+        padding-right: 40px !important;
+    }
+
+    /* Safari specific fixes for native date input */
+    .form-date-input-native::-webkit-calendar-picker-indicator {
+        opacity: 0 !important;
+        position: absolute !important;
+        right: 8px !important;
+        width: 20px !important;
+        height: 20px !important;
+        cursor: pointer !important;
+        z-index: 2 !important;
+    }
+
+    /* Firefox specific fixes */
+    .form-date-input-native::-moz-focus-inner {
+        border: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Chrome/Edge specific fixes */
+    .form-date-input-native::-webkit-datetime-edit {
+        color: #374151 !important;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 12px !important;
+        padding: 0 !important;
+    }
+
+    .form-date-input-native::-webkit-datetime-edit-fields-wrapper {
+        padding: 0 !important;
+    }
+
+    .form-date-input-native::-webkit-datetime-edit-text {
+        color: #6b7280 !important; /* text-gray-500 for separators */
+        padding: 0 2px !important;
+    }
+
+    .form-date-input-native::-webkit-datetime-edit-month-field,
+    .form-date-input-native::-webkit-datetime-edit-day-field,
+    .form-date-input-native::-webkit-datetime-edit-year-field {
+        color: #374151 !important;
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 12px !important;
+        padding: 0 1px !important;
+    }
+
+    /* Placeholder styling for empty date inputs */
+    .form-date-input-native:invalid {
+        color: #9ca3af !important; /* text-gray-400 */
+    }
+
+    /* Focus states */
+    .form-date-input-native:focus {
+        @apply ring-2 ring-blue-500 border-blue-500;
+        outline: none !important;
+    }
+
+    .form-date-input-native:focus::-webkit-datetime-edit {
+        color: #374151 !important;
+    }
+
+    /* Disabled state */
+    .form-date-input-native:disabled {
+        background-color: #f9fafb !important; /* bg-gray-50 */
+        color: #9ca3af !important; /* text-gray-400 */
+        cursor: not-allowed !important;
+        opacity: 0.6 !important;
+    }
+
+    .form-date-input-native:disabled::-webkit-calendar-picker-indicator {
+        opacity: 0.3 !important;
+        cursor: not-allowed !important;
     }
 }
