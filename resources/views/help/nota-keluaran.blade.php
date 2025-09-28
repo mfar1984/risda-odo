@@ -26,79 +26,71 @@
                         <p>{{ $release->penerangan }}</p>
                     </div>
 
-                    <!-- Dynamic Content Sections -->
+                    <!-- Ciri Baharu -->
                     @if($release->ciri_baharu && count($release->ciri_baharu) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon">new_releases</span>
-                                    <h3 class="section-title">Ciri Baharu</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->ciri_baharu as $feature)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                                            <span class="feature-text">{{ $feature }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 20px;">new_releases</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Ciri Baharu</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->ciri_baharu as $feature)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-green-600 mt-0.5" style="font-size: 16px;">check_circle</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $feature }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
                     @if($release->penambahbaikan && count($release->penambahbaikan) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon section-icon-purple">upgrade</span>
-                                    <h3 class="section-title">Penambahbaikan</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->penambahbaikan as $improvement)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-blue">trending_up</span>
-                                            <span class="feature-text">{{ $improvement }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 20px;">upgrade</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Penambahbaikan</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->penambahbaikan as $improvement)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-green-600 mt-0.5" style="font-size: 16px;">check_circle</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $improvement }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
                     @if($release->pembetulan_pepijat && count($release->pembetulan_pepijat) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon section-icon-orange">bug_report</span>
-                                    <h3 class="section-title">Pembetulan Pepijat</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->pembetulan_pepijat as $bugfix)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-orange">build</span>
-                                            <span class="feature-text">{{ $bugfix }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-orange-600" style="font-size: 20px;">bug_report</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Pembetulan</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->pembetulan_pepijat as $bugfix)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-green-600 mt-0.5" style="font-size: 16px;">check_circle</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bugfix }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
                     @if($release->perubahan_teknikal && count($release->perubahan_teknikal) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon section-icon-gray">settings</span>
-                                    <h3 class="section-title">Perubahan Teknikal</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->perubahan_teknikal as $technical)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-gray">code</span>
-                                            <span class="feature-text">{{ $technical }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-purple-600" style="font-size: 20px;">settings</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Maklumat Teknikal</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->perubahan_teknikal as $technical)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-purple-600 mt-0.5" style="font-size: 16px;">code</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $technical }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
@@ -124,79 +116,70 @@
                         <p>{{ $release->penerangan }}</p>
                     </div>
 
-                    <!-- Dynamic Content Sections -->
                     @if($release->ciri_baharu && count($release->ciri_baharu) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon">new_releases</span>
-                                    <h3 class="section-title">Ciri Baharu</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->ciri_baharu as $feature)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                                            <span class="feature-text">{{ $feature }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 20px;">new_releases</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Ciri Baharu</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->ciri_baharu as $feature)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-green-600 mt-0.5" style="font-size: 16px;">check_circle</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $feature }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
                     @if($release->penambahbaikan && count($release->penambahbaikan) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon section-icon-purple">upgrade</span>
-                                    <h3 class="section-title">Penambahbaikan</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->penambahbaikan as $improvement)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-blue">trending_up</span>
-                                            <span class="feature-text">{{ $improvement }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 20px;">upgrade</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Penambahbaikan</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->penambahbaikan as $improvement)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-green-600 mt-0.5" style="font-size: 16px;">check_circle</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $improvement }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
                     @if($release->pembetulan_pepijat && count($release->pembetulan_pepijat) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon section-icon-orange">bug_report</span>
-                                    <h3 class="section-title">Pembetulan Pepijat</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->pembetulan_pepijat as $bugfix)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-orange">build</span>
-                                            <span class="feature-text">{{ $bugfix }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-orange-600" style="font-size: 20px;">bug_report</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Pembetulan</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->pembetulan_pepijat as $bugfix)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-green-600 mt-0.5" style="font-size: 16px;">check_circle</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bugfix }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
                     @if($release->perubahan_teknikal && count($release->perubahan_teknikal) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon section-icon-gray">settings</span>
-                                    <h3 class="section-title">Perubahan Teknikal</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->perubahan_teknikal as $technical)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-gray">code</span>
-                                            <span class="feature-text">{{ $technical }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-purple-600" style="font-size: 20px;">settings</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Maklumat Teknikal</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->perubahan_teknikal as $technical)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-purple-600 mt-0.5" style="font-size: 16px;">code</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $technical }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
@@ -219,79 +202,70 @@
                         <p>{{ $release->penerangan }}</p>
                     </div>
 
-                    <!-- Dynamic Content Sections -->
                     @if($release->ciri_baharu && count($release->ciri_baharu) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon">new_releases</span>
-                                    <h3 class="section-title">Ciri Baharu</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->ciri_baharu as $feature)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-green">check_circle</span>
-                                            <span class="feature-text">{{ $feature }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 20px;">new_releases</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Ciri Baharu</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->ciri_baharu as $feature)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-green-600 mt-0.5" style="font-size: 16px;">check_circle</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $feature }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
                     @if($release->penambahbaikan && count($release->penambahbaikan) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon section-icon-purple">upgrade</span>
-                                    <h3 class="section-title">Penambahbaikan</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->penambahbaikan as $improvement)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-blue">trending_up</span>
-                                            <span class="feature-text">{{ $improvement }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 20px;">upgrade</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Penambahbaikan</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->penambahbaikan as $improvement)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-green-600 mt-0.5" style="font-size: 16px;">check_circle</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $improvement }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
                     @if($release->pembetulan_pepijat && count($release->pembetulan_pepijat) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon section-icon-orange">bug_report</span>
-                                    <h3 class="section-title">Pembetulan Pepijat</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->pembetulan_pepijat as $bugfix)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-orange">build</span>
-                                            <span class="feature-text">{{ $bugfix }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-orange-600" style="font-size: 20px;">bug_report</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Pembetulan</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->pembetulan_pepijat as $bugfix)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-green-600 mt-0.5" style="font-size: 16px;">check_circle</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $bugfix }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
                     @if($release->perubahan_teknikal && count($release->perubahan_teknikal) > 0)
-                        <div class="features-grid">
-                            <div class="feature-section">
-                                <div class="feature-section-header">
-                                    <span class="material-symbols-outlined section-icon section-icon-gray">settings</span>
-                                    <h3 class="section-title">Perubahan Teknikal</h3>
-                                </div>
-                                <div class="feature-list">
-                                    @foreach($release->perubahan_teknikal as $technical)
-                                        <div class="feature-item">
-                                            <span class="material-symbols-outlined feature-icon feature-icon-gray">code</span>
-                                            <span class="feature-text">{{ $technical }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="mb-8">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-purple-600" style="font-size: 20px;">settings</span>
+                                <h3 class="text-base font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">Maklumat Teknikal</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                @foreach($release->perubahan_teknikal as $technical)
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-purple-600 mt-0.5" style="font-size: 16px;">code</span>
+                                        <span class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $technical }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif

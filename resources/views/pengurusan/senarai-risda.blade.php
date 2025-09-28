@@ -5,7 +5,17 @@
     >
 
         <!-- Tab Navigation -->
-        <div class="mb-8" x-data="{ activeTab: 'bahagian' }">
+        <div class="mb-8" x-data="{
+            activeTab: '{{ request('tab', 'bahagian') }}',
+            init() {
+                // Ensure tab state is properly set on page load
+                const urlParams = new URLSearchParams(window.location.search);
+                const tabParam = urlParams.get('tab');
+                if (tabParam) {
+                    this.activeTab = tabParam;
+                }
+            }
+        }">
             <div class="border-b border-gray-200">
                 <nav class="-mb-px flex space-x-8" aria-label="Tabs">
                     <button @click="activeTab = 'bahagian'"
@@ -81,7 +91,7 @@
                                 ]
                             ]
                         ]"
-                        :reset-url="route('pengurusan.senarai-risda')"
+                        :reset-url="route('pengurusan.senarai-risda', ['tab' => 'bahagian'])"
                     />
 
                     <!-- Table -->
@@ -181,7 +191,7 @@
                                 'options' => collect(\App\Models\RisdaBahagian::where('status_dropdown', 'aktif')->orderBy('nama_bahagian')->get())->pluck('nama_bahagian', 'id')->toArray()
                             ]
                         ]"
-                        :reset-url="route('pengurusan.senarai-risda')"
+                        :reset-url="route('pengurusan.senarai-risda', ['tab' => 'stesen'])"
                     />
 
                     <!-- Table -->
@@ -291,7 +301,7 @@
                                 'options' => collect(\App\Models\RisdaBahagian::where('status_dropdown', 'aktif')->orderBy('nama_bahagian')->get())->pluck('nama_bahagian', 'id')->toArray()
                             ]
                         ]"
-                        :reset-url="route('pengurusan.senarai-risda')"
+                        :reset-url="route('pengurusan.senarai-risda', ['tab' => 'staf'])"
                     />
 
                     <!-- Table -->

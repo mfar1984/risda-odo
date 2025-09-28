@@ -11,6 +11,13 @@
 
 <div class="mb-6">
     <form method="GET" action="{{ $action }}">
+        <!-- Preserve all current query parameters except search-related ones -->
+        @foreach(request()->query() as $key => $value)
+            @if(!in_array($key, ['search', 'search_bahagian', 'search_stesen', 'search_staf', 'status_bahagian', 'status_stesen', 'status_staf', 'bahagian_stesen', 'bahagian_staf', 'stesen_staf', 'page', 'bahagian_page', 'stesen_page', 'staf_page']))
+                <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+            @endif
+        @endforeach
+
         <div class="flex items-end gap-4">
             <!-- Search Input -->
             <div class="flex-1">

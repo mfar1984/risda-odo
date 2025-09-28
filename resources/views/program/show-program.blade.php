@@ -165,12 +165,30 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         {{ $program->created_at->format('d/m/Y') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                        @if($program->status === 'lulus' && $program->updated_at > $program->created_at)
-                                            {{ $program->updated_at->format('d/m/Y') }}
-                                        @else
-                                            -
-                                        @endif
+                                    <td class="px-6 py-4 text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        <div class="text-left">
+                                            @if($program->status === 'lulus')
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Lulus
+                                                </span>
+                                                @if($program->updated_at > $program->created_at)
+                                                    <div class="text-xs text-gray-500 mt-1">{{ $program->updated_at->format('d/m/Y') }}</div>
+                                                @endif
+                                            @elseif($program->status === 'tolak')
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    Ditolak
+                                                </span>
+                                                @if($program->updated_at > $program->created_at)
+                                                    <div class="text-xs text-gray-500 mt-1">{{ $program->updated_at->format('d/m/Y') }}</div>
+                                                @endif
+                                            @elseif($program->status === 'draf')
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    Menunggu
+                                                </span>
+                                            @else
+                                                <span class="text-gray-500">-</span>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -269,16 +287,18 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                        @if($program->kenderaan)
-                                            {{ $program->kenderaan->kapasiti_enjin ?? 'N/A' }}cc
-                                            <br><span class="text-gray-500">{{ $program->kenderaan->muatan_penumpang ?? 'N/A' }} penumpang</span>
+                                        @if($program->kenderaan && $program->kenderaan->kapasiti_muatan)
+                                            {{ $program->kenderaan->kapasiti_muatan }}
                                         @else
                                             N/A
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                        @if($program->kenderaan && $program->kenderaan->tarikh_tamat_cukai)
-                                            {{ \Carbon\Carbon::parse($program->kenderaan->tarikh_tamat_cukai)->format('d/m/Y') }}
+                                        @if($program->kenderaan && $program->kenderaan->cukai_tamat_tempoh)
+                                            {{ $program->kenderaan->cukai_tamat_tempoh->format('d/m/Y') }}
+                                            @if($program->kenderaan->is_cukai_expired)
+                                                <br><span class="text-red-500 text-xs">Tamat Tempoh</span>
+                                            @endif
                                         @else
                                             N/A
                                         @endif
