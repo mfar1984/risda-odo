@@ -153,6 +153,12 @@ class UserGroup extends Model
                 'gantung' => false,
                 'aktifkan' => false,
             ],
+            'selenggara_kenderaan' => [
+                'tambah' => false,
+                'lihat' => false,
+                'kemaskini' => false,
+                'padam' => false,
+            ],
             'tetapan_umum' => [
                 'lihat' => false,
                 'kemaskini' => false,
@@ -206,6 +212,7 @@ class UserGroup extends Model
             'senarai_kumpulan' => 'Senarai Kumpulan',
             'senarai_pengguna' => 'Senarai Pengguna',
             'senarai_kenderaan' => 'Senarai Kenderaan',
+            'selenggara_kenderaan' => 'Selenggara Kenderaan',
             'tetapan_umum' => 'Tetapan Umum',
             'aktiviti_log' => 'Aktiviti Log',
             'aktiviti_log_keselamatan' => 'Aktiviti Log Keselamatan',

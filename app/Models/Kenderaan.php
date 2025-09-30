@@ -63,6 +63,14 @@ class Kenderaan extends Model
     }
 
     /**
+     * Get all maintenance records for this vehicle.
+     */
+    public function selenggaraKenderaan(): HasMany
+    {
+        return $this->hasMany(SelenggaraKenderaan::class, 'kenderaan_id');
+    }
+
+    /**
      * Get status label in Bahasa Melayu.
      */
     public function getStatusLabelAttribute()
@@ -103,5 +111,38 @@ class Kenderaan extends Model
     public function getNamaPenuhAttribute(): string
     {
         return trim(($this->jenama ?? '') . ' ' . ($this->model ?? '')) ?: '-';
+    }
+
+    /**
+     * Check if vehicle is under maintenance during the specified period.
+     */
+    public function isUnderMaintenance($startDate = null, $endDate = null): bool
+    {
+        $startDate = $startDate ?? now();
+        $endDate = $endDate ?? $startDate;
+
+        return $this->selenggaraKenderaan()
+            ->whereIn('status', ['dijadualkan', 'dalam_proses'])
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('tarikh_mula', [$startDate, $endDate])
+                    ->orWhereBetween('tarikh_selesai', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('tarikh_mula', '<=', $startDate)
+                          ->where('tarikh_selesai', '>=', $endDate);
+                    });
+            })
+            ->exists();
+    }
+
+    /**
+     * Get active maintenance period for this vehicle.
+     */
+    public function getActiveMaintenanceAttribute()
+    {
+        return $this->selenggaraKenderaan()
+            ->whereIn('status', ['dijadualkan', 'dalam_proses'])
+            ->where('tarikh_selesai', '>=', now())
+            ->orderBy('tarikh_mula')
+            ->first();
     }
 }

@@ -11,6 +11,8 @@
         'tolak' => ['label' => 'Tolak', 'class' => 'bg-red-100 text-red-800'],
         'selesai' => ['label' => 'Selesai', 'class' => 'bg-green-100 text-green-800'],
         'tertunda' => ['label' => 'Tertunda', 'class' => 'bg-orange-100 text-orange-800'],
+        'dijadualkan' => ['label' => 'Dijadualkan', 'class' => 'bg-blue-100 text-blue-800'],
+        'dalam_proses' => ['label' => 'Dalam Proses', 'class' => 'bg-yellow-100 text-yellow-800'],
     ]
 ])
 

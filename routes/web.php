@@ -208,6 +208,27 @@ Route::middleware('auth')->group(function () {
             Route::delete('/senarai-kenderaan/{kenderaan}', [App\Http\Controllers\KenderaanController::class, 'destroy'])->name('delete-kenderaan');
         });
 
+        // Selenggara Kenderaan Routes (Permission-based) - Specific routes first, then dynamic routes
+        Route::middleware('permission:selenggara_kenderaan,lihat')->group(function () {
+            Route::get('/senarai-selenggara', [App\Http\Controllers\SelenggaraKenderaanController::class, 'index'])->name('senarai-selenggara');
+        });
+        Route::middleware('permission:selenggara_kenderaan,tambah')->group(function () {
+            Route::get('/senarai-selenggara/tambah-selenggara', [App\Http\Controllers\SelenggaraKenderaanController::class, 'create'])->name('tambah-selenggara');
+            Route::post('/senarai-selenggara/tambah-selenggara', [App\Http\Controllers\SelenggaraKenderaanController::class, 'store'])->name('store-selenggara');
+            Route::post('/kategori-kos-selenggara', [App\Http\Controllers\KategoriKosSelenggaraController::class, 'store'])->name('store-kategori-kos');
+        });
+        Route::middleware('permission:selenggara_kenderaan,kemaskini')->group(function () {
+            Route::get('/senarai-selenggara/{selenggara}/edit', [App\Http\Controllers\SelenggaraKenderaanController::class, 'edit'])->name('edit-selenggara');
+            Route::put('/senarai-selenggara/{selenggara}', [App\Http\Controllers\SelenggaraKenderaanController::class, 'update'])->name('update-selenggara');
+        });
+        Route::middleware('permission:selenggara_kenderaan,lihat')->group(function () {
+            Route::get('/senarai-selenggara/{selenggara}', [App\Http\Controllers\SelenggaraKenderaanController::class, 'show'])->name('show-selenggara');
+        });
+        Route::middleware('permission:selenggara_kenderaan,padam')->group(function () {
+            Route::delete('/senarai-selenggara/{selenggara}', [App\Http\Controllers\SelenggaraKenderaanController::class, 'destroy'])->name('delete-selenggara');
+            Route::delete('/kategori-kos-selenggara/{kategori}', [App\Http\Controllers\KategoriKosSelenggaraController::class, 'destroy'])->name('delete-kategori-kos');
+        });
+
         // Aktiviti Log Routes (Permission-based)
         Route::middleware('permission:aktiviti_log,lihat')->group(function () {
             Route::get('/aktiviti-log', function () {
@@ -236,14 +257,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/hubungi-sokongan', function () {
             return view('help.hubungi-sokongan');
         })->name('hubungi-sokongan');
-
-        Route::get('/element', function () {
-            return view('help.element');
-        })->name('element');
-
-        Route::get('/komponen', function () {
-            return view('help.komponen');
-        })->name('komponen');
 
         Route::get('/status-sistem', function () {
             return view('help.status-sistem');

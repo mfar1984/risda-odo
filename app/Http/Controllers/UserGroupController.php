@@ -116,7 +116,20 @@ class UserGroupController extends Controller
      */
     public function edit(UserGroup $userGroup)
     {
-        $permissionMatrix = $userGroup->kebenaran_matrix ?: UserGroup::getDefaultPermissionMatrix();
+        // Merge existing permissions with default matrix to include new modules
+        $defaultMatrix = UserGroup::getDefaultPermissionMatrix();
+        $existingMatrix = $userGroup->kebenaran_matrix ?: [];
+        
+        // Merge: existing values take priority, but new modules are added
+        $permissionMatrix = array_merge($defaultMatrix, $existingMatrix);
+        
+        // Ensure all modules from default exist (for new modules added to system)
+        foreach ($defaultMatrix as $module => $actions) {
+            if (!isset($permissionMatrix[$module])) {
+                $permissionMatrix[$module] = $actions;
+            }
+        }
+        
         $moduleLabels = UserGroup::getModuleLabels();
         $permissionLabels = UserGroup::getPermissionLabels();
 

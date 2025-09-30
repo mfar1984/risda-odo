@@ -227,16 +227,6 @@ class BreadcrumbService
             'icon' => null,
             'parent' => 'help',
         ],
-        'help.element' => [
-            'name' => 'Element',
-            'icon' => null,
-            'parent' => 'help',
-        ],
-        'help.komponen' => [
-            'name' => 'Komponen',
-            'icon' => null,
-            'parent' => 'help',
-        ],
         'help.status-sistem' => [
             'name' => 'Status Sistem',
             'icon' => null,

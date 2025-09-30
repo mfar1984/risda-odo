@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\LogPemandu;
 use App\Models\Program;
 use App\Models\User;
+use App\Models\SelenggaraKenderaan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -48,10 +49,20 @@ class KosController extends Controller
         $this->applyLogFilters($overallLogQuery, $request);
         $this->applyEligibleProgramFilterToLog($overallLogQuery, $user, $allowedStatuses);
 
+        // Get maintenance costs
+        $maintenanceQuery = SelenggaraKenderaan::query()->forCurrentUser($user);
+        $this->applyMaintenanceFilters($maintenanceQuery, $request);
+        
+        $totalMaintenanceCost = (clone $maintenanceQuery)->sum('jumlah_kos');
+        $totalFuelCost = (float) (clone $overallLogQuery)->sum('kos_minyak');
+
         $overallStats = [
             'total_program' => (clone $programQuery)->count(),
             'total_log' => (clone $overallLogQuery)->count(),
-            'jumlah_kos' => (float) (clone $overallLogQuery)->sum('kos_minyak'),
+            'total_maintenance' => (clone $maintenanceQuery)->count(),
+            'jumlah_kos_minyak' => $totalFuelCost,
+            'jumlah_kos_selenggara' => (float) $totalMaintenanceCost,
+            'jumlah_kos' => $totalFuelCost + (float) $totalMaintenanceCost,
             'jumlah_liter' => (float) (clone $overallLogQuery)->sum('liter_minyak'),
             'purata_kos_log' => $this->calculateAverage((clone $overallLogQuery)->sum('kos_minyak'), (clone $overallLogQuery)->count()),
             'purata_liter_log' => $this->calculateAverage((clone $overallLogQuery)->sum('liter_minyak'), (clone $overallLogQuery)->count()),
@@ -369,6 +380,21 @@ class KosController extends Controller
         }
 
         return round($sum / $count, 2);
+    }
+
+    private function applyMaintenanceFilters($query, Request $request): void
+    {
+        if ($start = $request->get('tarikh_dari')) {
+            $query->whereDate('tarikh_selesai', '>=', $start);
+        }
+
+        if ($end = $request->get('tarikh_hingga')) {
+            $query->whereDate('tarikh_selesai', '<=', $end);
+        }
+
+        if ($status = $request->get('status_selenggara')) {
+            $query->where('status', $status);
+        }
     }
 }
 

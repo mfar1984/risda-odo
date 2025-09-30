@@ -7,19 +7,30 @@
             $currentUser = auth()->user();
         @endphp
 
-        <!-- Header with Add Button -->
+        <!-- Header with Add Buttons -->
         <div class="flex justify-between items-center mb-6">
             <div>
                 <!-- Remove duplicate text here -->
             </div>
-            @if($currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'tambah'))
-            <a href="{{ route('pengurusan.tambah-kenderaan') }}">
-                <x-buttons.primary-button type="button">
-                    <span class="material-symbols-outlined mr-2" style="font-size: 16px;">add_circle</span>
-                    Kenderaan
-                </x-buttons.primary-button>
-            </a>
-            @endif
+            <div class="flex gap-3">
+                @if($currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'lihat'))
+                <a href="{{ route('pengurusan.senarai-selenggara') }}">
+                    <x-buttons.primary-button type="button" class="bg-green-600 hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:ring-green-500">
+                        <span class="material-symbols-outlined mr-2" style="font-size: 16px;">build</span>
+                        Selenggara
+                    </x-buttons.primary-button>
+                </a>
+                @endif
+                
+                @if($currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'tambah'))
+                <a href="{{ route('pengurusan.tambah-kenderaan') }}">
+                    <x-buttons.primary-button type="button">
+                        <span class="material-symbols-outlined mr-2" style="font-size: 16px;">add_circle</span>
+                        Kenderaan
+                    </x-buttons.primary-button>
+                </a>
+                @endif
+            </div>
         </div>
 
         <!-- Success/Error Messages -->
@@ -107,6 +118,16 @@
                     <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">{{ $kenderaan->pencipta->name ?? 'Unknown' }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    @php
+                        $customActions = [];
+                        if ($currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'tambah')) {
+                            $customActions[] = [
+                                'url' => route('pengurusan.tambah-selenggara', ['kenderaan_id' => $kenderaan->id]),
+                                'icon' => 'build',
+                                'class' => 'text-green-600 hover:text-green-900',
+                            ];
+                        }
+                    @endphp
                     <x-ui.action-buttons
                         :show-url="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'lihat') ? route('pengurusan.show-kenderaan', $kenderaan) : ''"
                         :edit-url="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'kemaskini') ? route('pengurusan.edit-kenderaan', $kenderaan) : ''"
@@ -115,6 +136,7 @@
                         :show-view="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'lihat')"
                         :show-edit="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'kemaskini')"
                         :show-delete="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'padam')"
+                        :custom-actions="$customActions"
                     />
                 </td>
             </tr>

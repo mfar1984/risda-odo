@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Laporan;
 use App\Http\Controllers\Controller;
 use App\Models\Kenderaan;
 use App\Models\LogPemandu;
+use App\Models\SelenggaraKenderaan;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
@@ -141,6 +142,16 @@ class KenderaanController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        // Get maintenance records for this vehicle
+        $maintenanceQuery = SelenggaraKenderaan::query()
+            ->with(['kategoriKos', 'pelaksana'])
+            ->where('kenderaan_id', $kenderaan->id)
+            ->forCurrentUser($user);
+
+        $maintenanceCollection = $maintenanceQuery
+            ->orderByDesc('tarikh_selesai')
+            ->get();
+
         $stats = [
             'jumlah_log' => $logCollection->count(),
             'jumlah_aktif' => $logCollection->where('status', 'dalam_perjalanan')->count(),
@@ -151,7 +162,10 @@ class KenderaanController extends Controller
             'jumlah_pemandu' => $logCollection->pluck('pemandu_id')->filter()->unique()->count(),
             'jumlah_program' => $logCollection->pluck('program_id')->filter()->unique()->count(),
             'jarak' => (float) $logCollection->sum('jarak'),
-            'kos' => (float) $logCollection->sum('kos_minyak'),
+            'kos_minyak' => (float) $logCollection->sum('kos_minyak'),
+            'jumlah_selenggara' => $maintenanceCollection->count(),
+            'kos_selenggara' => (float) $maintenanceCollection->sum('jumlah_kos'),
+            'kos' => (float) $logCollection->sum('kos_minyak') + (float) $maintenanceCollection->sum('jumlah_kos'),
         ];
 
         $pemanduSummary = $logCollection
@@ -188,6 +202,7 @@ class KenderaanController extends Controller
         return view('laporan.laporan-kenderaan-show', [
             'kenderaan' => $kenderaan,
             'logs' => $logCollection,
+            'maintenance' => $maintenanceCollection,
             'stats' => $stats,
             'pemanduSummary' => $pemanduSummary,
             'programSummary' => $programSummary,

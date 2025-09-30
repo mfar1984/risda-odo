@@ -10,6 +10,9 @@
     $overallStats = array_merge([
         'total_program' => 0,
         'total_log' => 0,
+        'total_maintenance' => 0,
+        'jumlah_kos_minyak' => 0.0,
+        'jumlah_kos_selenggara' => 0.0,
         'jumlah_kos' => 0.0,
         'jumlah_liter' => 0.0,
         'purata_kos_log' => 0.0,
@@ -20,15 +23,38 @@
 <x-dashboard-layout title="Laporan Kos">
     <x-ui.page-header
         title="Laporan Kos"
-        description="Analisis kos bahan api dan penggunaan liter mengikut program"
+        description="Analisis kos bahan api, penyelenggaraan dan penggunaan liter mengikut program"
     >
+        <!-- Overall Statistics -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             <x-ui.stat-card icon="event" icon-color="text-blue-600" :value="number_format($overallStats['total_program'])" label="Jumlah Program" />
             <x-ui.stat-card icon="history" icon-color="text-green-600" :value="number_format($overallStats['total_log'])" label="Jumlah Log" />
+            <x-ui.stat-card icon="build" icon-color="text-purple-600" :value="number_format($overallStats['total_maintenance'])" label="Jumlah Selenggara" />
             <x-ui.stat-card icon="payments" icon-color="text-red-500" :value="number_format($overallStats['jumlah_kos'], 2)" prefix="RM " label="Jumlah Kos" />
             <x-ui.stat-card icon="local_gas_station" icon-color="text-emerald-600" :value="number_format($overallStats['jumlah_liter'], 2)" suffix=" L" label="Jumlah Liter" />
             <x-ui.stat-card icon="equalizer" icon-color="text-indigo-600" :value="number_format($overallStats['purata_kos_log'], 2)" prefix="RM " label="Purata Kos/Log" />
-            <x-ui.stat-card icon="water_drop" icon-color="text-rose-600" :value="number_format($overallStats['purata_liter_log'], 2)" suffix=" L" label="Purata Liter/Log" />
+        </div>
+
+        <!-- Cost Breakdown -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <span class="material-symbols-outlined text-blue-600 mr-3" style="font-size: 32px;">local_gas_station</span>
+                    <div>
+                        <p class="text-sm text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Kos Bahan Api</p>
+                        <p class="text-2xl font-bold text-blue-600" style="font-family: Poppins, sans-serif !important;">RM {{ number_format($overallStats['jumlah_kos_minyak'], 2) }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <span class="material-symbols-outlined text-purple-600 mr-3" style="font-size: 32px;">build</span>
+                    <div>
+                        <p class="text-sm text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Kos Penyelenggaraan</p>
+                        <p class="text-2xl font-bold text-purple-600" style="font-family: Poppins, sans-serif !important;">RM {{ number_format($overallStats['jumlah_kos_selenggara'], 2) }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <x-ui.search-filter
@@ -39,13 +65,23 @@
                 [
                     'name' => 'status',
                     'type' => 'select',
-                    'placeholder' => 'Semua Status',
+                    'placeholder' => 'Status Program',
                     'options' => [
                         'draf' => 'Draf',
                         'lulus' => 'Lulus',
                         'aktif' => 'Aktif',
                         'tertunda' => 'Tertunda',
                         'selesai' => 'Selesai',
+                    ]
+                ],
+                [
+                    'name' => 'status_selenggara',
+                    'type' => 'select',
+                    'placeholder' => 'Status Selenggara',
+                    'options' => [
+                        'selesai' => 'Selesai',
+                        'dalam_proses' => 'Dalam Proses',
+                        'dijadualkan' => 'Dijadualkan',
                     ]
                 ],
                 [

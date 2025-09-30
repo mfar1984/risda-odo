@@ -66,7 +66,37 @@
                 <x-ui.stat-card icon="task_alt" icon-color="text-green-600" :value="number_format($stats['jumlah_selesai'])" label="Log Selesai" />
                 <x-ui.stat-card icon="pending_actions" icon-color="text-amber-600" :value="number_format($stats['jumlah_tertunda'])" label="Log Tertunda" />
                 <x-ui.stat-card icon="alt_route" icon-color="text-rose-600" :value="number_format($stats['jarak'], 1)" suffix=" km" label="Jarak Direkod" />
-                <x-ui.stat-card icon="payments" icon-color="text-red-500" :value="number_format($stats['kos'], 2)" prefix="RM " label="Kos Bahan Api" />
+                <x-ui.stat-card icon="payments" icon-color="text-red-500" :value="number_format($stats['kos'], 2)" prefix="RM " label="Jumlah Kos" />
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <span class="material-symbols-outlined text-blue-600 mr-3" style="font-size: 32px;">local_gas_station</span>
+                        <div>
+                            <p class="text-xs text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Kos Bahan Api</p>
+                            <p class="text-xl font-bold text-blue-600" style="font-family: Poppins, sans-serif !important;">RM {{ number_format($stats['kos_minyak'] ?? 0, 2) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <span class="material-symbols-outlined text-purple-600 mr-3" style="font-size: 32px;">build</span>
+                        <div>
+                            <p class="text-xs text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Kos Selenggara</p>
+                            <p class="text-xl font-bold text-purple-600" style="font-family: Poppins, sans-serif !important;">RM {{ number_format($stats['kos_selenggara'] ?? 0, 2) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <span class="material-symbols-outlined text-green-600 mr-3" style="font-size: 32px;">build</span>
+                        <div>
+                            <p class="text-xs text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Jumlah Selenggara</p>
+                            <p class="text-xl font-bold text-green-600" style="font-family: Poppins, sans-serif !important;">{{ number_format($stats['jumlah_selenggara'] ?? 0) }} rekod</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <x-ui.card>
@@ -124,6 +154,62 @@
                     @empty
                         <tr>
                             <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">Tiada log direkod buat masa ini.</td>
+                        </tr>
+                    @endforelse
+                </x-ui.data-table>
+            </x-ui.card>
+
+            <x-ui.card>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-purple-600">build</span>
+                        <h3 class="text-base font-semibold text-gray-900">Rekod Penyelenggaraan</h3>
+                    </div>
+                    <div class="text-xs text-gray-500">Jumlah rekod: {{ number_format($maintenance->count() ?? 0) }}</div>
+                </div>
+
+                <x-ui.data-table
+                    :headers="[
+                        ['label' => 'Tarikh', 'align' => 'text-left'],
+                        ['label' => 'Kategori Kos', 'align' => 'text-left'],
+                        ['label' => 'Keterangan', 'align' => 'text-left'],
+                        ['label' => 'Kos (RM)', 'align' => 'text-right'],
+                        ['label' => 'Status', 'align' => 'text-center'],
+                    ]"
+                    :actions="false"
+                    empty-message="Tiada rekod penyelenggaraan untuk kenderaan ini."
+                >
+                    @forelse($maintenance as $selenggara)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 text-sm text-gray-700">
+                                <div>{{ $selenggara->tarikh_mula->format('d/m/Y') }}</div>
+                                <div class="text-xs text-gray-500">hingga {{ $selenggara->tarikh_selesai->format('d/m/Y') }}</div>
+                                <div class="text-xs text-gray-400">{{ $selenggara->jumlah_hari }} hari</div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                <div>{{ $selenggara->kategoriKos->nama_kategori ?? '-' }}</div>
+                                @if($selenggara->tukar_minyak)
+                                    <div class="text-xs text-blue-600">🔧 Tukar Minyak ({{ number_format($selenggara->jangka_hayat_km) }} km)</div>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                <div class="max-w-xs truncate" title="{{ $selenggara->keterangan }}">
+                                    {{ $selenggara->keterangan ?? '-' }}
+                                </div>
+                                @if($selenggara->pelaksana)
+                                    <div class="text-xs text-gray-500">Oleh: {{ $selenggara->pelaksana->name }}</div>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-sm text-right font-medium text-gray-900">
+                                {{ number_format($selenggara->jumlah_kos, 2) }}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <x-ui.status-badge :status="$selenggara->status" />
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-sm text-gray-500">Tiada rekod penyelenggaraan buat masa ini.</td>
                         </tr>
                     @endforelse
                 </x-ui.data-table>
