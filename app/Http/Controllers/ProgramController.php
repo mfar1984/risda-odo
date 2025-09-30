@@ -245,25 +245,51 @@ class ProgramController extends Controller
         $currentUser = auth()->user();
 
         if ($currentUser->jenis_organisasi === 'semua') {
-            // Administrator can see all active vehicles
             return Kenderaan::where('status', 'aktif')
-                           ->with(['bahagian', 'stesen'])
-                           ->orderBy('no_plat')
-                           ->get();
+                ->with(['bahagian', 'stesen'])
+                ->orderBy('no_plat')
+                ->get();
         }
 
-        // Filter vehicles based on user's organization
+        $stesenIds = collect($currentUser->stesen_akses_ids ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter();
+
         $query = Kenderaan::where('status', 'aktif');
 
         if ($currentUser->jenis_organisasi === 'bahagian') {
-            $query->where('bahagian_id', $currentUser->organisasi_id);
+            $query->where(function ($q) use ($currentUser, $stesenIds) {
+                $q->where('bahagian_id', $currentUser->organisasi_id);
+
+                if ($stesenIds->isNotEmpty()) {
+                    $q->orWhereIn('stesen_id', $stesenIds->all());
+                }
+
+                $q->orWhereHas('pencipta', function ($creator) use ($currentUser) {
+                    $creator->where('jenis_organisasi', 'bahagian')
+                        ->where('organisasi_id', $currentUser->organisasi_id);
+                });
+
+                if ($stesenIds->isNotEmpty()) {
+                    $q->orWhereHas('pencipta', function ($creator) use ($stesenIds) {
+                        $creator->where('jenis_organisasi', 'stesen')
+                            ->whereIn('organisasi_id', $stesenIds->all());
+                    });
+                }
+            });
         } elseif ($currentUser->jenis_organisasi === 'stesen') {
-            $query->where('stesen_id', $currentUser->organisasi_id);
+            $query->where(function ($q) use ($currentUser) {
+                $q->where('stesen_id', $currentUser->organisasi_id)
+                    ->orWhereHas('pencipta', function ($creator) use ($currentUser) {
+                        $creator->where('jenis_organisasi', 'stesen')
+                            ->where('organisasi_id', $currentUser->organisasi_id);
+                    });
+            });
         }
 
         return $query->with(['bahagian', 'stesen'])
-                    ->orderBy('no_plat')
-                    ->get();
+            ->orderBy('no_plat')
+            ->get();
     }
 
     /**

@@ -76,7 +76,9 @@
                 ['label' => 'Organisasi', 'align' => 'text-left'],
                 ['label' => 'Statistik Log', 'align' => 'text-left'],
                 ['label' => 'Jarak & Kos', 'align' => 'text-left'],
+                ['label' => 'Tindakan', 'align' => 'text-center'],
             ]"
+            :actions="false"
             empty-message="Tiada pemandu ditemui untuk penapis semasa."
         >
             @forelse($driverCollection as $driver)
@@ -117,20 +119,14 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                        <x-ui.action-buttons
-                            :show-url="route('laporan.laporan-pemandu.show', $driver)"
-                            :show-view="true"
-                            :show-edit="false"
-                            :show-delete="false"
-                            :custom-actions="[
-                                [
-                                    'url' => route('laporan.laporan-pemandu.pdf', $driver),
-                                    'icon' => 'picture_as_pdf',
-                                    'class' => 'text-red-600 hover:text-red-800',
-                                    'title' => 'Eksport ke PDF'
-                                ]
-                            ]"
-                        />
+                        <div class="flex justify-center space-x-2">
+                            <a href="{{ route('laporan.laporan-pemandu.show', ['driver' => $driver->id]) }}" class="text-blue-600 hover:text-blue-900" title="Lihat Laporan">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+                            </a>
+                            <a href="{{ route('laporan.laporan-pemandu.pdf', ['driver' => $driver->id]) }}" class="text-red-600 hover:text-red-800" title="Eksport ke PDF">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">picture_as_pdf</span>
+                            </a>
+                        </div>
                     </td>
                 </tr>
             @empty

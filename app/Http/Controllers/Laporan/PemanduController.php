@@ -18,13 +18,9 @@ class PemanduController extends Controller
         $allowedStatuses = $this->eligibleProgramStatuses();
 
         $driverQuery = User::query()
-            ->whereHas('programsSebagaiPemandu', function ($programQuery) use ($user, $allowedStatuses) {
-                $programQuery->whereIn('status', $allowedStatuses)
-                    ->whereHas('logPemandu', function ($logQuery) use ($user, $allowedStatuses) {
-                        $this->applyLogScope($logQuery, $user);
-                        $this->applyEligibleProgramFilterToLog($logQuery, $user, $allowedStatuses);
-                    });
-                $this->applyProgramScope($programQuery, $user);
+            ->whereHas('logPemandu', function ($logQuery) use ($user, $allowedStatuses) {
+                $this->applyLogScope($logQuery, $user);
+                $this->applyEligibleProgramFilterToLog($logQuery, $user, $allowedStatuses);
             })
             ->with(['stesen', 'bahagian']);
 
@@ -40,16 +36,16 @@ class PemanduController extends Controller
 
         $logQuery = LogPemandu::query()->with(['kenderaan', 'program']);
         $this->applyLogScope($logQuery, $user);
-        $this->applyLogFilters($logQuery, $request);
         $this->applyEligibleProgramFilterToLog($logQuery, $user, $allowedStatuses);
         if ($driverIds->isNotEmpty()) {
             $logQuery->whereIn('pemandu_id', $driverIds);
         }
+        $this->applyLogFilters($logQuery, $request);
 
         $overallLogQuery = LogPemandu::query();
         $this->applyLogScope($overallLogQuery, $user);
-        $this->applyLogFilters($overallLogQuery, $request);
         $this->applyEligibleProgramFilterToLog($overallLogQuery, $user, $allowedStatuses);
+        $this->applyLogFilters($overallLogQuery, $request);
 
         $overallStats = [
             'total_pemandu' => (clone $driverQuery)->count(),
@@ -108,8 +104,8 @@ class PemanduController extends Controller
             ->where('pemandu_id', $driver->id);
 
         $this->applyLogScope($logQuery, $request->user());
-        $this->applyLogFilters($logQuery, $request);
         $this->applyEligibleProgramFilterToLog($logQuery, $request->user(), $this->eligibleProgramStatuses());
+        $this->applyLogFilters($logQuery, $request);
 
         $logs = $logQuery
             ->orderByDesc('tarikh_perjalanan')
@@ -121,6 +117,13 @@ class PemanduController extends Controller
             'jumlah_jarak' => (float) $logs->sum('jarak'),
             'jumlah_kos' => (float) $logs->sum('kos_minyak'),
             'jumlah_liter' => (float) $logs->sum('liter_minyak'),
+            'jumlah_program' => $logs->pluck('program_id')->filter()->unique()->count(),
+            'jumlah_kenderaan' => $logs->pluck('kenderaan_id')->filter()->unique()->count(),
+            'jumlah_checkin' => $logs->whereNotNull('masa_keluar')->count(),
+            'jumlah_checkout' => $logs->whereNotNull('masa_masuk')->count(),
+            'jumlah_aktif' => $logs->where('status', 'dalam_perjalanan')->count(),
+            'jumlah_selesai' => $logs->where('status', 'selesai')->count(),
+            'jumlah_tertunda' => $logs->where('status', 'tertunda')->count(),
             'purata_jarak' => $this->average($logs->sum('jarak'), $logs->count()),
             'purata_kos' => $this->average($logs->sum('kos_minyak'), $logs->count()),
         ];
@@ -163,6 +166,10 @@ class PemanduController extends Controller
             'stats' => $stats,
             'programSummary' => $programSummary,
             'kenderaanSummary' => $kenderaanSummary,
+            'filters' => [
+                'tarikh_dari' => $request->query('tarikh_dari'),
+                'tarikh_hingga' => $request->query('tarikh_hingga'),
+            ],
         ]);
     }
 
@@ -175,8 +182,8 @@ class PemanduController extends Controller
             ->where('pemandu_id', $driver->id);
 
         $this->applyLogScope($logQuery, $request->user());
-        $this->applyLogFilters($logQuery, $request);
         $this->applyEligibleProgramFilterToLog($logQuery, $request->user(), $this->eligibleProgramStatuses());
+        $this->applyLogFilters($logQuery, $request);
 
         $logs = $logQuery
             ->orderByDesc('tarikh_perjalanan')
@@ -188,6 +195,10 @@ class PemanduController extends Controller
             'jumlah_jarak' => (float) $logs->sum('jarak'),
             'jumlah_kos' => (float) $logs->sum('kos_minyak'),
             'jumlah_liter' => (float) $logs->sum('liter_minyak'),
+            'jumlah_program' => $logs->pluck('program_id')->filter()->unique()->count(),
+            'jumlah_kenderaan' => $logs->pluck('kenderaan_id')->filter()->unique()->count(),
+            'jumlah_checkin' => $logs->whereNotNull('masa_keluar')->count(),
+            'jumlah_checkout' => $logs->whereNotNull('masa_masuk')->count(),
         ];
 
         $pdf = Pdf::loadView('laporan.pdf.pemandu', [
@@ -239,7 +250,10 @@ class PemanduController extends Controller
         }
 
         if ($user->jenis_organisasi === 'stesen') {
-            $query->where('organisasi_id', (string) $user->organisasi_id);
+            $query->where(function ($inner) use ($user) {
+                $inner->where('organisasi_id', (string) $user->organisasi_id)
+                    ->orWhereNull('organisasi_id');
+            });
             return;
         }
 
@@ -253,13 +267,18 @@ class PemanduController extends Controller
 
                 if ($stesenIds->isNotEmpty()) {
                     $inner->orWhereIn('organisasi_id', $stesenIds->all());
+                } else {
+                    $inner->orWhereNull('organisasi_id');
                 }
             });
 
             return;
         }
 
-        $query->where('organisasi_id', (string) $user->organisasi_id);
+        $query->where(function ($inner) use ($user) {
+            $inner->where('organisasi_id', (string) $user->organisasi_id)
+                ->orWhereNull('organisasi_id');
+        });
     }
 
     private function applyLogScope($query, ?User $user): void
@@ -301,7 +320,7 @@ class PemanduController extends Controller
         }
 
         if ($viewer->jenis_organisasi === 'stesen') {
-            if ((string) $driver->organisasi_id !== (string) $viewer->organisasi_id) {
+            if ($driver->organisasi_id && (string) $driver->organisasi_id !== (string) $viewer->organisasi_id) {
                 abort(403, 'Anda tidak mempunyai kebenaran untuk melihat pemandu ini.');
             }
 
@@ -316,14 +335,14 @@ class PemanduController extends Controller
             $isBahagian = (string) $driver->organisasi_id === (string) $viewer->organisasi_id;
             $isStesen = $stesenIds->contains((string) $driver->organisasi_id);
 
-            if (!$isBahagian && !$isStesen) {
+            if (!$isBahagian && !$isStesen && $driver->organisasi_id) {
                 abort(403, 'Anda tidak mempunyai kebenaran untuk melihat pemandu ini.');
             }
 
             return;
         }
 
-        if ((string) $driver->organisasi_id !== (string) $viewer->organisasi_id) {
+        if ($driver->organisasi_id && (string) $driver->organisasi_id !== (string) $viewer->organisasi_id) {
             abort(403, 'Anda tidak mempunyai kebenaran untuk melihat pemandu ini.');
         }
     }

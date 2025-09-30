@@ -103,8 +103,18 @@ class KenderaanController extends Controller
                 ->withInput();
         }
 
+        $currentUser = auth()->user();
+
         $data = $request->all();
-        $data['dicipta_oleh'] = auth()->id();
+        $data['dicipta_oleh'] = $currentUser?->id;
+
+        if ($currentUser?->jenis_organisasi === 'bahagian') {
+            $data['bahagian_id'] = $currentUser->organisasi_id;
+            $data['stesen_id'] = null;
+        } elseif ($currentUser?->jenis_organisasi === 'stesen') {
+            $data['bahagian_id'] = $currentUser->bahagian_akses_id ?? $currentUser->bahagian_id ?? null;
+            $data['stesen_id'] = $currentUser->organisasi_id;
+        }
 
         // Handle file uploads
         if ($request->hasFile('dokumen_kenderaan')) {

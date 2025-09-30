@@ -98,6 +98,14 @@ export default function locationPicker(mapId, provider = 'maptiler', apiKey = nu
             const lat = parseFloat(this.coords.lat) || this.defaultLat;
             const lng = parseFloat(this.coords.lng) || this.defaultLng;
 
+            if (this.map) {
+                this.map.off();
+                this.map.remove();
+                this.map = null;
+                this.marker = null;
+                this.layers = {};
+            }
+
             this.map = L.map(mapId, { zoomControl: false }).setView([lat, lng], 13);
             L.control.zoom({ position: 'topright' }).addTo(this.map);
 

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Route;
+
 class BreadcrumbService
 {
     /**
@@ -276,11 +278,13 @@ class BreadcrumbService
         // If not dashboard, build breadcrumb trail
         if ($routeName !== 'dashboard') {
             $trail = self::buildTrail($routeName);
-            
-            foreach ($trail as $item) {
+
+            foreach ($trail as $index => $item) {
+                $isLast = $index === array_key_last($trail);
+
                 $breadcrumbs[] = [
-                    'type' => 'link',
-                    'url' => self::getRouteUrl($item),
+                    'type' => $isLast ? 'current' : 'link',
+                    'url' => $isLast ? null : self::getRouteUrl($item),
                     'name' => self::$menuStructure[$item]['name'],
                 ];
             }
@@ -318,6 +322,20 @@ class BreadcrumbService
     protected static function getRouteUrl($routeName)
     {
         try {
+            $currentRoute = request()?->route();
+
+            if ($currentRoute) {
+                $targetRoute = Route::getRoutes()->getByName($routeName);
+
+                if ($targetRoute) {
+                    $parameterNames = array_flip($targetRoute->parameterNames());
+                    $currentParameters = $currentRoute->parameters();
+                    $filteredParameters = array_intersect_key($currentParameters, $parameterNames);
+
+                    return route($routeName, $filteredParameters);
+                }
+            }
+
             return route($routeName);
         } catch (\Exception $e) {
             return '#';

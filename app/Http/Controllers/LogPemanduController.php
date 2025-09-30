@@ -150,9 +150,9 @@ class LogPemanduController extends Controller
 
         return match ($tab) {
             'semua' => $user->adaKebenaran('log_pemandu_semua', 'lihat'),
-            'aktif' => $user->adaKebenaran('log_pemandu_aktif', 'lihat'),
-            'selesai' => $user->adaKebenaran('log_pemandu_selesai', 'lihat'),
-            'tertunda' => $user->adaKebenaran('log_pemandu_tertunda', 'lihat'),
+            'aktif' => $user->adaKebenaran('log_pemandu_semua', 'lihat') || $user->adaKebenaran('log_pemandu_aktif', 'lihat'),
+            'selesai' => $user->adaKebenaran('log_pemandu_semua', 'lihat') || $user->adaKebenaran('log_pemandu_selesai', 'lihat'),
+            'tertunda' => $user->adaKebenaran('log_pemandu_semua', 'lihat') || $user->adaKebenaran('log_pemandu_tertunda', 'lihat'),
             default => false,
         };
     }
@@ -173,7 +173,7 @@ class LogPemanduController extends Controller
     public function edit(LogPemandu $logPemandu)
     {
         $user = request()->user();
-        $this->ensurePermission($user, 'kemaskini_status');
+        $this->ensurePermission($user, 'kemaskini_status', $logPemandu);
         $this->ensureLogAccessible($logPemandu, $user);
 
         $logPemandu->load(['pemandu', 'kenderaan', 'program', 'creator', 'updater']);
@@ -186,7 +186,7 @@ class LogPemanduController extends Controller
     public function update(Request $request, LogPemandu $logPemandu)
     {
         $user = $request->user();
-        $this->ensurePermission($user, 'kemaskini_status');
+        $this->ensurePermission($user, 'kemaskini_status', $logPemandu);
         $this->ensureLogAccessible($logPemandu, $user);
 
         $data = $request->validate([
@@ -216,7 +216,7 @@ class LogPemanduController extends Controller
     public function destroy(LogPemandu $logPemandu)
     {
         $user = request()->user();
-        $this->ensurePermission($user, 'padam');
+        $this->ensurePermission($user, 'padam', $logPemandu);
         $this->ensureLogAccessible($logPemandu, $user);
 
         $logPemandu->delete();
@@ -225,11 +225,54 @@ class LogPemanduController extends Controller
             ->with('success', 'Log pemandu berjaya dipadam.');
     }
 
-    private function ensurePermission(?User $user, string $permission): void
+    private function ensurePermission(?User $user, string $permission, ?LogPemandu $log = null): void
     {
-        if (!$user || !$user->adaKebenaran('log_pemandu', $permission)) {
+        if (!$user) {
             abort(403, 'Anda tidak mempunyai kebenaran untuk tindakan ini.');
         }
+
+        $checks = match ($permission) {
+            'lihat_butiran' => [
+                ['module' => 'log_pemandu_semua', 'action' => 'lihat'],
+                ['module' => $this->resolveStatusModule($log), 'action' => 'lihat'],
+            ],
+            'kemaskini_status' => [
+                ['module' => 'log_pemandu_semua', 'action' => 'kemaskini'],
+                ['module' => $this->resolveStatusModule($log), 'action' => 'kemaskini'],
+            ],
+            'padam' => [
+                ['module' => 'log_pemandu_semua', 'action' => 'padam'],
+                ['module' => $this->resolveStatusModule($log), 'action' => 'padam'],
+            ],
+            default => [
+                ['module' => 'log_pemandu_semua', 'action' => $permission],
+            ],
+        };
+
+        foreach ($checks as $check) {
+            $module = $check['module'] ?? null;
+            $action = $check['action'] ?? null;
+
+            if ($module && $action && $user->adaKebenaran($module, $action)) {
+                return;
+            }
+        }
+
+        abort(403, 'Anda tidak mempunyai kebenaran untuk tindakan ini.');
+    }
+
+    private function resolveStatusModule(?LogPemandu $log): ?string
+    {
+        if (!$log) {
+            return null;
+        }
+
+        return match ($log->status) {
+            'dalam_perjalanan' => 'log_pemandu_aktif',
+            'selesai' => 'log_pemandu_selesai',
+            'tertunda' => 'log_pemandu_tertunda',
+            default => null,
+        };
     }
 
     private function ensureLogAccessible(LogPemandu $logPemandu, ?User $user): void
@@ -249,6 +292,10 @@ class LogPemanduController extends Controller
             $stesenIds = collect($user->stesen_akses_ids ?? [$user->organisasi_id])
                 ->map(fn ($id) => (string) $id)
                 ->filter();
+
+            if ($stesenIds->isEmpty()) {
+                $stesenIds = collect([(string) $user->organisasi_id]);
+            }
 
             abort_if(!$stesenIds->contains($organisasiId), 403, 'Log ini berada di luar akses anda.');
         }

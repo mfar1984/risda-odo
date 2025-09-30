@@ -167,11 +167,36 @@
                     </td>
                     @php
                         $user = auth()->user();
-                        $canView = $user?->adaKebenaran('log_pemandu_semua', 'lihat');
-                        $canEdit = $user?->adaKebenaran('log_pemandu_semua', 'kemaskini');
-                        $canDelete = $user?->adaKebenaran('log_pemandu_semua', 'padam');
+                        $statusModule = match($log->status) {
+                            'dalam_perjalanan' => 'log_pemandu_aktif',
+                            'selesai' => 'log_pemandu_selesai',
+                            'tertunda' => 'log_pemandu_tertunda',
+                            default => null,
+                        };
+
+                        $canView = $user && (
+                            $user->adaKebenaran('log_pemandu_semua', 'lihat') ||
+                            ($statusModule && $user->adaKebenaran($statusModule, 'lihat')) ||
+                            $user->adaKebenaran('log_pemandu', 'lihat') ||
+                            $user->adaKebenaran('log_pemandu', 'lihat_butiran')
+                        );
+
+                        $canEdit = $user && (
+                            $user->adaKebenaran('log_pemandu_semua', 'kemaskini') ||
+                            ($statusModule && $user->adaKebenaran($statusModule, 'kemaskini')) ||
+                            $user->adaKebenaran('log_pemandu', 'kemaskini') ||
+                            $user->adaKebenaran('log_pemandu', 'kemaskini_status')
+                        );
+
+                        $canDelete = $user && (
+                            $user->adaKebenaran('log_pemandu_semua', 'padam') ||
+                            ($statusModule && $user->adaKebenaran($statusModule, 'padam')) ||
+                            $user->adaKebenaran('log_pemandu', 'padam')
+                        );
+
+                        $hasActions = $canView || $canEdit || $canDelete;
                     @endphp
-                    @if($canView || $canEdit || $canDelete)
+                    @if($hasActions)
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             <div class="flex justify-center space-x-2">
                                 @if($canView)
@@ -202,8 +227,18 @@
             @empty
                 @php
                     $user = auth()->user();
+                    $hasActions = $user && (
+                        $user->adaKebenaran('log_pemandu_semua', 'lihat') ||
+                        $user->adaKebenaran('log_pemandu_semua', 'kemaskini') ||
+                        $user->adaKebenaran('log_pemandu_semua', 'padam') ||
+                        $user->adaKebenaran('log_pemandu', 'lihat') ||
+                        $user->adaKebenaran('log_pemandu', 'lihat_butiran') ||
+                        $user->adaKebenaran('log_pemandu', 'kemaskini') ||
+                        $user->adaKebenaran('log_pemandu', 'kemaskini_status') ||
+                        $user->adaKebenaran('log_pemandu', 'padam')
+                    );
                 @endphp
-                <td colspan="{{ 6 + (($user??false) && ($user->adaKebenaran('log_pemandu_semua', 'lihat') || $user->adaKebenaran('log_pemandu_semua', 'kemaskini') || $user->adaKebenaran('log_pemandu_semua', 'padam')) ? 1 : 0) }}" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                <td colspan="{{ 6 + ($hasActions ? 1 : 0) }}" class="px-6 py-4 text-center text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                     Tiada log ditemui. Sila cuba ubah penapis atau semak status lain.
                 </td>
             @endforelse

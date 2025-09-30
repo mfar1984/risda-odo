@@ -52,11 +52,22 @@
 
             <x-ui.card>
                 <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-blue-600">receipt_long</span>
-                        <h3 class="text-base font-semibold text-gray-900">Senarai Log Pemandu</h3>
-                    </div>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-600">receipt_long</span>
+                    <h3 class="text-base font-semibold text-gray-900">Senarai Log Pemandu</h3>
+                </div>
+                <div class="flex items-center gap-3">
+                    <form method="GET" action="{{ route('laporan.laporan-pemandu.show', ['driver' => $driver->getKey()]) }}" class="flex items-center gap-3">
+                        <x-forms.date-input id="tarikh_dari" name="tarikh_dari" :value="request('tarikh_dari')" placeholder="Tarikh Dari" />
+                        <x-forms.date-input id="tarikh_hingga" name="tarikh_hingga" :value="request('tarikh_hingga')" placeholder="Tarikh Hingga" />
+                        <x-buttons.primary-button type="submit">
+                            <span class="material-symbols-outlined mr-1" style="font-size: 16px;">search</span>
+                            Tapis
+                        </x-buttons.primary-button>
+                        <a href="{{ route('laporan.laporan-pemandu.show', ['driver' => $driver->getKey()]) }}" class="ml-2 text-xs text-blue-600 hover:text-blue-800">Reset</a>
+                    </form>
                     <div class="text-xs text-gray-500">Jumlah rekod: {{ number_format($logs->count()) }}</div>
+                </div>
                 </div>
 
                 <x-ui.data-table

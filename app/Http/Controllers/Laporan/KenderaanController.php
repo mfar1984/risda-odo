@@ -241,7 +241,10 @@ class KenderaanController extends Controller
         }
 
         if ($user->jenis_organisasi === 'stesen') {
-            $query->where('stesen_id', (string) $user->organisasi_id);
+            $query->where(function ($inner) use ($user) {
+                $inner->where('stesen_id', (string) $user->organisasi_id)
+                    ->orWhere('bahagian_id', (string) $user->organisasi_id);
+            });
             return;
         }
 
@@ -255,13 +258,19 @@ class KenderaanController extends Controller
 
                 if ($stesenIds->isNotEmpty()) {
                     $inner->orWhereIn('stesen_id', $stesenIds->all());
+                } else {
+                    $inner->orWhereNull('stesen_id');
                 }
             });
 
             return;
         }
 
-        $query->where('bahagian_id', (string) $user->organisasi_id);
+        $query->where(function ($inner) use ($user) {
+            $inner->where('bahagian_id', (string) $user->organisasi_id)
+                ->orWhere('stesen_id', (string) $user->organisasi_id)
+                ->orWhereNull('stesen_id');
+        });
     }
 
     private function applyLogScope($query, ?User $user): void
@@ -368,15 +377,16 @@ class KenderaanController extends Controller
 
             $isBahagian = (string) $kenderaan->bahagian_id === (string) $user->organisasi_id;
             $isStesen = $stesenIds->isNotEmpty() && $stesenIds->contains((string) $kenderaan->stesen_id);
+            $isTanpaStesen = !$kenderaan->stesen_id;
 
-            if (!$isBahagian && !$isStesen) {
+            if (!$isBahagian && !$isStesen && !$isTanpaStesen) {
                 abort(403, 'Anda tidak mempunyai akses kepada kenderaan ini.');
             }
 
             return;
         }
 
-        if ((string) $kenderaan->bahagian_id !== (string) $user->organisasi_id) {
+        if ((string) $kenderaan->bahagian_id !== (string) $user->organisasi_id && $kenderaan->stesen_id) {
             abort(403, 'Anda tidak mempunyai akses kepada kenderaan ini.');
         }
     }

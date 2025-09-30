@@ -156,6 +156,11 @@ class User extends Authenticatable
         return $this->hasMany(Program::class, 'pemandu_id');
     }
 
+    public function logPemandu(): HasMany
+    {
+        return $this->hasMany(LogPemandu::class, 'pemandu_id');
+    }
+
     /**
      * Get multiple stesen akses (accessor method).
      */

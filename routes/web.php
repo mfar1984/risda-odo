@@ -54,22 +54,11 @@ Route::middleware('auth')->group(function () {
     });
 
     // Log Pemandu Routes (Permission-based)
-    Route::middleware('permission:log_pemandu,lihat')->group(function () {
-        Route::get('/log-pemandu', [LogPemanduController::class, 'index'])->name('log-pemandu.index');
-    });
-
-    Route::middleware('permission:log_pemandu,lihat_butiran')->group(function () {
-        Route::get('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'show'])->name('log-pemandu.show');
-    });
-
-    Route::middleware('permission:log_pemandu,kemaskini_status')->group(function () {
-        Route::get('/log-pemandu/{logPemandu}/edit', [LogPemanduController::class, 'edit'])->name('log-pemandu.edit');
-        Route::put('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'update'])->name('log-pemandu.update');
-    });
-
-    Route::middleware('permission:log_pemandu,padam')->group(function () {
-        Route::delete('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'destroy'])->name('log-pemandu.destroy');
-    });
+    Route::get('/log-pemandu', [LogPemanduController::class, 'index'])->name('log-pemandu.index');
+    Route::get('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'show'])->name('log-pemandu.show');
+    Route::get('/log-pemandu/{logPemandu}/edit', [LogPemanduController::class, 'edit'])->name('log-pemandu.edit');
+    Route::put('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'update'])->name('log-pemandu.update');
+    Route::delete('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'destroy'])->name('log-pemandu.destroy');
 
     // Laporan Routes (Permission-based)
     Route::prefix('laporan')->name('laporan.')->group(function () {
@@ -108,9 +97,9 @@ Route::middleware('auth')->group(function () {
 
         Route::middleware('permission:laporan_pemandu,lihat')->group(function () {
             Route::get('/laporan-pemandu', [\App\Http\Controllers\Laporan\PemanduController::class, 'index'])->name('laporan-pemandu');
-            Route::get('/laporan-pemandu/{user}', [\App\Http\Controllers\Laporan\PemanduController::class, 'show'])
+            Route::get('/laporan-pemandu/{driver}', [\App\Http\Controllers\Laporan\PemanduController::class, 'show'])
                 ->name('laporan-pemandu.show');
-            Route::get('/laporan-pemandu/{user}/pdf', [\App\Http\Controllers\Laporan\PemanduController::class, 'pdf'])
+            Route::get('/laporan-pemandu/{driver}/pdf', [\App\Http\Controllers\Laporan\PemanduController::class, 'pdf'])
                 ->name('laporan-pemandu.pdf')
                 ->middleware('permission:laporan_pemandu,eksport');
         });

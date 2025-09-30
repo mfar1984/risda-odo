@@ -72,6 +72,7 @@
                 ['label' => 'Kos Bahan Api', 'align' => 'text-left'],
                 ['label' => 'Tindakan', 'align' => 'text-center'],
             ]"
+            :actions="false"
             empty-message="Tiada program ditemui untuk penapis semasa."
         >
             @forelse($programCollection as $program)
@@ -123,20 +124,14 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                        <x-ui.action-buttons
-                            :show-url="route('laporan.laporan-kilometer.show', $program)"
-                            :show-view="true"
-                            :show-edit="false"
-                            :show-delete="false"
-                            :custom-actions="[
-                                [
-                                    'url' => route('laporan.laporan-kilometer.pdf', $program),
-                                    'icon' => 'picture_as_pdf',
-                                    'class' => 'text-red-600 hover:text-red-800',
-                                    'title' => 'Eksport ke PDF'
-                                ]
-                            ]"
-                        />
+                        <div class="flex justify-center space-x-2">
+                            <a href="{{ route('laporan.laporan-kilometer.show', $program) }}" class="text-blue-600 hover:text-blue-900" title="Lihat Laporan">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+                            </a>
+                            <a href="{{ route('laporan.laporan-kilometer.pdf', $program) }}" class="text-red-600 hover:text-red-800" title="Eksport ke PDF">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">picture_as_pdf</span>
+                            </a>
+                        </div>
                     </td>
                 </tr>
             @empty
