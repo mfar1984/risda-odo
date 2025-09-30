@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
-import '../main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -18,6 +19,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   int _totalDurationMs = 0;
   late AnimationController _colorController;
   late Animation<Color?> _colorAnimation;
+  
   final List<Color> _rainbowColors = [
     Color(0xFF5170FF), // blue
     Color(0xFF00C6FF), // cyan
@@ -27,6 +29,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     Color(0xFFFF4B2B), // red
     Color(0xFFB721FF), // purple
   ];
+  
   final List<String> _steps = [
     'Starting...',
     'Loading Framework...',
@@ -53,6 +56,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat();
+    
     _colorAnimation = _colorController.drive(
       TweenSequence<Color?>([
         for (int i = 0; i < _rainbowColors.length; i++)
@@ -65,6 +69,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           ),
       ]),
     );
+    
     _totalDurationMs = (_steps.length * 600) + 400; // 600ms per step + 400ms final delay
     _startLoading();
     _startPercentCounter();
@@ -76,9 +81,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     int interval = (durationMs / 100).floor();
     while (percent < 100 && mounted && !_percentDone) {
       await Future.delayed(Duration(milliseconds: interval));
-      setState(() {
-        _displayPercent = percent;
-      });
+      if (mounted) {
+        setState(() {
+          _displayPercent = percent;
+        });
+      }
       percent++;
     }
   }
@@ -90,42 +97,27 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _startLoading() async {
+    final authService = context.read<AuthService>();
+    
     for (int i = 0; i < _steps.length; i++) {
-      setState(() {
-        _status = _steps[i];
-        _progress = (i + 1) / _steps.length;
-      });
+      if (mounted) {
+        setState(() {
+          _status = _steps[i];
+          _progress = (i + 1) / _steps.length;
+        });
+      }
       
       // Perform actual initialization tasks at specific steps
       if (_steps[i].contains('Checking Connection Status')) {
-        try {
-          await connectivityService.checkConnectivity();
-        } catch (e) {
-          print('DEBUG: Error checking connectivity: $e');
-          // Continue despite errors
-        }
+        // 🎨 DUMMY MODE - Skip connectivity check
+        await Future.delayed(const Duration(milliseconds: 100));
       } else if (_steps[i].contains('Synchronizing Data')) {
-        try {
-          final syncResult = await syncManager.syncNow();
-          print('DEBUG: Sync result: ${syncResult['success'] ? 'Success' : 'Failed'} - ${syncResult['message']}');
-        } catch (e) {
-          print('DEBUG: Error syncing data: $e');
-          // Continue despite errors
-        }
+        // 🎨 DUMMY MODE - Skip sync
+        await Future.delayed(const Duration(milliseconds: 100));
       } else if (_steps[i].contains('Checking Login Status')) {
-        // Check login status and refresh token if needed
-        print('DEBUG: Checking login status in splash screen...');
-        try {
-          if (authRepository.isLoggedIn()) {
-            print('DEBUG: User is logged in, checking token refresh...');
-            await authRepository.refreshTokenIfNeeded();
-          } else {
-            print('DEBUG: User is not logged in');
-          }
-        } catch (e) {
-          print('DEBUG: Error checking login status: $e');
-          // Continue despite errors
-        }
+        // Check login status using AuthService
+        // No need to do anything here, will check at the end
+        await Future.delayed(const Duration(milliseconds: 100));
       }
       
       await Future.delayed(const Duration(milliseconds: 600));
@@ -141,24 +133,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       });
       
       // Navigate based on login status
-      print('DEBUG: Final navigation check...');
-      bool isLoggedIn = false;
-      
-      try {
-        isLoggedIn = authRepository.isLoggedIn();
-        print('DEBUG: Final login status: $isLoggedIn');
-      } catch (e) {
-        print('DEBUG: Error during final login check: $e');
-        isLoggedIn = false; // Assume not logged in if there's an error
-      }
+      final isLoggedIn = authService.isLoggedIn;
       
       if (isLoggedIn) {
-        print('DEBUG: Navigating to DashboardScreen');
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const DashboardScreen()),
         );
       } else {
-        print('DEBUG: Navigating to LoginScreen');
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
@@ -172,21 +153,39 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // Background Image
           Image.asset(
             'assets/splash.gif',
             fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF2E7D32),
+                      Color(0xFF4CAF50),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
+          // Slight overlay for contrast
           Container(
-            color: Colors.black.withOpacity(0.15), // Slight overlay for contrast
+            color: Colors.black.withOpacity(0.15),
           ),
+          // Progress UI
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 80.0), // Distance from bottom of screen
+                  padding: const EdgeInsets.only(bottom: 80.0),
                   child: Column(
                     children: [
+                      // Rainbow Progress Bar
                       SizedBox(
                         width: 180,
                         child: AnimatedBuilder(
@@ -196,13 +195,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                               value: _progress,
                               minHeight: 8,
                               backgroundColor: Colors.white24,
-                              valueColor: AlwaysStoppedAnimation<Color>(_colorAnimation.value ?? Color(0xFF5170FF)),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                _colorAnimation.value ?? Color(0xFF5170FF)
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             );
                           },
                         ),
                       ),
                       const SizedBox(height: 16),
+                      // Percentage Counter
                       AnimatedBuilder(
                         animation: _colorAnimation,
                         builder: (context, child) {
@@ -217,6 +219,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         },
                       ),
                       const SizedBox(height: 16),
+                      // Status Text
                       AnimatedBuilder(
                         animation: _colorAnimation,
                         builder: (context, child) {
@@ -239,4 +242,4 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       ),
     );
   }
-} 
+}

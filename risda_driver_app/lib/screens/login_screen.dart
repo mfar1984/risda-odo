@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
+import '../services/auth_service.dart';
 import 'dashboard_screen.dart';
-import '../main.dart';
-import '../screens/offline/offline_indicator.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,22 +16,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _isOffline = false;
   String? _errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    _checkConnectivity();
-  }
-
-  Future<void> _checkConnectivity() async {
-    final isConnected = await connectivityService.checkConnectivity();
-    setState(() {
-      _isOffline = !isConnected;
-    });
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -45,25 +36,22 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
+          // Background Image
           Positioned.fill(
             child: Image.asset(
               bgImage,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.white,
+                );
+              },
             ),
           ),
+          // Login Form
           SafeArea(
             child: Column(
               children: [
-                // Offline indicator
-                FutureBuilder(
-                  future: syncManager.getCurrentStatus(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return OfflineIndicator(status: snapshot.data!);
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
@@ -82,6 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       crossAxisAlignment: CrossAxisAlignment.stretch,
                                       children: [
+                                        // Error Message
                                         if (_errorMessage != null)
                                           Container(
                                             padding: const EdgeInsets.all(8),
@@ -98,6 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               textAlign: TextAlign.center,
                                             ),
                                           ),
+                                        // Email Field
                                         _buildTextField(
                                           controller: _emailController,
                                           label: 'Email',
@@ -114,6 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           },
                                         ),
                                         const SizedBox(height: 16),
+                                        // Password Field
                                         _buildTextField(
                                           controller: _passwordController,
                                           label: 'Kata Laluan',
@@ -144,47 +135,41 @@ class _LoginScreenState extends State<LoginScreen> {
                                           },
                                         ),
                                         const SizedBox(height: 24),
-                                        SizedBox(
-                                          height: 44,
-                                          child: ElevatedButton(
-                                            onPressed: _isLoading ? null : _handleLogin,
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: PastelColors.primary,
-                                              foregroundColor: Colors.white,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(15),
-                                              ),
-                                              elevation: 2,
-                                            ),
-                                            child: _isLoading
-                                                ? const SizedBox(
-                                                    height: 20,
-                                                    width: 20,
-                                                    child: CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                                    ),
-                                                  )
-                                                : Text(
-                                                    'Log Masuk',
-                                                    style: AppTextStyles.button.copyWith(
-                                                      color: Colors.white,
-                                                      fontSize: 14,
-                                                    ),
+                                        // Login Button
+                                        Consumer<AuthService>(
+                                          builder: (context, authService, child) {
+                                            return SizedBox(
+                                              height: 44,
+                                              child: ElevatedButton(
+                                                onPressed: authService.isLoading ? null : _handleLogin,
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: PastelColors.primary,
+                                                  foregroundColor: Colors.white,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(15),
                                                   ),
-                                          ),
-                                        ),
-                                        if (_isOffline)
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 16),
-                                            child: Text(
-                                              'Anda berada dalam mod luar talian. Anda masih boleh log masuk jika anda pernah log masuk sebelum ini.',
-                                              style: AppTextStyles.bodySmall.copyWith(
-                                                color: PastelColors.warningText,
+                                                  elevation: 2,
+                                                ),
+                                                child: authService.isLoading
+                                                    ? const SizedBox(
+                                                        height: 20,
+                                                        width: 20,
+                                                        child: CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                        ),
+                                                      )
+                                                    : Text(
+                                                        'Log Masuk',
+                                                        style: AppTextStyles.button.copyWith(
+                                                          color: Colors.white,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
                                               ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
+                                            );
+                                          },
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -263,70 +248,25 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+      final authService = context.read<AuthService>();
+      
+      final success = await authService.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
 
-      try {
-        final success = await authRepository.login(
-          _emailController.text,
-          _passwordController.text,
+      if (!mounted) return;
+
+      if (success) {
+        // Navigate to dashboard on successful login
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const DashboardScreen()),
         );
-
-        if (success) {
-          // Navigate to dashboard on successful login
-          if (mounted) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const DashboardScreen()),
-            );
-          }
-        } else {
-          setState(() {
-            if (_isOffline) {
-              _errorMessage = 'Gagal log masuk dalam mod luar talian. Pastikan anda pernah log masuk sebelum ini.';
-            } else {
-              _errorMessage = 'Email atau kata laluan tidak sah!';
-            }
-            _isLoading = false;
-          });
-        }
-      } catch (e) {
+      } else {
         setState(() {
-          _errorMessage = 'Ralat semasa log masuk: ${e.toString()}';
-          _isLoading = false;
+          _errorMessage = 'Email atau kata laluan tidak sah!';
         });
       }
     }
   }
-}
-
-class TopWavePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = PastelColors.primary // pastel hijau
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    path.lineTo(0, size.height * 0.85);
-    path.quadraticBezierTo(
-      size.width * 0.25,
-      size.height,
-      size.width * 0.5,
-      size.height * 0.85,
-    );
-    path.quadraticBezierTo(
-      size.width * 0.75,
-      size.height * 0.7,
-      size.width,
-      size.height * 0.85,
-    );
-    path.lineTo(size.width, 0);
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

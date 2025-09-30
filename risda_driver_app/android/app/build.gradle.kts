@@ -6,9 +6,9 @@ plugins {
 }
 
 android {
-    namespace = "com.example.risda_driver_app"
-    compileSdk = 35
-    ndkVersion = flutter.ndkVersion
+    namespace = "my.risda.risda_driver_app"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.risda_driver_app"
+        applicationId = "my.risda.risda_driver_app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
