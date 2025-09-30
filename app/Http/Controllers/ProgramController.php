@@ -58,10 +58,9 @@ class ProgramController extends Controller
         }
 
         // Paginate results
-        $programs = $query->orderBy('created_at', 'desc')->paginate(15);
-
-        // Append query parameters to pagination links
-        $programs->appends($request->query());
+        $programs = $query->orderBy('created_at', 'desc')
+            ->paginate(5)
+            ->withQueryString();
 
         return view('program.index', compact('programs'));
     }
@@ -79,7 +78,9 @@ class ProgramController extends Controller
         // Get vehicles based on user's organization
         $kenderaans = $this->getKenderaanForCurrentUser();
 
-        return view('program.tambah-program', compact('stafs', 'kenderaans'));
+        $tetapanUmum = \App\Models\TetapanUmum::getForCurrentUser();
+
+        return view('program.tambah-program', compact('stafs', 'kenderaans', 'tetapanUmum'));
     }
 
     /**
@@ -92,6 +93,9 @@ class ProgramController extends Controller
             'tarikh_mula' => 'required|date',
             'tarikh_selesai' => 'required|date|after_or_equal:tarikh_mula',
             'lokasi_program' => 'required|string|max:255',
+            'lokasi_lat' => 'nullable|numeric',
+            'lokasi_long' => 'nullable|numeric',
+            'jarak_anggaran' => 'nullable|numeric|min:0',
             'penerangan' => 'nullable|string|max:1000',
             'permohonan_dari' => 'required|exists:risda_stafs,id',
             'pemandu_id' => 'required|exists:risda_stafs,id',
@@ -131,7 +135,9 @@ class ProgramController extends Controller
 
         $program->load(['pemohon', 'pemandu', 'kenderaan', 'pencipta', 'pengemas_kini']);
 
-        return view('program.show-program', compact('program'));
+        $tetapanUmum = \App\Models\TetapanUmum::getForCurrentUser();
+
+        return view('program.show-program', compact('program', 'tetapanUmum'));
     }
 
     /**
@@ -145,8 +151,9 @@ class ProgramController extends Controller
         // Get staff and vehicles for current user
         $stafs = $this->getStafForCurrentUser();
         $kenderaans = $this->getKenderaanForCurrentUser();
+        $tetapanUmum = \App\Models\TetapanUmum::getForCurrentUser();
 
-        return view('program.edit-program', compact('program', 'stafs', 'kenderaans'));
+        return view('program.edit-program', compact('program', 'stafs', 'kenderaans', 'tetapanUmum'));
     }
 
     /**
@@ -163,6 +170,9 @@ class ProgramController extends Controller
             'tarikh_mula' => 'required|date',
             'tarikh_selesai' => 'required|date|after_or_equal:tarikh_mula',
             'lokasi_program' => 'required|string|max:255',
+            'lokasi_lat' => 'nullable|numeric',
+            'lokasi_long' => 'nullable|numeric',
+            'jarak_anggaran' => 'nullable|numeric|min:0',
             'penerangan' => 'nullable|string|max:1000',
             'permohonan_dari' => 'required|exists:risda_stafs,id',
             'pemandu_id' => 'required|exists:risda_stafs,id',

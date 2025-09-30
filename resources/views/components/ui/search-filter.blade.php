@@ -60,14 +60,12 @@
                             style="height: 36px; min-height: 36px;"
                         />
                     @elseif($filter['type'] === 'date')
-                        <input
+                        <x-forms.date-input
                             id="{{ $filter['name'] }}"
                             name="{{ $filter['name'] }}"
-                            type="date"
-                            class="form-input h-9"
-                            value="{{ request($filter['name']) }}"
-                            placeholder="{{ $filter['placeholder'] ?? 'Pilih Tarikh' }}"
-                            style="height: 36px; min-height: 36px;"
+                            :value="request($filter['name'])"
+                            :placeholder="($filter['placeholder'] ?? 'Pilih Tarikh')"
+                            class="block w-full"
                         />
                     @endif
                 </div>

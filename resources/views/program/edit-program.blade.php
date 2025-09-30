@@ -1,3 +1,7 @@
+@php
+    $tetapanUmum = $tetapanUmum ?? \App\Models\TetapanUmum::getForCurrentUser();
+@endphp
+
 <x-dashboard-layout 
     title="Edit Program"
     description="Kemaskini maklumat program"
@@ -100,6 +104,31 @@
                             <x-forms.input-error class="mt-2" :messages="$errors->get('lokasi_program')" />
                         </div>
 
+                        <x-map.location-picker
+                            :latitude="old('lokasi_lat', $program->lokasi_lat)"
+                            :longitude="old('lokasi_long', $program->lokasi_long)"
+                            input-lat="lokasi_lat"
+                            input-long="lokasi_long"
+                            :provider="$tetapanUmum->map_provider ?? 'openstreetmap'"
+                            :api-key="$tetapanUmum->map_api_key ?? null"
+                            :style-url="$tetapanUmum->map_style_url ?? null"
+                        />
+
+                        <div>
+                            <x-forms.input-label for="jarak_anggaran" value="Anggaran KM" />
+                            <x-forms.text-input
+                                id="jarak_anggaran"
+                                name="jarak_anggaran"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                class="mt-1 block w-full"
+                                value="{{ old('jarak_anggaran', $program->jarak_anggaran) }}"
+                                placeholder="Contoh: 120.5"
+                            />
+                            <x-forms.input-error class="mt-2" :messages="$errors->get('jarak_anggaran')" />
+                        </div>
+
                         <!-- Row 4: Penerangan -->
                         <div>
                             <x-forms.input-label for="penerangan" value="Penerangan" />
@@ -131,13 +160,7 @@
                                     <option value="">Pilih Staf Pemohon</option>
                                     @foreach($stafs as $staf)
                                         <option value="{{ $staf->id }}" {{ old('permohonan_dari', $program->permohonan_dari) == $staf->id ? 'selected' : '' }}>
-                                            {{ $staf->nama_penuh }} ({{ $staf->no_pekerja }})
-                                            @if($staf->bahagian)
-                                                - {{ $staf->bahagian->nama_bahagian }}
-                                            @endif
-                                            @if($staf->stesen)
-                                                - {{ $staf->stesen->nama_stesen }}
-                                            @endif
+                                            {{ $staf->nama_penuh }}{{ $staf->jawatan ? ' - ' . $staf->jawatan : '' }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -154,13 +177,7 @@
                                     <option value="">Pilih Staf Pemandu</option>
                                     @foreach($stafs as $staf)
                                         <option value="{{ $staf->id }}" {{ old('pemandu_id', $program->pemandu_id) == $staf->id ? 'selected' : '' }}>
-                                            {{ $staf->nama_penuh }} ({{ $staf->no_pekerja }})
-                                            @if($staf->bahagian)
-                                                - {{ $staf->bahagian->nama_bahagian }}
-                                            @endif
-                                            @if($staf->stesen)
-                                                - {{ $staf->stesen->nama_stesen }}
-                                            @endif
+                                            {{ $staf->nama_penuh }}{{ $staf->jawatan ? ' - ' . $staf->jawatan : '' }}
                                         </option>
                                     @endforeach
                                 </select>

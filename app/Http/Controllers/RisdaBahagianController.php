@@ -33,8 +33,9 @@ class RisdaBahagianController extends Controller
             $bahagianQuery->where('status_dropdown', $request->status_bahagian);
         }
 
-        $bahagians = $bahagianQuery->latest()->paginate(15, ['*'], 'bahagian_page');
-        $bahagians->appends($request->query());
+        $bahagians = $bahagianQuery->latest()
+            ->paginate(5, ['*'], 'bahagian_page')
+            ->withQueryString();
 
         // Build query for stesens with search and pagination
         $stesenQuery = \App\Models\RisdaStesen::with('risdaBahagian');
@@ -63,8 +64,9 @@ class RisdaBahagianController extends Controller
             $stesenQuery->where('risda_bahagian_id', $request->bahagian_stesen);
         }
 
-        $stesens = $stesenQuery->latest()->paginate(15, ['*'], 'stesen_page');
-        $stesens->appends($request->query());
+        $stesens = $stesenQuery->latest()
+            ->paginate(5, ['*'], 'stesen_page')
+            ->withQueryString();
 
         // Build query for stafs with search and pagination
         $stafQuery = \App\Models\RisdaStaf::with(['bahagian', 'stesen']);
@@ -98,8 +100,9 @@ class RisdaBahagianController extends Controller
             $stafQuery->where('risda_stesen_id', $request->stesen_staf);
         }
 
-        $stafs = $stafQuery->latest()->paginate(15, ['*'], 'staf_page');
-        $stafs->appends($request->query());
+        $stafs = $stafQuery->latest()
+            ->paginate(5, ['*'], 'staf_page')
+            ->withQueryString();
 
         return view('pengurusan.senarai-risda', compact('bahagians', 'stesens', 'stafs'));
     }

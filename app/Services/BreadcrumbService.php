@@ -18,10 +18,35 @@ class BreadcrumbService
             'icon' => 'program',
             'parent' => null,
         ],
+        'program.create' => [
+            'name' => 'Tambah Program',
+            'icon' => null,
+            'parent' => 'program.index',
+        ],
+        'show-program' => [
+            'name' => 'Butiran Program',
+            'icon' => null,
+            'parent' => 'program.index',
+        ],
+        'edit-program' => [
+            'name' => 'Kemaskini Program',
+            'icon' => null,
+            'parent' => 'program.index',
+        ],
         'log-pemandu.index' => [
             'name' => 'Log Pemandu',
             'icon' => 'log',
             'parent' => null,
+        ],
+        'log-pemandu.show' => [
+            'name' => 'Butiran Log',
+            'icon' => null,
+            'parent' => 'log-pemandu.index',
+        ],
+        'log-pemandu.edit' => [
+            'name' => 'Kemaskini Log',
+            'icon' => null,
+            'parent' => 'log-pemandu.index',
         ],
         'laporan' => [
             'name' => 'Laporan',
@@ -33,6 +58,11 @@ class BreadcrumbService
             'icon' => null,
             'parent' => 'laporan',
         ],
+        'laporan.senarai-program.show' => [
+            'name' => 'Butiran Laporan Program',
+            'icon' => null,
+            'parent' => 'laporan.senarai-program',
+        ],
         'laporan.laporan-kenderaan' => [
             'name' => 'Laporan Kenderaan',
             'icon' => null,
@@ -43,15 +73,30 @@ class BreadcrumbService
             'icon' => null,
             'parent' => 'laporan',
         ],
+        'laporan.laporan-kilometer.show' => [
+            'name' => 'Butiran Laporan Kilometer',
+            'icon' => null,
+            'parent' => 'laporan.laporan-kilometer',
+        ],
         'laporan.laporan-kos' => [
             'name' => 'Laporan Kos',
             'icon' => null,
             'parent' => 'laporan',
         ],
+        'laporan.laporan-kos.show' => [
+            'name' => 'Butiran Laporan Kos',
+            'icon' => null,
+            'parent' => 'laporan.laporan-kos',
+        ],
         'laporan.laporan-pemandu' => [
             'name' => 'Laporan Pemandu',
             'icon' => null,
             'parent' => 'laporan',
+        ],
+        'laporan.laporan-pemandu.show' => [
+            'name' => 'Butiran Laporan Pemandu',
+            'icon' => null,
+            'parent' => 'laporan.laporan-pemandu',
         ],
         'pengurusan' => [
             'name' => 'Pengurusan',

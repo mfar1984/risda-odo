@@ -52,10 +52,9 @@ class KenderaanController extends Controller
         }
 
         // Paginate results
-        $kenderaans = $query->orderBy('created_at', 'desc')->paginate(15);
-
-        // Append query parameters to pagination links
-        $kenderaans->appends($request->query());
+        $kenderaans = $query->orderBy('created_at', 'desc')
+            ->paginate(5)
+            ->withQueryString();
 
         return view('pengurusan.senarai-kenderaan', compact('kenderaans'));
     }

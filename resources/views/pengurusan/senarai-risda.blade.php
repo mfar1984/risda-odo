@@ -135,7 +135,7 @@
                     </x-ui.data-table>
 
                     <!-- Pagination -->
-                    <x-ui.pagination :paginator="$bahagians" record-label="rekod" />
+                    <x-ui.pagination :paginator="$bahagians" record-label="bahagian" />
                 </div>
 
                 <!-- RISDA Stesen Tab -->
@@ -245,7 +245,7 @@
                     </x-ui.data-table>
 
                     <!-- Pagination -->
-                    <x-ui.pagination :paginator="$stesens" record-label="rekod" />
+                    <x-ui.pagination :paginator="$stesens" record-label="stesen" />
                 </div>
 
                 <!-- RISDA Staf Tab -->
@@ -353,7 +353,7 @@
                     </x-ui.data-table>
 
                     <!-- Pagination -->
-                    <x-ui.pagination :paginator="$stafs" record-label="rekod" />
+                    <x-ui.pagination :paginator="$stafs" record-label="staf" />
                 </div>
             </div>
         </div>

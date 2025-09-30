@@ -1,61 +1,45 @@
 @props([
     'paginator',
-    'recordLabel' => 'rekod'
+    'recordLabel' => 'rekod',
+    'showSummary' => true,
 ])
 
-@if($paginator && ($paginator->hasPages() || $paginator->total() > 0))
-<div class="flex items-center justify-between mt-6">
-    <!-- Record Count (Left) -->
-    <div class="text-sm text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-        Menunjukkan
-        <span class="font-medium">{{ $paginator->firstItem() ?? 0 }}</span>
-        hingga
-        <span class="font-medium">{{ $paginator->lastItem() ?? 0 }}</span>
-        daripada
-        <span class="font-medium">{{ $paginator->total() ?? 0 }}</span>
-        {{ $recordLabel }}
-    </div>
+@php
+    use Illuminate\Pagination\LengthAwarePaginator;
+    use Illuminate\Pagination\Paginator as SimplePaginator;
 
-    <!-- Pagination (Right) -->
-    <div>
-        @if($paginator->hasPages())
-            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                {{-- Previous Page Link --}}
-                @if ($paginator->onFirstPage())
-                    <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 cursor-not-allowed">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">chevron_left</span>
-                    </span>
+    $isLengthAware = $paginator instanceof LengthAwarePaginator;
+    $isSimple = $paginator instanceof SimplePaginator;
+@endphp
+
+@if($isLengthAware || $isSimple)
+    @php
+        $hasPages = $paginator->hasPages();
+        $shouldShowSummary = $showSummary && ($isLengthAware ? ($paginator->total() ?? 0) > 0 : true);
+        $shouldRenderWrapper = $hasPages || $shouldShowSummary;
+    @endphp
+
+    @if($shouldRenderWrapper)
+        <div class="mt-6 flex flex-col items-center space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between" style="font-family: Poppins, sans-serif !important;">
+        @if($shouldShowSummary)
+            <div class="text-sm text-gray-500" style="font-size: 12px !important;">
+                @if($isLengthAware)
+                    Menunjukkan {{ $paginator->firstItem() ?? 0 }} hingga {{ $paginator->lastItem() ?? 0 }} daripada {{ $paginator->total() ?? 0 }} {{ $recordLabel }}
                 @else
-                    <a href="{{ $paginator->previousPageUrl() }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">chevron_left</span>
-                    </a>
+                    Halaman {{ $paginator->currentPage() }}
                 @endif
-
-                {{-- Pagination Elements --}}
-                @foreach ($paginator->getUrlRange(1, $paginator->lastPage()) as $page => $url)
-                    @if ($page == $paginator->currentPage())
-                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
-                            {{ $page }}
-                        </span>
-                    @else
-                        <a href="{{ $url }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            {{ $page }}
-                        </a>
-                    @endif
-                @endforeach
-
-                {{-- Next Page Link --}}
-                @if ($paginator->hasMorePages())
-                    <a href="{{ $paginator->nextPageUrl() }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">chevron_right</span>
-                    </a>
-                @else
-                    <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 cursor-not-allowed">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">chevron_right</span>
-                    </span>
-                @endif
-            </nav>
+            </div>
         @endif
-    </div>
-</div>
+
+        @if($hasPages)
+            <div class="flex justify-center sm:justify-end">
+                @if($isLengthAware)
+                    {{ $paginator->links('pagination::risda') }}
+                @else
+                    {{ $paginator->links('pagination::risda-simple') }}
+                @endif
+            </div>
+        @endif
+        </div>
+    @endif
 @endif

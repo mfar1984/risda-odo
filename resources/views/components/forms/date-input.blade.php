@@ -11,7 +11,7 @@
         id="{{ $inputId }}"
         @disabled($disabled)
         value="{{ $displayValue }}"
-        {{ $attributes->merge(['class' => 'form-input form-date-input-daterangepicker']) }}
+        {{ $attributes->merge(['class' => 'form-input form-date-input-daterangepicker h-9 pl-3', 'style' => 'height:36px !important; min-height:36px !important; padding-left:12px !important;']) }}
         placeholder="{{ $placeholder }}"
         autocomplete="off"
     >
@@ -24,7 +24,7 @@ $(function() {
         singleDatePicker: true,
         showDropdowns: true,
         minYear: 1901,
-        maxYear: parseInt(moment().format('YYYY'), 10),
+        maxYear: parseInt(moment().format('YYYY'), 10) + 10,
         locale: {
             format: 'DD/MM/YYYY',
             firstDay: 1

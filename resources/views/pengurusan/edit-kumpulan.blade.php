@@ -96,14 +96,14 @@
                                     @php
                                         $defaultMatrix = \App\Models\UserGroup::getDefaultPermissionMatrix();
                                     @endphp
-                                    @foreach($moduleLabels as $module => $label)
+                                    @foreach($defaultMatrix as $module => $defaultPermissions)
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                            {{ $label }}
+                                            {{ $moduleLabels[$module] ?? ucfirst(str_replace('_', ' ', $module)) }}
                                         </td>
                                         @foreach($permissionLabels as $permission => $permLabel)
                                         <td class="px-3 py-4 whitespace-nowrap text-center">
-                                            @if(isset($defaultMatrix[$module][$permission]))
+                                            @if(isset($defaultPermissions[$permission]))
                                             <input
                                                 type="checkbox"
                                                 name="kebenaran_matrix[{{ $module }}][{{ $permission }}]"

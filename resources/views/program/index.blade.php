@@ -8,7 +8,7 @@
             <div>
                 <!-- Remove duplicate text here -->
             </div>
-            <a href="{{ route('tambah-program') }}">
+            <a href="{{ route('program.create') }}">
                 <x-buttons.primary-button type="button">
                     <span class="material-symbols-outlined mr-2" style="font-size: 16px;">add_circle</span>
                     Tambah Program
@@ -158,6 +158,6 @@
         </x-ui.data-table>
 
         <!-- Pagination -->
-        <x-ui.pagination :paginator="$programs" record-label="rekod" />
+        <x-ui.pagination :paginator="$programs" record-label="program" />
     </x-ui.page-header>
 </x-dashboard-layout>

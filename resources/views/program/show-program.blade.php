@@ -17,6 +17,11 @@
         </div>
 
                 <div class="mt-6 space-y-6">
+                    @php
+                        $tetapanUmum = $tetapanUmum ?? \App\Models\TetapanUmum::getForCurrentUser();
+                        $hasProgramCoordinates = $program->lokasi_lat && $program->lokasi_long;
+                    @endphp
+
                     <!-- Row 1: Nama Program & Lokasi Program -->
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">
@@ -42,7 +47,87 @@
                                 readonly
                             />
                         </div>
+
+                        <div style="flex: 1;">
+                            <x-forms.input-label for="jarak_anggaran" value="Anggaran KM" />
+                            <x-forms.text-input
+                                id="jarak_anggaran"
+                                name="jarak_anggaran"
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ $program->jarak_anggaran ? number_format($program->jarak_anggaran, 1) . ' km' : '-' }}"
+                                readonly
+                            />
+                        </div>
                     </div>
+
+                    @if($hasProgramCoordinates)
+                        <div class="mt-4">
+                            <x-forms.input-label value="Koordinat" />
+                            <x-forms.text-input
+                                type="text"
+                                class="mt-1 block w-full"
+                                value="{{ number_format($program->lokasi_lat, 6) }}, {{ number_format($program->lokasi_long, 6) }}"
+                                readonly
+                            />
+                        </div>
+
+                        <div class="mt-4">
+                            <div id="program-map-{{ $program->id }}" class="w-full rounded-lg border border-gray-200" style="height: 320px"></div>
+                        </div>
+
+                        @push('scripts')
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    const containerId = 'program-map-{{ $program->id }}';
+                                    const lat = {{ $program->lokasi_lat }};
+                                    const lng = {{ $program->lokasi_long }};
+                                    const provider = @json($tetapanUmum->map_provider ?? 'openstreetmap');
+                                    const apiKey = @json($tetapanUmum->map_api_key ?? null);
+                                    const styleUrl = @json($tetapanUmum->map_style_url ?? null);
+
+                                    if (!window.L) {
+                                        console.error('Leaflet tidak dimuatkan.');
+                                        return;
+                                    }
+
+                                    const map = window.L.map(containerId).setView([lat, lng], 15);
+
+                                    if (provider === 'maptiler' && apiKey) {
+                                        const styleId = (function () {
+                                            if (!styleUrl) {
+                                                return 'openstreetmap';
+                                            }
+                                            try {
+                                                const url = new URL(styleUrl);
+                                                const parts = url.pathname.split('/').filter(Boolean);
+                                                const idx = parts.indexOf('maps');
+                                                if (idx !== -1 && parts.length > idx + 1) {
+                                                    return parts[idx + 1];
+                                                }
+                                            } catch (error) {
+                                                console.warn('Gagal mengekstrak gaya MapTiler:', error);
+                                            }
+                                            return 'openstreetmap';
+                                        })();
+
+                                        window.L.tileLayer(`https://api.maptiler.com/maps/${styleId}/256/{z}/{x}/{y}.png?key=${apiKey}`, {
+                                            attribution: '© MapTiler © OpenStreetMap contributors',
+                                            maxZoom: 19,
+                                            crossOrigin: true,
+                                        }).addTo(map);
+                                    } else {
+                                        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                            attribution: '© OpenStreetMap contributors',
+                                            maxZoom: 19,
+                                        }).addTo(map);
+                                    }
+
+                                    window.L.marker([lat, lng]).addTo(map);
+                                });
+                            </script>
+                        @endpush
+                    @endif
 
                     <!-- Row 2: Tarikh Mula & Tarikh Selesai -->
                     <div style="display: flex; gap: 20px;">

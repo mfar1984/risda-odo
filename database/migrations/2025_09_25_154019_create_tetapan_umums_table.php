@@ -36,6 +36,12 @@ return new class extends Migration
             $table->unsignedBigInteger('dicipta_oleh');
             $table->unsignedBigInteger('dikemaskini_oleh')->nullable();
 
+            $table->json('mata_hubungan')->nullable();
+            $table->json('media_sosial')->nullable();
+            $table->json('konfigurasi_notifikasi')->nullable();
+            $table->string('map_provider')->nullable();
+            $table->string('map_api_key')->nullable();
+            $table->string('map_style_url')->nullable();
             $table->timestamps();
 
             // Foreign key constraints

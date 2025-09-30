@@ -18,13 +18,17 @@ return new class extends Migration
             $table->text('keterangan')->nullable();
             $table->enum('status', ['aktif', 'tidak_aktif', 'gantung'])->default('aktif');
             $table->unsignedBigInteger('dicipta_oleh');
+            $table->enum('jenis_organisasi', ['semua', 'bahagian', 'stesen'])->nullable();
+            $table->unsignedBigInteger('organisasi_id')->nullable();
             $table->timestamps();
             
             // Foreign key constraints
             $table->foreign('dicipta_oleh')->references('id')->on('users');
+            $table->foreign('organisasi_id')->references('id')->on('risda_bahagians')->nullOnDelete();
 
             // Indexes for performance
             $table->index('status');
+            $table->index(['jenis_organisasi', 'organisasi_id']);
         });
     }
 

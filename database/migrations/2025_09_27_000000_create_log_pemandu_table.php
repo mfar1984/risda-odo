@@ -16,7 +16,8 @@ return new class extends Migration
             
             // Foreign Keys
             $table->foreignId('pemandu_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('kenderaan_id')->constrained('kenderaan')->onDelete('cascade');
+            $table->foreignId('kenderaan_id')->constrained('kenderaans')->onDelete('cascade');
+            $table->foreignId('program_id')->nullable()->constrained('programs')->onDelete('set null');
             
             // Maklumat Perjalanan
             $table->date('tarikh_perjalanan');
@@ -50,6 +51,7 @@ return new class extends Migration
             $table->index(['tarikh_perjalanan', 'status']);
             $table->index(['pemandu_id', 'tarikh_perjalanan']);
             $table->index(['kenderaan_id', 'tarikh_perjalanan']);
+            $table->index('program_id');
             $table->index('organisasi_id');
         });
     }

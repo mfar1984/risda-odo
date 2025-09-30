@@ -6,7 +6,8 @@
     'showView' => true,
     'showEdit' => true,
     'showDelete' => true,
-    'customActions' => []
+    'customActions' => [],
+    'showDeleteIcon' => false,
 ])
 
 <div class="flex justify-center space-x-2">

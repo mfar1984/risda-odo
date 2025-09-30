@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LogPemanduController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,7 +28,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('permission:program,tambah')->group(function () {
-        Route::get('/program/tambah-program', [App\Http\Controllers\ProgramController::class, 'create'])->name('tambah-program');
+        Route::get('/program/tambah-program', [App\Http\Controllers\ProgramController::class, 'create'])->name('program.create');
         Route::post('/program/tambah-program', [App\Http\Controllers\ProgramController::class, 'store'])->name('store-program');
     });
 
@@ -54,41 +55,64 @@ Route::middleware('auth')->group(function () {
 
     // Log Pemandu Routes (Permission-based)
     Route::middleware('permission:log_pemandu,lihat')->group(function () {
-        Route::get('/log-pemandu', function () {
-            return view('log-pemandu.index');
-        })->name('log-pemandu.index');
+        Route::get('/log-pemandu', [LogPemanduController::class, 'index'])->name('log-pemandu.index');
+    });
+
+    Route::middleware('permission:log_pemandu,lihat_butiran')->group(function () {
+        Route::get('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'show'])->name('log-pemandu.show');
+    });
+
+    Route::middleware('permission:log_pemandu,kemaskini_status')->group(function () {
+        Route::get('/log-pemandu/{logPemandu}/edit', [LogPemanduController::class, 'edit'])->name('log-pemandu.edit');
+        Route::put('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'update'])->name('log-pemandu.update');
+    });
+
+    Route::middleware('permission:log_pemandu,padam')->group(function () {
+        Route::delete('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'destroy'])->name('log-pemandu.destroy');
     });
 
     // Laporan Routes (Permission-based)
     Route::prefix('laporan')->name('laporan.')->group(function () {
         Route::middleware('permission:laporan_senarai_program,lihat')->group(function () {
-            Route::get('/senarai-program', function () {
-                return view('laporan.senarai-program');
-            })->name('senarai-program');
+            Route::get('/senarai-program', [\App\Http\Controllers\Laporan\SenaraiProgramController::class, 'index'])->name('senarai-program');
+            Route::get('/senarai-program/{program}', [\App\Http\Controllers\Laporan\SenaraiProgramController::class, 'show'])->name('senarai-program.show');
+            Route::get('/senarai-program/{program}/pdf', [\App\Http\Controllers\Laporan\SenaraiProgramController::class, 'pdf'])->name('senarai-program.pdf');
         });
 
         Route::middleware('permission:laporan_kenderaan,lihat')->group(function () {
-            Route::get('/laporan-kenderaan', function () {
-                return view('laporan.laporan-kenderaan');
-            })->name('laporan-kenderaan');
+            Route::get('/laporan-kenderaan', [\App\Http\Controllers\Laporan\KenderaanController::class, 'index'])->name('laporan-kenderaan');
+            Route::get('/laporan-kenderaan/{kenderaan}', [\App\Http\Controllers\Laporan\KenderaanController::class, 'show'])
+                ->name('laporan-kenderaan.show');
+            Route::get('/laporan-kenderaan/{kenderaan}/pdf', [\App\Http\Controllers\Laporan\KenderaanController::class, 'pdf'])
+                ->name('laporan-kenderaan.pdf')
+                ->middleware('permission:laporan_kenderaan,eksport');
         });
 
         Route::middleware('permission:laporan_kilometer,lihat')->group(function () {
-            Route::get('/laporan-kilometer', function () {
-                return view('laporan.laporan-kilometer');
-            })->name('laporan-kilometer');
+            Route::get('/laporan-kilometer', [\App\Http\Controllers\Laporan\KilometerController::class, 'index'])->name('laporan-kilometer');
+            Route::get('/laporan-kilometer/{program}', [\App\Http\Controllers\Laporan\KilometerController::class, 'show'])
+                ->name('laporan-kilometer.show');
+            Route::get('/laporan-kilometer/{program}/pdf', [\App\Http\Controllers\Laporan\KilometerController::class, 'pdf'])
+                ->name('laporan-kilometer.pdf')
+                ->middleware('permission:laporan_kilometer,eksport');
         });
 
         Route::middleware('permission:laporan_kos,lihat')->group(function () {
-            Route::get('/laporan-kos', function () {
-                return view('laporan.laporan-kos');
-            })->name('laporan-kos');
+            Route::get('/laporan-kos', [\App\Http\Controllers\Laporan\KosController::class, 'index'])->name('laporan-kos');
+            Route::get('/laporan-kos/{program}', [\App\Http\Controllers\Laporan\KosController::class, 'show'])
+                ->name('laporan-kos.show');
+            Route::get('/laporan-kos/{program}/pdf', [\App\Http\Controllers\Laporan\KosController::class, 'pdf'])
+                ->name('laporan-kos.pdf')
+                ->middleware('permission:laporan_kos,eksport');
         });
 
         Route::middleware('permission:laporan_pemandu,lihat')->group(function () {
-            Route::get('/laporan-pemandu', function () {
-                return view('laporan.laporan-pemandu');
-            })->name('laporan-pemandu');
+            Route::get('/laporan-pemandu', [\App\Http\Controllers\Laporan\PemanduController::class, 'index'])->name('laporan-pemandu');
+            Route::get('/laporan-pemandu/{user}', [\App\Http\Controllers\Laporan\PemanduController::class, 'show'])
+                ->name('laporan-pemandu.show');
+            Route::get('/laporan-pemandu/{user}/pdf', [\App\Http\Controllers\Laporan\PemanduController::class, 'pdf'])
+                ->name('laporan-pemandu.pdf')
+                ->middleware('permission:laporan_pemandu,eksport');
         });
     });
 

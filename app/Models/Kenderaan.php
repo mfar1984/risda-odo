@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Kenderaan extends Model
 {
@@ -56,6 +57,11 @@ class Kenderaan extends Model
         return $this->belongsTo(RisdaStesen::class, 'stesen_id');
     }
 
+    public function programs(): HasMany
+    {
+        return $this->hasMany(Program::class, 'kenderaan_id');
+    }
+
     /**
      * Get status label in Bahasa Melayu.
      */
@@ -87,5 +93,15 @@ class Kenderaan extends Model
     public function getIsCukaiExpiredAttribute()
     {
         return $this->cukai_tamat_tempoh < now();
+    }
+
+    public function getJenisLabelAttribute(): ?string
+    {
+        return $this->jenis ?? 'Tidak dinyatakan';
+    }
+
+    public function getNamaPenuhAttribute(): string
+    {
+        return trim(($this->jenama ?? '') . ' ' . ($this->model ?? '')) ?: '-';
     }
 }

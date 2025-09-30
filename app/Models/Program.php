@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\LogPemandu;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 
 class Program extends Model
 {
@@ -13,6 +17,9 @@ class Program extends Model
         'tarikh_mula',
         'tarikh_selesai',
         'lokasi_program',
+        'lokasi_lat',
+        'lokasi_long',
+        'jarak_anggaran',
         'penerangan',
         'permohonan_dari',
         'pemandu_id',
@@ -26,6 +33,7 @@ class Program extends Model
     protected $casts = [
         'tarikh_mula' => 'datetime',
         'tarikh_selesai' => 'datetime',
+        'jarak_anggaran' => 'decimal:2',
     ];
 
     /**
@@ -50,6 +58,14 @@ class Program extends Model
     public function kenderaan(): BelongsTo
     {
         return $this->belongsTo(Kenderaan::class, 'kenderaan_id');
+    }
+
+    /**
+     * Get all logs linked to this program.
+     */
+    public function logPemandu(): HasMany
+    {
+        return $this->hasMany(LogPemandu::class, 'program_id');
     }
 
     /**
@@ -125,5 +141,38 @@ class Program extends Model
         return static::forCurrentUser()
                     ->with(['pemohon', 'pemandu', 'kenderaan', 'pencipta'])
                     ->orderBy('created_at', 'desc');
+    }
+
+    public static function applyListFilters($query, $request)
+    {
+        $statuses = Arr::wrap($request->get('status'));
+        if ($statuses && count(array_filter($statuses)) > 0) {
+            $query->whereIn('status', array_filter($statuses));
+        }
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($inner) use ($search) {
+                $inner->where('nama_program', 'like', "%{$search}%")
+                    ->orWhere('lokasi_program', 'like', "%{$search}%")
+                    ->orWhere('penerangan', 'like', "%{$search}%")
+                    ->orWhereHas('pemohon', function ($sub) use ($search) {
+                        $sub->where('nama_penuh', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('pemandu', function ($sub) use ($search) {
+                        $sub->where('nama_penuh', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('kenderaan', function ($sub) use ($search) {
+                        $sub->where('no_plat', 'like', "%{$search}%");
+                    });
+            });
+        }
+    }
+
+    /**
+     * Relationship to fetch the staff model for the assigned driver.
+     */
+    public function pemanduStaf(): BelongsTo
+    {
+        return $this->belongsTo(RisdaStaf::class, 'pemandu_id');
     }
 }

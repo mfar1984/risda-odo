@@ -168,10 +168,10 @@
                                 name="stesen_akses_ids"
                                 class="form-select mt-1 block w-full"
                                 placeholder="Kosongkan untuk akses semua stesen dalam bahagian"
-                                value="{{ old('stesen_akses_ids', $pengguna->stesen_akses_ids ? implode(', ', array_map(function($id) use ($stesens) {
-                                    $stesen = $stesens->firstWhere('id', $id);
-                                    return $stesen ? $stesen->nama_stesen : 'Unknown';
-                                }, $pengguna->stesen_akses_ids)) : ($pengguna->jenis_organisasi === 'semua' ? 'Semua Stesen' : '')) }}"
+                            value="{{ old('stesen_akses_ids', $pengguna->stesen_akses_ids ? implode(', ', array_map(function ($id) use ($stesens) {
+                                $stesen = $stesens->firstWhere('id', $id);
+                                return $stesen ? $stesen->nama_stesen : $id;
+                            }, $pengguna->stesen_akses_ids)) : ($pengguna->jenis_organisasi === 'semua' ? 'Semua Stesen' : '')) }}"
                             />
                             <x-forms.input-error class="mt-2" :messages="$errors->get('stesen_akses_ids')" />
                             <p style="font-size: 10px; color: #6b7280; margin-top: 4px; font-family: Poppins, sans-serif;">
@@ -217,7 +217,7 @@
         // Function to load stesen by bahagian (AJAX)
         function loadStesenByBahagian(bahagianId) {
             console.log('loadStesenByBahagian called with:', bahagianId);
-            const stesenInput = document.getElementById('stesen_akses_ids');
+        const stesenInput = document.getElementById('stesen_akses_ids');
 
             // Clear current tagify
             if (window.tagifyStesen) {

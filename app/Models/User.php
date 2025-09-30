@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Services\RisdaHashService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -137,6 +139,21 @@ class User extends Authenticatable
             default:
                 return null;
         }
+    }
+
+    public function bahagian(): BelongsTo
+    {
+        return $this->belongsTo(RisdaBahagian::class, 'bahagian_id');
+    }
+
+    public function stesen(): BelongsTo
+    {
+        return $this->belongsTo(RisdaStesen::class, 'organisasi_id');
+    }
+
+    public function programsSebagaiPemandu(): HasMany
+    {
+        return $this->hasMany(Program::class, 'pemandu_id');
     }
 
     /**

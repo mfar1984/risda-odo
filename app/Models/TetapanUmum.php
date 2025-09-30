@@ -22,11 +22,28 @@ class TetapanUmum extends Model
         'organisasi_id',
         'dicipta_oleh',
         'dikemaskini_oleh',
+        'operasi_jam',
+        'alamat_pejabat',
+        'mata_hubungan',
+        'media_sosial',
+        'konfigurasi_notifikasi',
+        'map_provider',
+        'map_api_key',
+        'map_style_url',
+        'map_default_lat',
+        'map_default_long',
     ];
 
     protected $casts = [
         'maksimum_percubaan_login' => 'integer',
         'masa_tamat_sesi_minit' => 'integer',
+        'operasi_jam' => 'array',
+        'alamat_pejabat' => 'array',
+        'mata_hubungan' => 'array',
+        'media_sosial' => 'array',
+        'konfigurasi_notifikasi' => 'array',
+        'map_default_lat' => 'decimal:7',
+        'map_default_long' => 'decimal:7',
     ];
 
     /**
@@ -99,6 +116,11 @@ class TetapanUmum extends Model
             'maksimum_percubaan_login' => 3,
             'masa_tamat_sesi_minit' => 60,
             'jenis_organisasi' => 'semua',
+            'map_provider' => 'maptiler',
+            'map_api_key' => null,
+            'map_style_url' => null,
+            'map_default_lat' => 3.139000,
+            'map_default_long' => 101.686900,
             'dicipta_oleh' => auth()->id(),
         ]);
     }
@@ -118,7 +140,20 @@ class TetapanUmum extends Model
             'masa_tamat_sesi_minit' => 60,
             'jenis_organisasi' => $user->jenis_organisasi,
             'organisasi_id' => $user->organisasi_id,
+            'map_provider' => 'maptiler',
+            'map_default_lat' => 3.139000,
+            'map_default_long' => 101.686900,
             'dicipta_oleh' => $user->id,
         ]);
+    }
+
+    public function getDefaultLatitude(): float
+    {
+        return (float) ($this->map_default_lat ?? 3.139000);
+    }
+
+    public function getDefaultLongitude(): float
+    {
+        return (float) ($this->map_default_long ?? 101.686900);
     }
 }

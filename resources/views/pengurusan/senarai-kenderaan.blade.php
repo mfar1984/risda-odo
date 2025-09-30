@@ -128,6 +128,6 @@
         </x-ui.data-table>
 
         <!-- Pagination -->
-        <x-ui.pagination :paginator="$kenderaans" record-label="rekod" />
+        <x-ui.pagination :paginator="$kenderaans" record-label="kenderaan" />
     </x-ui.page-header>
 </x-dashboard-layout>

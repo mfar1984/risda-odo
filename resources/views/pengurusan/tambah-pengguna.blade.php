@@ -156,7 +156,7 @@
                             value="{{ old('stesen_akses_ids') }}"
                         />
                         <x-forms.input-error class="mt-2" :messages="$errors->get('stesen_akses_ids')" />
-                        <p style="font-size: 10px; color: #6b7280; margin-center: 4px; font-family: Poppins, sans-serif; !important">
+                        <p style="font-size: 10px; color: #6b7280; margin-top: 4px; font-family: Poppins, sans-serif;">
                             Kosongkan untuk akses semua stesen dalam bahagian
                         </p>
                     </div>

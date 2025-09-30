@@ -13,7 +13,16 @@ return new class extends Migration
     public function up(): void
     {
         // Update jenis_organisasi ENUM to include 'semua'
-        DB::statement("ALTER TABLE users MODIFY COLUMN jenis_organisasi ENUM('hq','negeri','bahagian','stesen','semua') NULL");
+        $driver = DB::getDriverName();
+
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN jenis_organisasi ENUM('hq','negeri','bahagian','stesen','semua') NULL");
+            return;
+        }
+
+        // SQLite (used for automated tests) does not support MODIFY COLUMN.
+        // The original column is stored as TEXT, so no structural change is required.
+        // We keep the migration idempotent by skipping modification for other drivers.
     }
 
     /**
@@ -21,7 +30,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert back to original ENUM values
-        DB::statement("ALTER TABLE users MODIFY COLUMN jenis_organisasi ENUM('hq','negeri','bahagian','stesen') NULL");
+        $driver = DB::getDriverName();
+
+        if ($driver === 'mysql') {
+            // Revert back to original ENUM values
+            DB::statement("ALTER TABLE users MODIFY COLUMN jenis_organisasi ENUM('hq','negeri','bahagian','stesen') NULL");
+        }
     }
 };

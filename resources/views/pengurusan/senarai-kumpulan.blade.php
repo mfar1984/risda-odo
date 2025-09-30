@@ -90,6 +90,6 @@
         </x-ui.data-table>
 
         <!-- Pagination -->
-        <x-ui.pagination :paginator="$kumpulans" record-label="rekod" />
+        <x-ui.pagination :paginator="$kumpulans" record-label="kumpulan" />
     </x-ui.page-header>
 </x-dashboard-layout>

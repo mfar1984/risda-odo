@@ -19,8 +19,10 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
+        "@maptiler/sdk": "^3.8.0",
         "@yaireo/tagify": "^4.35.4",
         "jquery": "^3.7.1",
+        "leaflet": "^1.9.4",
         "malaysia-postcodes": "^2.7.3"
     }
 }

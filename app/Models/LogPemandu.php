@@ -16,6 +16,7 @@ class LogPemandu extends Model
     protected $fillable = [
         'pemandu_id',
         'kenderaan_id',
+        'program_id',
         'tarikh_perjalanan',
         'masa_keluar',
         'masa_masuk',
@@ -32,6 +33,10 @@ class LogPemandu extends Model
         'organisasi_id',
         'dicipta_oleh',
         'dikemaskini_oleh',
+        'lokasi_checkin_lat',
+        'lokasi_checkin_long',
+        'lokasi_checkout_lat',
+        'lokasi_checkout_long',
     ];
 
     protected $casts = [
@@ -43,6 +48,10 @@ class LogPemandu extends Model
         'jarak' => 'integer',
         'liter_minyak' => 'decimal:2',
         'kos_minyak' => 'decimal:2',
+        'lokasi_checkin_lat' => 'decimal:8',
+        'lokasi_checkin_long' => 'decimal:8',
+        'lokasi_checkout_lat' => 'decimal:8',
+        'lokasi_checkout_long' => 'decimal:8',
     ];
 
     // Relationships
@@ -56,12 +65,17 @@ class LogPemandu extends Model
         return $this->belongsTo(Kenderaan::class, 'kenderaan_id');
     }
 
-    public function diciptaOleh(): BelongsTo
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class, 'program_id');
+    }
+
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dicipta_oleh');
     }
 
-    public function dikemaskiniOleh(): BelongsTo
+    public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dikemaskini_oleh');
     }
@@ -102,6 +116,74 @@ class LogPemandu extends Model
         return $this->status === 'tertunda';
     }
 
+    public function getMasaKeluarLabelAttribute(): ?string
+    {
+        if (!$this->masa_keluar) {
+            return null;
+        }
+
+        $tarikh = $this->tarikh_perjalanan ?? $this->created_at;
+        if ($tarikh instanceof Carbon) {
+            $tarikh = $tarikh->copy();
+        }
+
+        return ($tarikh ? $tarikh->format('d/m/Y') . ' ' : '') . Carbon::parse($this->masa_keluar)->format('H:i');
+    }
+
+    public function getMasaMasukLabelAttribute(): ?string
+    {
+        if (!$this->masa_masuk) {
+            return null;
+        }
+
+        $tarikh = $this->tarikh_perjalanan ?? $this->created_at;
+        if ($tarikh instanceof Carbon) {
+            $tarikh = $tarikh->copy();
+        }
+
+        return ($tarikh ? $tarikh->format('d/m/Y') . ' ' : '') . Carbon::parse($this->masa_masuk)->format('H:i');
+    }
+
+    public function getOdometerKeluarLabelAttribute(): ?string
+    {
+        return $this->odometer_keluar ? number_format($this->odometer_keluar) . ' km' : null;
+    }
+
+    public function getOdometerMasukLabelAttribute(): ?string
+    {
+        return $this->odometer_masuk ? number_format($this->odometer_masuk) . ' km' : null;
+    }
+
+    public function getJarakLabelAttribute(): ?string
+    {
+        return $this->jarak ? number_format($this->jarak) . ' km' : null;
+    }
+
+    public function getProgramJarakAnggaranLabelAttribute(): ?string
+    {
+        return $this->program && $this->program->jarak_anggaran
+            ? number_format($this->program->jarak_anggaran, 1) . ' km'
+            : null;
+    }
+
+    public function getLokasiCheckinLabelAttribute(): ?string
+    {
+        if ($this->lokasi_checkin_lat && $this->lokasi_checkin_long) {
+            return $this->lokasi_checkin_lat . ', ' . $this->lokasi_checkin_long;
+        }
+
+        return $this->lokasi_checkin ?? $this->destinasi;
+    }
+
+    public function getLokasiCheckoutLabelAttribute(): ?string
+    {
+        if ($this->lokasi_checkout_lat && $this->lokasi_checkout_long) {
+            return $this->lokasi_checkout_lat . ', ' . $this->lokasi_checkout_long;
+        }
+
+        return $this->lokasi_checkout;
+    }
+
     // Mutators
     public function setOdometerMasukAttribute($value)
     {
@@ -134,9 +216,13 @@ class LogPemandu extends Model
     {
         if ($tarikhMula && $tarikhAkhir) {
             return $query->whereBetween('tarikh_perjalanan', [$tarikhMula, $tarikhAkhir]);
-        } elseif ($tarikhMula) {
+        }
+
+        if ($tarikhMula) {
             return $query->where('tarikh_perjalanan', '>=', $tarikhMula);
-        } elseif ($tarikhAkhir) {
+        }
+
+        if ($tarikhAkhir) {
             return $query->where('tarikh_perjalanan', '<=', $tarikhAkhir);
         }
         return $query;
@@ -150,7 +236,7 @@ class LogPemandu extends Model
                     $pemandu->where('name', 'like', "%{$search}%");
                 })
                 ->orWhereHas('kenderaan', function ($kenderaan) use ($search) {
-                    $kenderaan->where('no_pendaftaran', 'like', "%{$search}%");
+                    $kenderaan->where('no_plat', 'like', "%{$search}%");
                 })
                 ->orWhere('destinasi', 'like', "%{$search}%");
             });

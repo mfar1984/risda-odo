@@ -22,20 +22,8 @@ class UserGroupController extends Controller
         $query = UserGroup::with('pencipta');
 
         // Apply organizational scope
-        if ($this->isAdministrator()) {
-            // Administrator can see all groups
-        } else {
-            // Regular users can only see groups within their organizational scope
-            $query->with(['pencipta', 'pengguna'])
-                ->whereHas('pengguna', function($q) use ($currentUser) {
-                    if ($currentUser->jenis_organisasi === 'bahagian') {
-                        // Bahagian users can see groups with users in their bahagian
-                        $q->where('organisasi_id', $currentUser->organisasi_id);
-                    } elseif ($currentUser->jenis_organisasi === 'stesen') {
-                        // Stesen users can see groups with users in their bahagian
-                        $q->where('organisasi_id', $currentUser->organisasi_id);
-                    }
-                });
+        if (!$this->isAdministrator()) {
+            $query->where('dicipta_oleh', $currentUser->id);
         }
 
         // Apply filters
@@ -52,10 +40,9 @@ class UserGroupController extends Controller
         }
 
         // Paginate results
-        $kumpulans = $query->orderBy('created_at', 'desc')->paginate(15);
-
-        // Append query parameters to pagination links
-        $kumpulans->appends($request->query());
+        $kumpulans = $query->orderBy('created_at', 'desc')
+            ->paginate(5)
+            ->withQueryString();
 
         return view('pengurusan.senarai-kumpulan', compact('kumpulans'));
     }

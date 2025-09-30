@@ -32,6 +32,11 @@ class TetapanUmumController extends Controller
             'negara' => 'required|string|max:100',
             'maksimum_percubaan_login' => 'required|integer|min:1|max:10',
             'masa_tamat_sesi_minit' => 'required|integer|min:5|max:1440', // 5 minutes to 24 hours
+            'map_provider' => 'nullable|string|max:50',
+            'map_api_key' => 'nullable|string|max:255',
+            'map_style_url' => 'nullable|string|max:255',
+            'map_default_lat' => 'nullable|numeric|between:-90,90',
+            'map_default_long' => 'nullable|numeric|between:-180,180',
         ]);
 
         if ($validator->fails()) {

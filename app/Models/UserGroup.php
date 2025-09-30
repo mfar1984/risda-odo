@@ -14,6 +14,8 @@ class UserGroup extends Model
         'keterangan',
         'status',
         'dicipta_oleh',
+        'jenis_organisasi',
+        'organisasi_id',
     ];
 
     protected $casts = [
@@ -76,14 +78,29 @@ class UserGroup extends Model
                 'eksport' => false,
             ],
             'log_pemandu' => [
-                'tambah' => false,
                 'lihat' => false,
                 'kemaskini' => false,
                 'padam' => false,
-                'terima' => false,
-                'tolak' => false,
-                'gantung' => false,
-                'aktifkan' => false,
+            ],
+            'log_pemandu_semua' => [
+                'lihat' => false,
+                'kemaskini' => false,
+                'padam' => false,
+            ],
+            'log_pemandu_aktif' => [
+                'lihat' => false,
+                'kemaskini' => false,
+                'padam' => false,
+            ],
+            'log_pemandu_selesai' => [
+                'lihat' => false,
+                'kemaskini' => false,
+                'padam' => false,
+            ],
+            'log_pemandu_tertunda' => [
+                'lihat' => false,
+                'kemaskini' => false,
+                'padam' => false,
             ],
             'laporan_senarai_program' => [
                 'lihat' => false,
@@ -176,6 +193,10 @@ class UserGroup extends Model
             'dashboard' => 'Dashboard',
             'program' => 'Program',
             'log_pemandu' => 'Log Pemandu',
+            'log_pemandu_semua' => 'Log Pemandu - Semua Log',
+            'log_pemandu_aktif' => 'Log Pemandu - Log Aktif',
+            'log_pemandu_selesai' => 'Log Pemandu - Log Selesai',
+            'log_pemandu_tertunda' => 'Log Pemandu - Log Tertunda',
             'laporan_senarai_program' => 'Laporan Senarai Program',
             'laporan_kenderaan' => 'Laporan Kenderaan',
             'laporan_kilometer' => 'Laporan Kilometer',

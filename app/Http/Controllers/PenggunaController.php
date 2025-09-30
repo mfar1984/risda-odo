@@ -23,20 +23,37 @@ class PenggunaController extends Controller
         // Start building query
         $query = User::with(['kumpulan']);
 
-        // Apply organizational scope
-        if ($this->isAdministrator()) {
-            // Administrator can see all users
-        } else {
-            // Regular users with permission can see users within their organizational scope
-            $query->where('jenis_organisasi', '!=', 'semua') // Hide administrators from regular users
-                ->where(function($q) use ($currentUser) {
+        if (!$this->isAdministrator()) {
+            $query->where('jenis_organisasi', '!=', 'semua')
+                ->where(function ($q) use ($currentUser) {
                     if ($currentUser->jenis_organisasi === 'bahagian') {
-                        // Bahagian users can see users in their bahagian
-                        $q->where('organisasi_id', $currentUser->organisasi_id)
-                          ->where('jenis_organisasi', 'stesen');
+                        $stesenIds = collect($currentUser->stesen_akses_ids ?? [])
+                            ->map(fn ($id) => (int) $id)
+                            ->filter();
+
+                        if ($stesenIds->isEmpty()) {
+                            $stesenIds = RisdaStesen::where('risda_bahagian_id', $currentUser->organisasi_id)
+                                ->pluck('id');
+                        }
+
+                        $q->where(function ($inner) use ($currentUser, $stesenIds) {
+                            $inner->where(function ($bahagianQuery) use ($currentUser) {
+                                $bahagianQuery->where('jenis_organisasi', 'bahagian')
+                                    ->where('organisasi_id', $currentUser->organisasi_id);
+                            })
+                            ->orWhere(function ($stesenQuery) use ($stesenIds) {
+                                $stesenQuery->where('jenis_organisasi', 'stesen')
+                                    ->whereIn('organisasi_id', $stesenIds->all());
+                            });
+                        });
                     } elseif ($currentUser->jenis_organisasi === 'stesen') {
-                        // Stesen users can only see themselves
-                        $q->where('id', $currentUser->id);
+                        $q->where(function ($inner) use ($currentUser) {
+                            $inner->where('id', $currentUser->id)
+                                ->orWhere(function ($stesenQuery) use ($currentUser) {
+                                    $stesenQuery->where('jenis_organisasi', 'stesen')
+                                        ->where('organisasi_id', $currentUser->organisasi_id);
+                                });
+                        });
                     }
                 });
         }
@@ -55,10 +72,9 @@ class PenggunaController extends Controller
         }
 
         // Paginate results
-        $penggunas = $query->orderBy('created_at', 'desc')->paginate(15);
-
-        // Append query parameters to pagination links
-        $penggunas->appends($request->query());
+        $penggunas = $query->orderBy('created_at', 'desc')
+            ->paginate(5)
+            ->withQueryString();
 
         return view('pengurusan.senarai-pengguna', compact('penggunas'));
     }
@@ -68,21 +84,106 @@ class PenggunaController extends Controller
      */
     public function create()
     {
-        $stafs = RisdaStaf::where('status', 'aktif')
-                         ->orderBy('nama_penuh')
-                         ->get();
+        $currentUser = auth()->user();
+        $existingStafIds = RisdaStaf::whereIn('email', User::pluck('email'))
+            ->pluck('id')
+            ->toArray();
 
-        $kumpulans = UserGroup::where('status', 'aktif')
-                             ->orderBy('nama_kumpulan')
-                             ->get();
+        $stafs = RisdaStaf::query()
+            ->where('status', 'aktif')
+            ->whereNotIn('id', $existingStafIds)
+            ->when(!$this->isAdministrator(), function ($query) {
+                $currentUser = auth()->user();
 
-        $bahagians = RisdaBahagian::where('status_dropdown', 'aktif')
-                                 ->orderBy('nama_bahagian')
-                                 ->get();
+                if ($currentUser->jenis_organisasi === 'bahagian') {
+                    $stesenIds = collect($currentUser->stesen_akses_ids ?? [])
+                        ->map(fn ($id) => (int) $id)
+                        ->filter();
 
-        $stesens = RisdaStesen::where('status_dropdown', 'aktif')
-                             ->orderBy('nama_stesen')
-                             ->get();
+                    $query->where(function ($inner) use ($currentUser, $stesenIds) {
+                        $inner->where('bahagian_id', $currentUser->organisasi_id);
+
+                        if ($stesenIds->isNotEmpty()) {
+                            $inner->orWhereIn('stesen_id', $stesenIds->all());
+                        }
+                    });
+                } elseif ($currentUser->jenis_organisasi === 'stesen') {
+                    $query->where('stesen_id', $currentUser->organisasi_id);
+                }
+            })
+            ->orderBy('nama_penuh')
+            ->get();
+
+        $currentUser = auth()->user();
+
+        $kumpulans = UserGroup::query()
+            ->where('status', 'aktif')
+            ->when(!$this->isAdministrator(), function ($query) use ($currentUser) {
+                $query->where(function ($inner) use ($currentUser) {
+                    $inner->where('dicipta_oleh', $currentUser->id)
+                        ->orWhereHas('pengguna', function ($sub) use ($currentUser) {
+                            if ($currentUser->jenis_organisasi === 'bahagian') {
+                                $sub->where(function ($userQuery) use ($currentUser) {
+                                    $userQuery->where('jenis_organisasi', 'bahagian')
+                                        ->where('organisasi_id', $currentUser->organisasi_id);
+
+                                    $userQuery->orWhere(function ($stesenQuery) use ($currentUser) {
+                                        $stesenIds = collect($currentUser->stesen_akses_ids ?? [])
+                                            ->map(fn ($id) => (int) $id)
+                                            ->filter();
+
+                                        if ($stesenIds->isNotEmpty()) {
+                                            $stesenQuery->where('jenis_organisasi', 'stesen')
+                                                ->whereIn('organisasi_id', $stesenIds->all());
+                                        } else {
+                                            $stesenQuery->where('jenis_organisasi', 'stesen')
+                                                ->where('organisasi_id', 0);
+                                        }
+                                    });
+                                });
+                            } elseif ($currentUser->jenis_organisasi === 'stesen') {
+                                $sub->where('jenis_organisasi', 'stesen')
+                                    ->where('organisasi_id', $currentUser->organisasi_id);
+                            }
+                        });
+                });
+            })
+            ->orderBy('nama_kumpulan')
+            ->get();
+
+        $bahagians = RisdaBahagian::query()
+            ->where('status_dropdown', 'aktif')
+            ->when(!$this->isAdministrator(), function ($query) use ($currentUser) {
+                if ($currentUser->jenis_organisasi === 'bahagian') {
+                    $query->where('id', $currentUser->organisasi_id);
+                } elseif ($currentUser->jenis_organisasi === 'stesen') {
+                    $query->where('id', 0);
+                }
+            })
+            ->orderBy('nama_bahagian')
+            ->get();
+
+        $stesens = RisdaStesen::query()
+            ->where('status_dropdown', 'aktif')
+            ->when(!$this->isAdministrator(), function ($query) use ($currentUser) {
+                if ($currentUser->jenis_organisasi === 'bahagian') {
+                    $stesenIds = collect($currentUser->stesen_akses_ids ?? [])
+                        ->map(fn ($id) => (int) $id)
+                        ->filter();
+
+                    $query->where(function ($inner) use ($currentUser, $stesenIds) {
+                        $inner->where('risda_bahagian_id', $currentUser->organisasi_id);
+
+                        if ($stesenIds->isNotEmpty()) {
+                            $inner->orWhereIn('id', $stesenIds->all());
+                        }
+                    });
+                } elseif ($currentUser->jenis_organisasi === 'stesen') {
+                    $query->where('id', $currentUser->organisasi_id);
+                }
+            })
+            ->orderBy('nama_stesen')
+            ->get();
 
         // Check if current user is Administrator (can access all bahagians)
         $isAdministrator = $this->isAdministrator();
@@ -126,35 +227,28 @@ class PenggunaController extends Controller
         $organisasiId = null;
         $stesenAksesIds = null;
 
-        // Parse stesen akses IDs from JSON (RISDA Pattern)
-        if ($request->stesen_akses_ids) {
-            $stesenAksesIds = json_decode($request->stesen_akses_ids, true);
+        if ($request->filled('stesen_akses_ids')) {
+            $decoded = json_decode($request->stesen_akses_ids, true) ?? [];
+            if (in_array('semua', $decoded)) {
+                $jenisOrganisasi = 'bahagian';
+                $organisasiId = (int) $request->bahagian_akses_id;
+                $stesenAksesIds = null;
+            } elseif (!empty($decoded)) {
+                $jenisOrganisasi = 'stesen';
+                $organisasiId = (int) $decoded[0];
+                $stesenAksesIds = $decoded;
+            }
+        } elseif ($request->filled('bahagian_akses_id')) {
+            $jenisOrganisasi = 'bahagian';
+            $organisasiId = (int) $request->bahagian_akses_id;
         }
 
-        // Determine jenis_organisasi and organisasi_id
-        if ($request->bahagian_akses_id === 'semua') {
-            $jenisOrganisasi = 'semua';
-            $organisasiId = null;
-            // If "Semua Stesen" selected, set stesen_akses_ids to null for all access
-            if (!empty($stesenAksesIds) && in_array('semua', $stesenAksesIds)) {
-                $stesenAksesIds = null;
-            }
-        } elseif (!empty($stesenAksesIds)) {
-            // Check if "Semua Stesen" selected
-            if (in_array('semua', $stesenAksesIds)) {
-                $jenisOrganisasi = 'semua';
-                $organisasiId = null;
-                $stesenAksesIds = null; // Null means access to all stesen
-            } else {
-                $jenisOrganisasi = 'stesen';
-                // For backward compatibility, set organisasi_id to first stesen
-                $organisasiId = $stesenAksesIds[0];
-            }
-        } elseif ($request->bahagian_akses_id) {
+        if (!$jenisOrganisasi) {
             $jenisOrganisasi = 'bahagian';
-            $organisasiId = $request->bahagian_akses_id;
+            $organisasiId = $currentUser && $currentUser->jenis_organisasi !== 'semua'
+                ? (int) $currentUser->organisasi_id
+                : null;
         }
-        // If all are null, user has access to all organisations
 
         // Create user
         User::create([
