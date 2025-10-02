@@ -253,6 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final success = await authService.login(
         _emailController.text.trim(),
         _passwordController.text,
+        rememberMe: true, // Always remember (removed checkbox)
       );
 
       if (!mounted) return;
@@ -264,7 +265,8 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       } else {
         setState(() {
-          _errorMessage = 'Email atau kata laluan tidak sah!';
+          // Show actual error from API or generic message
+          _errorMessage = authService.lastErrorMessage ?? 'Email atau kata laluan tidak sah!';
         });
       }
     }

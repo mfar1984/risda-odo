@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
+import '../services/api_service.dart';
+import '../core/api_client.dart';
 import 'claim_screen.dart';
 
 class ClaimMainTab extends StatefulWidget {
@@ -13,17 +15,621 @@ class ClaimMainTab extends StatefulWidget {
 
 class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final ApiService _apiService = ApiService(ApiClient());
+  
+  bool isLoading = true;
+  List<Map<String, dynamic>>? allClaims;
+  List<Map<String, dynamic>>? pendingClaims;
+  List<Map<String, dynamic>>? rejectedClaims;
+  List<Map<String, dynamic>>? approvedClaims;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _loadClaims();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadClaims() async {
+    setState(() => isLoading = true);
+    
+    try {
+      final response = await _apiService.getClaims();
+      final claims = List<Map<String, dynamic>>.from(response['data'] ?? []);
+      
+      setState(() {
+        allClaims = claims;
+        pendingClaims = claims.where((c) => c['status'] == 'pending').toList();
+        rejectedClaims = claims.where((c) => c['status'] == 'ditolak').toList();
+        approvedClaims = claims.where((c) => c['status'] == 'diluluskan').toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        allClaims = [];
+        pendingClaims = [];
+        rejectedClaims = [];
+        approvedClaims = [];
+        isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading claims: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _navigateToCreateClaim() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ClaimScreen()),
+    );
+    
+    // Reload if claim was created
+    if (result == true) {
+      _loadClaims();
+    }
+  }
+
+  Future<void> _navigateToEditClaim(Map<String, dynamic> claim) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ClaimScreen(existingClaim: claim)),
+    );
+    
+    // Reload if claim was updated
+    if (result == true) {
+      _loadClaims();
+    }
+  }
+
+  void _showClaimDetails(Map<String, dynamic> claim) {
+    final program = claim['program'] as Map<String, dynamic>?;
+    final logPemandu = claim['log_pemandu'] as Map<String, dynamic>?;
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: BoxDecoration(
+          color: PastelColors.cardBackground,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            
+            // Header with close button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text('Butiran Tuntutan', style: AppTextStyles.h1),
+                      const SizedBox(width: 12),
+                      _buildStatusBadge(claim['status']),
+                    ],
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                    color: Colors.grey[600],
+                  ),
+                ],
+              ),
+            ),
+            
+            const Divider(height: 1),
+            
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Program Section
+                    _buildSectionTitle('Maklumat Program'),
+                    _buildDetailContainer([
+                      _buildDetailRowWithIcon(
+                        Icons.event_note,
+                        'Program',
+                        program?['nama_program'] ?? 'N/A',
+                      ),
+                      _buildDetailRowWithIcon(
+                        Icons.location_on,
+                        'Lokasi',
+                        program?['lokasi_program'] ?? 'N/A',
+                      ),
+                      _buildDetailRowWithIcon(
+                        Icons.person_outline,
+                        'Dimohon Oleh',
+                        program?['permohonan_dari'] ?? 'N/A',
+                      ),
+                      if (logPemandu?['tarikh_masa_perjalanan'] != null)
+                        _buildDetailRowWithIcon(
+                          Icons.calendar_today,
+                          'Tarikh Perjalanan',
+                          logPemandu!['tarikh_masa_perjalanan'],
+                        ),
+                    ]),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Claim Section
+                    _buildSectionTitle('Maklumat Tuntutan'),
+                    _buildDetailContainer([
+                      _buildDetailRowWithIcon(
+                        Icons.category,
+                        'Kategori',
+                        claim['kategori_label'] ?? 'N/A',
+                      ),
+                      _buildDetailRowWithIcon(
+                        Icons.attach_money,
+                        'Jumlah',
+                        'RM ${claim['jumlah']?.toStringAsFixed(2) ?? '0.00'}',
+                        isHighlighted: true,
+                      ),
+                      _buildDetailRowWithIcon(
+                        Icons.access_time,
+                        'Tarikh Dibuat',
+                        _formatDateTime(claim['created_at']),
+                      ),
+                      if (claim['tarikh_diproses'] != null) ...[
+                        _buildDetailRowWithIcon(
+                          Icons.check_circle,
+                          'Tarikh Diproses',
+                          _formatDateTime(claim['tarikh_diproses']),
+                        ),
+                        if (claim['diproses_oleh'] != null)
+                          _buildDetailRowWithIcon(
+                            Icons.person,
+                            _getProcessedByLabel(claim['status']),
+                            claim['diproses_oleh']['nama_penuh'] ?? claim['diproses_oleh']['name'] ?? 'N/A',
+                          ),
+                      ],
+                    ]),
+                    
+                    // Keterangan Section
+                    if (claim['keterangan'] != null && claim['keterangan'].toString().isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildSectionTitle('Keterangan'),
+                      _buildDetailContainer([
+                        Text(
+                          claim['keterangan'],
+                          style: AppTextStyles.bodyMedium,
+                        ),
+                      ]),
+                    ],
+                    
+                    // Receipt Section
+                    if (claim['resit'] != null) ...[
+                      const SizedBox(height: 16),
+                      _buildSectionTitle('Resit'),
+                      _buildReceiptPreview(claim['resit']),
+                    ],
+                    
+                    // Rejection Reason Section
+                    if (claim['alasan_tolak'] != null && claim['alasan_tolak'].toString().isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildSectionTitle('Alasan Ditolak'),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red.shade200, width: 1),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                claim['alasan_tolak'],
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: Colors.red.shade900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    
+                    // Cancellation Reason Section
+                    if (claim['alasan_gantung'] != null && claim['alasan_gantung'].toString().isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildSectionTitle('Alasan Dibatalkan'),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300, width: 1),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.cancel, color: Colors.grey.shade700, size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                claim['alasan_gantung'],
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: Colors.grey.shade900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    
+                    // Action buttons for rejected claims
+                    if (claim['status'] == 'ditolak') ...[
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _navigateToEditClaim(claim);
+                          },
+                          icon: const Icon(Icons.edit, color: Colors.white),
+                          label: const Text('EDIT & HANTAR SEMULA'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: PastelColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 2,
+                          ),
+                        ),
+                      ),
+                    ],
+                    
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getProcessedByLabel(String status) {
+    switch (status) {
+      case 'diluluskan':
+        return 'Diluluskan Oleh';
+      case 'ditolak':
+        return 'Ditolak Oleh';
+      case 'digantung':
+        return 'Dibatalkan Oleh';
+      default:
+        return 'Diproses Oleh';
+    }
+  }
+
+  String _formatDateTime(String? dateTimeStr) {
+    if (dateTimeStr == null || dateTimeStr.isEmpty) return 'N/A';
+    
+    try {
+      // Parse the datetime string (handles both UTC and local)
+      DateTime dateTime = DateTime.parse(dateTimeStr);
+      
+      // If it's UTC (ends with Z), convert to local Malaysia time
+      if (dateTimeStr.endsWith('Z')) {
+        dateTime = dateTime.toLocal();
+      }
+      
+      // Format: 02-10-2025 01:02:00 pm
+      final formatter = DateFormat('dd-MM-yyyy hh:mm:ss a');
+      return formatter.format(dateTime);
+    } catch (e) {
+      return dateTimeStr; // Return original if parsing fails
+    }
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: AppTextStyles.h2.copyWith(
+          color: PastelColors.primary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailContainer(List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildDetailRowWithIcon(IconData icon, String label, String value, {bool isHighlighted = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: isHighlighted ? PastelColors.primary : Colors.grey[600]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: isHighlighted ? FontWeight.w700 : FontWeight.w500,
+                    color: isHighlighted ? PastelColors.primary : Colors.black87,
+                    fontSize: isHighlighted ? 18 : 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReceiptPreview(String receiptUrl) {
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!, width: 1),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          receiptUrl.startsWith('http') 
+              ? receiptUrl 
+              : 'http://localhost:8000$receiptUrl',
+          fit: BoxFit.cover,
+          width: double.infinity,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Resit tidak dapat dipaparkan',
+                    style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color bgColor;
+    Color textColor;
+    String label;
+
+    switch (status) {
+      case 'pending':
+        bgColor = Colors.orange.shade50;
+        textColor = Colors.orange.shade700;
+        label = 'Pending';
+        break;
+      case 'diluluskan':
+        bgColor = Colors.green.shade50;
+        textColor = Colors.green.shade700;
+        label = 'Diluluskan';
+        break;
+      case 'ditolak':
+        bgColor = Colors.red.shade50;
+        textColor = Colors.red.shade700;
+        label = 'Ditolak';
+        break;
+      case 'digantung':
+        bgColor = Colors.grey.shade200;
+        textColor = Colors.grey.shade700;
+        label = 'Digantung';
+        break;
+      default:
+        bgColor = Colors.grey.shade100;
+        textColor = Colors.grey.shade600;
+        label = status;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.bodySmall.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClaimCard(Map<String, dynamic> claim) {
+    return Card(
+      color: Colors.white,
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: PastelColors.border),
+      ),
+      child: InkWell(
+        onTap: () => _showClaimDetails(claim),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      claim['kategori_label'] ?? 'N/A',
+                      style: AppTextStyles.h2,
+                    ),
+                  ),
+                  _buildStatusBadge(claim['status']),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
+                  const SizedBox(width: 6),
+                  Text(
+                    _formatDateTime(claim['created_at']),
+                    style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      claim['program']?['nama_program'] ?? 'N/A',
+                      style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[600]),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'RM ${claim['jumlah']?.toStringAsFixed(2) ?? '0.00'}',
+                    style: AppTextStyles.h1.copyWith(color: PastelColors.primary),
+                  ),
+                  if (claim['status'] == 'ditolak')
+                    TextButton.icon(
+                      onPressed: () => _navigateToEditClaim(claim),
+                      icon: const Icon(Icons.edit, size: 16),
+                      label: const Text('Edit'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: PastelColors.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClaimsList(List<Map<String, dynamic>>? claims) {
+    if (isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(40),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (claims == null || claims.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.receipt_long, size: 64, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              Text(
+                'Tiada Tuntutan',
+                style: AppTextStyles.h2.copyWith(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadClaims,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: claims.length,
+        itemBuilder: (context, index) => _buildClaimCard(claims[index]),
+      ),
+    );
   }
 
   @override
@@ -44,12 +650,7 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ClaimScreen()),
-                );
-              },
+              onPressed: _navigateToCreateClaim,
               icon: const Icon(Icons.add, size: 18, color: Colors.white),
               label: Text('Create Claim', style: AppTextStyles.bodyLarge.copyWith(color: Colors.white)),
               style: ElevatedButton.styleFrom(
@@ -67,227 +668,23 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.white,
-          tabs: const [
-            Tab(text: 'Total'),
-            Tab(text: 'Pending'),
-            Tab(text: 'Amend'),
-            Tab(text: 'Approve'),
+          tabs: [
+            Tab(text: 'Total (${allClaims?.length ?? 0})'),
+            Tab(text: 'Pending (${pendingClaims?.length ?? 0})'),
+            Tab(text: 'Ditolak (${rejectedClaims?.length ?? 0})'),
+            Tab(text: 'Diluluskan (${approvedClaims?.length ?? 0})'),
           ],
         ),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          // Analytics Line Chart
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Card(
-              color: Colors.white,
-              elevation: 3,
-              shadowColor: PastelColors.primary.withOpacity(0.15),
-              margin: const EdgeInsets.all(3),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(3),
-                side: BorderSide(color: PastelColors.border, width: 1),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.bar_chart, color: PastelColors.primary, size: 20),
-                        const SizedBox(width: 8),
-                        Text('Analytics', style: AppTextStyles.h2),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 160,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: FlGridData(
-                            show: true,
-                            drawVerticalLine: false,
-                            horizontalInterval: 1,
-                            getDrawingHorizontalLine: (value) => FlLine(
-                              color: PastelColors.divider,
-                              strokeWidth: 1,
-                            ),
-                          ),
-                          titlesData: FlTitlesData(
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 28,
-                                getTitlesWidget: (value, meta) => Text(
-                                  value.toInt().toString(),
-                                  style: AppTextStyles.bodySmall,
-                                ),
-                              ),
-                            ),
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 28,
-                                getTitlesWidget: (value, meta) {
-                                  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                                  return Text(
-                                    months[value.toInt() % 12],
-                                    style: AppTextStyles.bodySmall,
-                                  );
-                                },
-                              ),
-                            ),
-                            rightTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                            topTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false),
-                            ),
-                          ),
-                          borderData: FlBorderData(show: false),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: const [
-                                FlSpot(0, 10),
-                                FlSpot(1, 12),
-                                FlSpot(2, 8),
-                                FlSpot(3, 15),
-                                FlSpot(4, 13),
-                                FlSpot(5, 17),
-                                FlSpot(6, 14),
-                                FlSpot(7, 16),
-                                FlSpot(8, 12),
-                                FlSpot(9, 18),
-                                FlSpot(10, 15),
-                                FlSpot(11, 20),
-                              ],
-                              isCurved: true,
-                              color: PastelColors.primary,
-                              barWidth: 3,
-                              dotData: const FlDotData(show: false),
-                              belowBarData: BarAreaData(show: false),
-                            ),
-                            LineChartBarData(
-                              spots: const [
-                                FlSpot(0, 5),
-                                FlSpot(1, 7),
-                                FlSpot(2, 6),
-                                FlSpot(3, 8),
-                                FlSpot(4, 7),
-                                FlSpot(5, 9),
-                                FlSpot(6, 8),
-                                FlSpot(7, 10),
-                                FlSpot(8, 7),
-                                FlSpot(9, 11),
-                                FlSpot(10, 9),
-                                FlSpot(11, 13),
-                              ],
-                              isCurved: true,
-                              color: PastelColors.accent,
-                              barWidth: 3,
-                              dotData: const FlDotData(show: false),
-                              belowBarData: BarAreaData(show: false),
-                            ),
-                          ],
-                          lineTouchData: const LineTouchData(enabled: true),
-                          minY: 0,
-                          maxY: 25,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildLegend('Claim', PastelColors.primary),
-                        _buildLegend('Total Kos', PastelColors.accent),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // TabView for claims
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildClaimList('Total'),
-                _buildClaimList('Pending'),
-                _buildClaimList('Amend'),
-                _buildClaimList('Approve'),
-              ],
-            ),
-          ),
+          _buildClaimsList(allClaims),
+          _buildClaimsList(pendingClaims),
+          _buildClaimsList(rejectedClaims),
+          _buildClaimsList(approvedClaims),
         ],
       ),
-    );
-  }
-
-  Widget _buildLegend(String label, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Text(label, style: AppTextStyles.bodySmall),
-      ],
-    );
-  }
-
-  Widget _buildClaimList(String type) {
-    // 🎨 DUMMY DATA - Will be replaced with API data later
-    final claims = List.generate(
-      4,
-      (i) => {
-        'title': 'Claim #${i + 1} ($type)',
-        'amount': 'RM ${(i + 1) * 50}.00',
-        'status': type,
-        'date': '2024-07-1${i + 1}',
-      },
-    );
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(12),
-      itemCount: claims.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, i) {
-        final claim = claims[i];
-        return Card(
-          color: PastelColors.cardBackground,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
-            side: BorderSide(color: PastelColors.border),
-          ),
-          elevation: 0,
-          child: ListTile(
-            leading: Icon(Icons.receipt, color: PastelColors.primary),
-            title: Text(claim['title']!, style: AppTextStyles.bodyLarge),
-            subtitle: Text('Date: ${claim['date']}'),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  claim['amount']!,
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    color: PastelColors.primary,
-                  ),
-                ),
-                Text(claim['status']!, style: AppTextStyles.bodySmall),
-              ],
-            ),
-            onTap: () {
-              // TODO: Navigate to claim detail or edit
-            },
-          ),
-        );
-      },
     );
   }
 }

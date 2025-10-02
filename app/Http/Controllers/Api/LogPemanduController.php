@@ -1,0 +1,331 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\LogPemandu;
+use App\Models\Program;
+use App\Models\Kenderaan;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
+
+class LogPemanduController extends Controller
+{
+    /**
+     * Get all logs for authenticated driver
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function index(Request $request)
+    {
+        $user = $request->user();
+        $stafId = $user->staf_id;
+        
+        if (!$stafId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User tidak mempunyai data staf yang berkaitan',
+                'data' => []
+            ], 400);
+        }
+
+        // Get logs for this driver
+        $query = LogPemandu::where('pemandu_id', $user->id)
+                           ->with([
+                               'program:id,nama_program,lokasi_program',
+                               'kenderaan:id,no_plat,jenama,model',
+                           ])
+                           ->orderBy('created_at', 'desc');
+
+        // Filter by status if provided
+        $status = $request->get('status');
+        if ($status) {
+            if ($status === 'aktif') {
+                $query->where('status', 'dalam_perjalanan');
+            } elseif ($status === 'selesai') {
+                $query->where('status', 'selesai');
+            }
+        }
+
+        $logs = $query->get()->map(function ($log) {
+            return $this->formatLogData($log);
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $logs,
+            'meta' => [
+                'total' => $logs->count(),
+                'filter' => $status ?? 'all',
+            ]
+        ], 200);
+    }
+
+    /**
+     * Get active journey (if any)
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getActiveJourney(Request $request)
+    {
+        $user = $request->user();
+        
+        $activeLog = LogPemandu::where('pemandu_id', $user->id)
+                               ->where('status', 'dalam_perjalanan')
+                               ->with([
+                                   'program:id,nama_program,lokasi_program,lokasi_lat,lokasi_long,jarak_anggaran,permohonan_dari',
+                                   'program.pemohon:id,nama_penuh,no_pekerja',
+                                   'kenderaan:id,no_plat,jenama,model',
+                               ])
+                               ->first();
+
+        if (!$activeLog) {
+            return response()->json([
+                'success' => true,
+                'data' => null,
+                'message' => 'Tiada perjalanan aktif'
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->formatLogData($activeLog)
+        ], 200);
+    }
+
+    /**
+     * Start Journey (Check-Out)
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function startJourney(Request $request)
+    {
+        $user = $request->user();
+
+        // Check if driver already has active journey
+        $activeJourney = LogPemandu::where('pemandu_id', $user->id)
+                                   ->where('status', 'dalam_perjalanan')
+                                   ->first();
+
+        if ($activeJourney) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda masih mempunyai perjalanan aktif. Sila tamatkan perjalanan semasa terlebih dahulu.',
+                'data' => $this->formatLogData($activeJourney)
+            ], 400);
+        }
+
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'program_id' => 'required|exists:programs,id',
+            'kenderaan_id' => 'required|exists:kenderaans,id',
+            'odometer_keluar' => 'required|numeric|min:0',
+            'lokasi_keluar_lat' => 'nullable|numeric',
+            'lokasi_keluar_long' => 'nullable|numeric',
+            'catatan' => 'nullable|string',
+            'foto_odometer_keluar' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // 5MB
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Verify program belongs to this driver
+        $program = Program::find($request->program_id);
+        if ($program->pemandu_id != $user->staf_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Program ini tidak diperuntukkan kepada anda'
+            ], 403);
+        }
+
+        // Upload odometer photo if provided
+        $fotoOdometerKeluar = null;
+        if ($request->hasFile('foto_odometer_keluar')) {
+            $fotoOdometerKeluar = $request->file('foto_odometer_keluar')
+                                         ->store('odometer_photos', 'public');  // Specify 'public' disk
+        }
+
+        // Create log pemandu
+        $log = LogPemandu::create([
+            'program_id' => $request->program_id,
+            'pemandu_id' => $user->id,
+            'kenderaan_id' => $request->kenderaan_id,
+            'tarikh_perjalanan' => Carbon::now()->toDateString(),
+            'destinasi' => $program->lokasi_program, // Get from program
+            'masa_keluar' => Carbon::now(),
+            'odometer_keluar' => $request->odometer_keluar,
+            'lokasi_checkout_lat' => $request->lokasi_keluar_lat,
+            'lokasi_checkout_long' => $request->lokasi_keluar_long,
+            'foto_odometer_keluar' => $fotoOdometerKeluar,
+            'catatan' => $request->catatan,
+            'status' => 'dalam_perjalanan',
+        ]);
+
+        // Load relationships
+        $log->load([
+            'program:id,nama_program,lokasi_program,lokasi_lat,lokasi_long,jarak_anggaran',
+            'kenderaan:id,no_plat,jenama,model',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Perjalanan dimulakan',
+            'data' => $this->formatLogData($log)
+        ], 201);
+    }
+
+    /**
+     * End Journey (Check-In)
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function endJourney(Request $request, $id)
+    {
+        $user = $request->user();
+
+        // Find log
+        $log = LogPemandu::where('id', $id)
+                        ->where('pemandu_id', $user->id)
+                        ->where('status', 'dalam_perjalanan')
+                        ->first();
+
+        if (!$log) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Log perjalanan tidak dijumpai atau sudah tamat'
+            ], 404);
+        }
+
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'odometer_masuk' => 'required|numeric|min:' . $log->odometer_keluar,
+            'lokasi_checkin_lat' => 'nullable|numeric',
+            'lokasi_checkin_long' => 'nullable|numeric',
+            'catatan' => 'nullable|string',
+            'foto_odometer_masuk' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+            // Fuel fields (optional)
+            'liter_minyak' => 'nullable|numeric|min:0',
+            'kos_minyak' => 'nullable|numeric|min:0',
+            'stesen_minyak' => 'nullable|string',
+            'resit_minyak' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Upload odometer photo if provided
+        $fotoOdometerMasuk = null;
+        if ($request->hasFile('foto_odometer_masuk')) {
+            $fotoOdometerMasuk = $request->file('foto_odometer_masuk')
+                                        ->store('odometer_photos', 'public');  // Specify 'public' disk
+        }
+
+        // Upload fuel receipt photo if provided
+        $resitMinyak = null;
+        if ($request->hasFile('resit_minyak')) {
+            $resitMinyak = $request->file('resit_minyak')
+                                      ->store('fuel_receipts', 'public');  // Specify 'public' disk
+        }
+
+        // Update log
+        $log->update([
+            'masa_masuk' => Carbon::now(),
+            'odometer_masuk' => $request->odometer_masuk,
+            'lokasi_checkin_lat' => $request->lokasi_checkin_lat,
+            'lokasi_checkin_long' => $request->lokasi_checkin_long,
+            'foto_odometer_masuk' => $fotoOdometerMasuk,
+            'catatan' => $request->catatan ?? $log->catatan,
+            'liter_minyak' => $request->liter_minyak,
+            'kos_minyak' => $request->kos_minyak,
+            'stesen_minyak' => $request->stesen_minyak,
+            'resit_minyak' => $resitMinyak,
+            'status' => 'selesai',
+        ]);
+
+        // Reload relationships
+        $log->refresh();
+        $log->load([
+            'program:id,nama_program,lokasi_program',
+            'kenderaan:id,no_plat,jenama,model',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Perjalanan berjaya ditamatkan',
+            'data' => $this->formatLogData($log)
+        ], 200);
+    }
+
+    /**
+     * Format log data for API response
+     * 
+     * @param LogPemandu $log
+     * @return array
+     */
+    private function formatLogData(LogPemandu $log)
+    {
+        return [
+            'id' => $log->id,
+            'program_id' => $log->program_id,
+            'program' => $log->program ? [
+                'id' => $log->program->id,
+                'nama_program' => $log->program->nama_program, // Fixed: use nama_program
+                'lokasi_program' => $log->program->lokasi_program, // Fixed: use lokasi_program
+                'lokasi_lat' => $log->program->lokasi_lat,
+                'lokasi_long' => $log->program->lokasi_long,
+                'jarak_anggaran' => $log->program->jarak_anggaran,
+                'permohonan_dari' => $log->program->pemohon ? [
+                    'id' => $log->program->pemohon->id,
+                    'nama_penuh' => $log->program->pemohon->nama_penuh, // Fixed: use nama_penuh
+                    'no_pekerja' => $log->program->pemohon->no_pekerja,
+                ] : null,
+            ] : null,
+            'kenderaan' => $log->kenderaan ? [
+                'id' => $log->kenderaan->id,
+                'no_plat' => $log->kenderaan->no_plat,
+                'jenama' => $log->kenderaan->jenama,
+                'model' => $log->kenderaan->model,
+            ] : null,
+            'status' => $log->status,
+            'status_label' => $log->getStatusLabelAttribute(),
+            'tarikh_perjalanan' => $log->tarikh_perjalanan, // Added: missing date field
+            'masa_keluar' => $log->masa_keluar,
+            'masa_masuk' => $log->masa_masuk,
+            'destinasi' => $log->destinasi,
+            'odometer_keluar' => $log->odometer_keluar,
+            'odometer_masuk' => $log->odometer_masuk,
+            'jarak' => $log->jarak,
+            'lokasi_checkout_lat' => $log->lokasi_checkout_lat,
+            'lokasi_checkout_long' => $log->lokasi_checkout_long,
+            'lokasi_checkin_lat' => $log->lokasi_checkin_lat,
+            'lokasi_checkin_long' => $log->lokasi_checkin_long,
+            'foto_odometer_keluar' => $log->foto_odometer_keluar ? Storage::url($log->foto_odometer_keluar) : null,
+            'foto_odometer_masuk' => $log->foto_odometer_masuk ? Storage::url($log->foto_odometer_masuk) : null,
+            'liter_minyak' => $log->liter_minyak,
+            'kos_minyak' => $log->kos_minyak,
+            'stesen_minyak' => $log->stesen_minyak,
+            'resit_minyak' => $log->resit_minyak ? Storage::url($log->resit_minyak) : null,
+            'catatan' => $log->catatan,
+            'created_at' => $log->created_at?->toISOString(),
+            'updated_at' => $log->updated_at?->toISOString(),
+        ];
+    }
+}
+

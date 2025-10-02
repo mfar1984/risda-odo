@@ -85,6 +85,10 @@
                     @if($currentUser && $currentUser->adaKebenaran('laporan_pemandu', 'lihat'))
                     <a href="{{ route('laporan.laporan-pemandu') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('laporan.laporan-pemandu') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Laporan Pemandu</a>
                     @endif
+
+                    @if($currentUser && $currentUser->adaKebenaran('laporan_tuntutan', 'lihat'))
+                    <a href="{{ route('laporan.laporan-tuntutan') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('laporan.laporan-tuntutan*') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Laporan Tuntutan</a>
+                    @endif
                 </div>
             </div>
 
@@ -133,6 +137,10 @@
 
                     @if($currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'lihat'))
                     <a href="{{ route('pengurusan.senarai-kenderaan') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.senarai-kenderaan') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Senarai Kenderaan</a>
+                    @endif
+
+                    @if($currentUser && $currentUser->adaKebenaran('integrasi', 'lihat'))
+                    <a href="{{ route('pengurusan.integrasi') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.integrasi') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Integrasi</a>
                     @endif
 
                     @if($currentUser && $currentUser->adaKebenaran('aktiviti_log', 'lihat'))

@@ -24,9 +24,15 @@
     @endif
 
     @foreach($customActions as $action)
-        <a href="{{ $action['url'] }}" class="{{ $action['class'] ?? 'text-gray-600 hover:text-gray-900' }}">
-            <span class="material-symbols-outlined" style="font-size: 18px;">{{ $action['icon'] }}</span>
-        </a>
+        @if(isset($action['onclick']))
+            <button type="button" onclick="{{ $action['onclick'] }}" class="{{ $action['class'] ?? 'text-gray-600 hover:text-gray-900' }}" title="{{ $action['title'] ?? '' }}">
+                <span class="material-symbols-outlined" style="font-size: 18px;">{{ $action['icon'] }}</span>
+            </button>
+        @else
+            <a href="{{ $action['url'] ?? '#' }}" class="{{ $action['class'] ?? 'text-gray-600 hover:text-gray-900' }}" title="{{ $action['title'] ?? '' }}">
+                <span class="material-symbols-outlined" style="font-size: 18px;">{{ $action['icon'] }}</span>
+            </a>
+        @endif
     @endforeach
 
     @if($showDelete && $deleteUrl)

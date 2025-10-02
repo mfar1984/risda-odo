@@ -6,7 +6,11 @@ class ApiClient {
   late Dio _dio;
   String? _authToken;
 
-  ApiClient() {
+  // Singleton pattern
+  static final ApiClient _instance = ApiClient._internal();
+  factory ApiClient() => _instance;
+
+  ApiClient._internal() {
     _dio = Dio(BaseOptions(
       baseUrl: ApiConstants.baseUrl,
       connectTimeout: ApiConstants.connectTimeout,
@@ -14,6 +18,8 @@ class ApiClient {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'X-API-Key': ApiConstants.apiKey, // Global API Key
+        // Note: 'Origin' header is automatically set by the browser and cannot be manually set
       },
     ));
 
@@ -22,7 +28,7 @@ class ApiClient {
       onRequest: (options, handler) {
         developer.log('API Request: ${options.method} ${options.path}');
         
-        // Add auth token if available
+        // Add auth token if available (Sanctum Bearer token)
         if (_authToken != null) {
           options.headers['Authorization'] = 'Bearer $_authToken';
         }

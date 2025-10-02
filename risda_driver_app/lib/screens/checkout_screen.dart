@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'dart:io';
+import 'package:dio/dio.dart';
+import 'dart:io' show File, Platform;
+import 'dart:typed_data';
+import 'dart:developer' as developer;
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
+import '../core/api_client.dart';
+import '../services/api_service.dart';
 
 class CheckOutScreen extends StatefulWidget {
   const CheckOutScreen({super.key});
@@ -14,6 +20,9 @@ class CheckOutScreen extends StatefulWidget {
 }
 
 class _CheckOutScreenState extends State<CheckOutScreen> {
+  // API Service
+  final ApiService _apiService = ApiService(ApiClient());
+  
   // Controllers
   final TextEditingController odometerController = TextEditingController();
   final TextEditingController programNameController = TextEditingController();
@@ -41,14 +50,15 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
   double? gpsLatitude;
   double? gpsLongitude;
 
-  // Photo data
-  File? odometerPhoto;
-  File? fuelReceiptPhoto;
+  // Photo data (using XFile for cross-platform support)
+  XFile? odometerPhoto;
+  XFile? fuelReceiptPhoto;
   final ImagePicker _picker = ImagePicker();
   
-  // Dummy active trip data
-  bool hasActiveTrip = true;
-  int startOdometer = 12450;
+  // Active journey data from API
+  bool hasActiveTrip = false;
+  int? activeJourneyId;
+  int startOdometer = 0;
 
   @override
   void initState() {
@@ -70,21 +80,59 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         errorMessage = null;
       });
 
-    // 🎨 DUMMY MODE - Simulate loading active trip
-    await Future.delayed(const Duration(seconds: 1));
-
-    // 🎨 DUMMY MODE - Pre-fill form with active trip data
-    programNameController.text = 'Program Jelajah Madani';
-    vehicleController.text = 'QAA1001 - Toyota Hilux';
-    locationController.text = 'Kuala Lumpur Convention Centre';
-    estimationKmController.text = '150';
-    requestByController.text = 'Muhammad Faizan';
-    notesController.text = 'Program jelajah ke seluruh negeri';
+    try {
+      // Call API to get active journey
+      final response = await _apiService.getActiveJourney();
+      
+      final journey = response['data'];
+      
+      if (journey != null) {
+        // Pre-fill form with active trip data from API
+        activeJourneyId = journey['id'] as int;
+        startOdometer = journey['odometer_keluar'] ?? 0;
+        
+        final program = journey['program'];
+        final kenderaan = journey['kenderaan'];
+        
+        if (program != null) {
+          programNameController.text = program['nama'] ?? '';
+          locationController.text = program['lokasi'] ?? '';
+          
+          // Set Estimation KM
+          if (program['jarak_anggaran'] != null) {
+            estimationKmController.text = '${program['jarak_anggaran']} km';
+          }
+          
+          // Set Request By
+          if (program['permohonan_dari'] != null) {
+            final requestBy = program['permohonan_dari'];
+            requestByController.text = requestBy['nama'] ?? '';
+          }
+        }
+        
+        if (kenderaan != null) {
+          vehicleController.text = '${kenderaan['no_plat']} - ${kenderaan['jenama']} ${kenderaan['model']}';
+        }
 
       setState(() {
         isLoading = false;
-      hasActiveTrip = true;
-    });
+          hasActiveTrip = true;
+        });
+      } else {
+        // No active journey
+        setState(() {
+          isLoading = false;
+          hasActiveTrip = false;
+          errorMessage = 'Tiada perjalanan aktif. Sila mulakan perjalanan terlebih dahulu.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        hasActiveTrip = false;
+        errorMessage = 'Gagal memuatkan perjalanan aktif: $e';
+      });
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -220,9 +268,9 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       if (photo != null) {
         setState(() { 
           if (type == 'odometer') {
-          odometerPhoto = File(photo.path); 
+            odometerPhoto = photo; // Store XFile directly
           } else if (type == 'fuel') {
-            fuelReceiptPhoto = File(photo.path);
+            fuelReceiptPhoto = photo; // Store XFile directly
           }
         });
         
@@ -259,9 +307,9 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       if (photo != null) {
         setState(() { 
           if (type == 'odometer') {
-          odometerPhoto = File(photo.path); 
+            odometerPhoto = photo; // Store XFile directly
           } else if (type == 'fuel') {
-            fuelReceiptPhoto = File(photo.path);
+            fuelReceiptPhoto = photo; // Store XFile directly
           }
         });
         
@@ -289,6 +337,14 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
   }
 
   Future<void> _submitCheckOut() async {
+    // Check if there's an active journey
+    if (activeJourneyId == null) {
+      setState(() {
+        errorMessage = 'Tiada perjalanan aktif untuk ditamatkan';
+      });
+      return;
+    }
+
     // Validation
     if (odometerController.text.isEmpty) {
       setState(() {
@@ -298,7 +354,14 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     }
 
     final currentOdometer = int.tryParse(odometerController.text);
-    if (currentOdometer != null && currentOdometer < startOdometer) {
+    if (currentOdometer == null) {
+      setState(() {
+        errorMessage = 'Bacaan odometer tidak sah';
+      });
+      return;
+    }
+
+    if (currentOdometer < startOdometer) {
       setState(() {
         errorMessage = 'Bacaan odometer tidak boleh kurang dari bacaan mula ($startOdometer km)';
       });
@@ -308,22 +371,22 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     // Fuel validation (if checkbox is checked)
     if (addFuelInfo) {
       if (fuelLitersController.text.isEmpty) {
-        setState(() {
+      setState(() {
           errorMessage = 'Sila masukkan jumlah liter bahan api';
-        });
-        return;
-      }
+      });
+      return;
+    }
       if (fuelCostController.text.isEmpty) {
       setState(() {
           errorMessage = 'Sila masukkan kos bahan api';
       });
       return;
-    }
+      }
       if (gasStationController.text.isEmpty) {
-      setState(() {
+        setState(() {
           errorMessage = 'Sila masukkan nama stesen minyak';
-      });
-      return;
+        });
+        return;
       }
     }
 
@@ -332,22 +395,98 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       errorMessage = null;
     });
 
-    // 🎨 DUMMY MODE - Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Prepare fuel data (only if checkbox is checked)
+      final double? fuelLiters = addFuelInfo && fuelLitersController.text.isNotEmpty
+          ? double.tryParse(fuelLitersController.text)
+          : null;
+      final double? fuelCost = addFuelInfo && fuelCostController.text.isNotEmpty
+          ? double.tryParse(fuelCostController.text)
+          : null;
+      final String? gasStation = addFuelInfo && gasStationController.text.isNotEmpty
+          ? gasStationController.text
+          : null;
 
-    if (mounted) {
-      setState(() {
-        isSubmitting = false;
-      });
+      // Read image bytes (works for both web & mobile)
+      List<int>? odometerBytes;
+      String? odometerFilename;
+      if (odometerPhoto != null) {
+        odometerBytes = await odometerPhoto!.readAsBytes();
+        odometerFilename = odometerPhoto!.name;
+      }
+
+      List<int>? fuelReceiptBytes;
+      String? fuelReceiptFilename;
+      if (fuelReceiptPhoto != null) {
+        fuelReceiptBytes = await fuelReceiptPhoto!.readAsBytes();
+        fuelReceiptFilename = fuelReceiptPhoto!.name;
+      }
+
+      // Call API to end journey
+      final response = await _apiService.endJourney(
+        logId: activeJourneyId!,
+        odometerMasuk: currentOdometer,
+        lokasiCheckinLat: gpsLatitude,
+        lokasiCheckinLong: gpsLongitude,
+        catatan: notesController.text.isNotEmpty ? notesController.text : null,
+        literMinyak: fuelLiters,
+        kosMinyak: fuelCost,
+        stesenMinyak: gasStation,
+        fotoOdometerMasukBytes: odometerBytes,
+        fotoOdometerMasukFilename: odometerFilename,
+        resitMinyakBytes: fuelReceiptBytes,
+        resitMinyakFilename: fuelReceiptFilename,
+      );
+
+      if (mounted) {
+        setState(() {
+          isSubmitting = false;
+        });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('End Journey berjaya! (Dummy Mode)'),
+        SnackBar(
+            content: Text(response['message'] ?? 'Perjalanan berjaya ditamatkan!'),
           backgroundColor: Colors.green,
         ),
       );
 
       Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        // Extract detailed error message from DioException
+        String detailedError = e.toString();
+        if (e is DioException) {
+          if (e.response != null && e.response!.data != null) {
+            final errorData = e.response!.data;
+            detailedError = 'Status: ${e.response!.statusCode}\n';
+            
+            if (errorData is Map) {
+              if (errorData['message'] != null) {
+                detailedError += 'Message: ${errorData['message']}\n';
+              }
+              if (errorData['errors'] != null) {
+                detailedError += 'Errors: ${errorData['errors']}\n';
+              }
+            }
+          }
+        }
+        
+        developer.log('End Journey Error Details: $detailedError');
+        
+      setState(() {
+        isSubmitting = false;
+          errorMessage = 'Gagal menamatkan perjalanan: $detailedError';
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $detailedError'),
+            backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
@@ -533,7 +672,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                                 color: PastelColors.infoText,
                               ),
                             ),
-                          ),
+                ),
                 const SizedBox(height: 16),
 
                           // Current Odometer (Editable)
@@ -591,9 +730,23 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                             ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(6),
-                                  child: Image.file(
-                                    odometerPhoto!,
+                                  child: FutureBuilder<Uint8List>(
+                                    future: odometerPhoto!.readAsBytes(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        return Image.memory(
+                                          snapshot.data!,
                                     fit: BoxFit.cover,
+                                        );
+                                      } else {
+                                        return Container(
+                                          color: Colors.grey.shade300,
+                                          child: const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      }
+                                    },
                                   ),
                                   ),
                     ),
@@ -896,9 +1049,23 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                                           ),
                                           child: ClipRRect(
                                             borderRadius: BorderRadius.circular(6),
-                                            child: Image.file(
-                                              fuelReceiptPhoto!,
-                                              fit: BoxFit.cover,
+                                            child: FutureBuilder<Uint8List>(
+                                              future: fuelReceiptPhoto!.readAsBytes(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.hasData) {
+                                                  return Image.memory(
+                                                    snapshot.data!,
+                                                    fit: BoxFit.cover,
+                                                  );
+                                                } else {
+                                                  return Container(
+                                                    color: Colors.grey.shade300,
+                                                    child: const Center(
+                                                      child: CircularProgressIndicator(),
+                                                    ),
+                                                  );
+                                                }
+                                              },
                                             ),
                                           ),
                                         ),

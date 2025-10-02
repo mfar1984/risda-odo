@@ -3,11 +3,17 @@ class ApiConstants {
   // Base URL - Update this to your Laravel backend URL
   static const String baseUrl = 'http://localhost:8000/api';
   
+  // Global API Key (from backend Integrasi config)
+  static const String apiKey = 'rsk_xhitYqr9tsRDiyUHvr3keN9v82R7LxEvFbqPv5W1RuWMl2nlu1qvLEPmfsXcxdY4';
+  
+  // Origin (for CORS)
+  static const String origin = 'http://localhost';
+  
   // API Endpoints
   static const String login = '/auth/login';
   static const String logout = '/auth/logout';
-  static const String profile = '/auth/profile';
-  static const String updateProfile = '/auth/update-profile';
+  static const String logoutAll = '/auth/logout-all';
+  static const String getUser = '/auth/user';
   
   static const String activePrograms = '/programs/active';
   static const String vehicles = '/vehicles';

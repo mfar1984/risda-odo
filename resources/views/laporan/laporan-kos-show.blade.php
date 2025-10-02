@@ -1,3 +1,7 @@
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
 <x-dashboard-layout title="Laporan Kos Program">
     <x-ui.page-header
         title="Laporan Kos: {{ $program->nama_program }}"
@@ -81,6 +85,7 @@
                         ['label' => 'Liter (L)', 'align' => 'text-left'],
                         ['label' => 'Catatan', 'align' => 'text-left'],
                         ['label' => 'Status', 'align' => 'text-left'],
+                        ['label' => 'Resit', 'align' => 'text-center'],
                     ]"
                     :actions="false"
                     empty-message="Tiada log kos direkod untuk program ini."
@@ -111,10 +116,25 @@
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <x-ui.status-badge :status="$log->status" />
                             </td>
+                            <td class="px-6 py-4 text-center">
+                                @if($log->resit_minyak)
+                                    @php
+                                        $resitUrl = Storage::url($log->resit_minyak);
+                                    @endphp
+                                    <button 
+                                        onclick="openImageModal('{{ $resitUrl }}', 'Resit Minyak - {{ $log->pemandu->name ?? "Pemandu" }}')"
+                                        class="inline-flex items-center justify-center p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                                        title="Lihat Resit">
+                                        <span class="material-symbols-outlined" style="font-size: 20px;">receipt</span>
+                                    </button>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">Tiada log direkod buat masa ini.</td>
+                            <td colspan="8" class="px-6 py-12 text-center text-sm text-gray-500">Tiada log direkod buat masa ini.</td>
                         </tr>
                     @endforelse
                 </x-ui.data-table>
@@ -183,4 +203,65 @@
             </div>
         </div>
     </x-ui.page-header>
+
+    {{-- Image Modal for Receipt --}}
+    <div id="imageModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
+        <span onclick="closeImageModal()" style="position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+        <img id="modalImage" style="margin: auto; display: block; max-width: 90%; max-height: 90%; margin-top: 50px; cursor: zoom-in;" onclick="toggleZoom(this)">
+        <div id="modalCaption" style="margin: auto; display: block; width: 80%; max-width: 700px; text-align: center; color: #ccc; padding: 10px 0; font-size: 16px;"></div>
+    </div>
+
+    <script>
+        let isZoomed = false;
+        
+        function openImageModal(imageSrc, caption) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            const modalCaption = document.getElementById('modalCaption');
+            
+            modal.style.display = 'block';
+            modalImg.src = imageSrc;
+            modalCaption.innerHTML = caption;
+            isZoomed = false;
+            modalImg.style.cursor = 'zoom-in';
+            modalImg.style.maxWidth = '90%';
+            modalImg.style.maxHeight = '90%';
+            modalImg.style.width = 'auto';
+        }
+        
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+            isZoomed = false;
+        }
+        
+        function toggleZoom(img) {
+            if (!isZoomed) {
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = 'none';
+                img.style.width = '100%';
+                img.style.cursor = 'zoom-out';
+                isZoomed = true;
+            } else {
+                img.style.maxWidth = '90%';
+                img.style.maxHeight = '90%';
+                img.style.width = 'auto';
+                img.style.cursor = 'zoom-in';
+                isZoomed = false;
+            }
+        }
+        
+        // Close modal on ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeImageModal();
+            }
+        });
+        
+        // Close modal on click outside image
+        document.getElementById('imageModal').addEventListener('click', function(event) {
+            if (event.target.id === 'imageModal') {
+                closeImageModal();
+            }
+        });
+    </script>
 </x-dashboard-layout>

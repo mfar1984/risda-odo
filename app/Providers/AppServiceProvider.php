@@ -6,8 +6,6 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Auth;
 use App\Services\RisdaHashService;
 use App\Auth\RisdaUserProvider;
-use App\Models\SelenggaraKenderaan;
-use App\Observers\SelenggaraKenderaanObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,8 +32,5 @@ class AppServiceProvider extends ServiceProvider
         Auth::provider('risda', function ($app, array $config) {
             return new RisdaUserProvider($app->make(RisdaHashService::class), $config['model']);
         });
-
-        // Register model observers
-        SelenggaraKenderaan::observe(SelenggaraKenderaanObserver::class);
     }
 }

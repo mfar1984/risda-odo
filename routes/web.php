@@ -103,6 +103,28 @@ Route::middleware('auth')->group(function () {
                 ->name('laporan-pemandu.pdf')
                 ->middleware('permission:laporan_pemandu,eksport');
         });
+
+        Route::middleware('permission:laporan_tuntutan,lihat')->group(function () {
+            Route::get('/laporan-tuntutan', [\App\Http\Controllers\TuntutanController::class, 'index'])->name('laporan-tuntutan');
+            Route::get('/laporan-tuntutan/{tuntutan}', [\App\Http\Controllers\TuntutanController::class, 'show'])
+                ->name('laporan-tuntutan.show');
+            Route::get('/laporan-tuntutan/export/pdf', [\App\Http\Controllers\TuntutanController::class, 'exportPdf'])
+                ->name('laporan-tuntutan.export-pdf');
+            
+            // Action routes (permission-based)
+            Route::post('/laporan-tuntutan/{tuntutan}/approve', [\App\Http\Controllers\TuntutanController::class, 'approve'])
+                ->name('laporan-tuntutan.approve')
+                ->middleware('permission:laporan_tuntutan,terima');
+            Route::post('/laporan-tuntutan/{tuntutan}/reject', [\App\Http\Controllers\TuntutanController::class, 'reject'])
+                ->name('laporan-tuntutan.reject')
+                ->middleware('permission:laporan_tuntutan,tolak');
+            Route::post('/laporan-tuntutan/{tuntutan}/cancel', [\App\Http\Controllers\TuntutanController::class, 'cancel'])
+                ->name('laporan-tuntutan.cancel')
+                ->middleware('permission:laporan_tuntutan,gantung');
+            Route::delete('/laporan-tuntutan/{tuntutan}', [\App\Http\Controllers\TuntutanController::class, 'destroy'])
+                ->name('laporan-tuntutan.destroy')
+                ->middleware('permission:laporan_tuntutan,padam');
+        });
     });
 
     // Pengurusan Routes
@@ -229,6 +251,23 @@ Route::middleware('auth')->group(function () {
             Route::delete('/kategori-kos-selenggara/{kategori}', [App\Http\Controllers\KategoriKosSelenggaraController::class, 'destroy'])->name('delete-kategori-kos');
         });
 
+        // Integrasi Routes (Permission-based)
+        Route::middleware('permission:integrasi,lihat')->group(function () {
+            Route::get('/integrasi', [App\Http\Controllers\IntegrasiController::class, 'index'])->name('integrasi');
+        });
+        
+        // API Configuration (Administrator Only)
+        Route::middleware('admin')->group(function () {
+            Route::post('/integrasi/generate-api-token', [App\Http\Controllers\IntegrasiController::class, 'generateApiToken'])->name('generate-api-token');
+            Route::put('/integrasi/cors', [App\Http\Controllers\IntegrasiController::class, 'updateCors'])->name('update-integrasi-cors');
+        });
+        
+        // Weather & Email Configuration (Permission-based for all users based on their organisation - Multi-tenancy)
+        Route::middleware('permission:integrasi,kemaskini')->group(function () {
+            Route::put('/integrasi/cuaca', [App\Http\Controllers\IntegrasiController::class, 'updateWeather'])->name('update-integrasi-cuaca');
+            Route::put('/integrasi/email', [App\Http\Controllers\IntegrasiController::class, 'updateEmail'])->name('update-integrasi-email');
+        });
+
         // Aktiviti Log Routes (Permission-based)
         Route::middleware('permission:aktiviti_log,lihat')->group(function () {
             Route::get('/aktiviti-log', function () {
@@ -263,6 +302,9 @@ Route::middleware('auth')->group(function () {
         })->name('status-sistem');
 
         Route::get('/nota-keluaran', [App\Http\Controllers\NotaKeluaranController::class, 'index'])->name('nota-keluaran');
+
+        Route::get('/api-doc', [App\Http\Controllers\ApiDokumentasiController::class, 'index'])->name('api-dokumentasi');
+        Route::get('/api-doc/{module}/{endpoint}', [App\Http\Controllers\ApiDokumentasiController::class, 'show'])->name('api-endpoint-detail');
     });
 });
 

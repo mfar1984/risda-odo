@@ -100,6 +100,16 @@ class BreadcrumbService
             'icon' => null,
             'parent' => 'laporan.laporan-pemandu',
         ],
+        'laporan.laporan-tuntutan' => [
+            'name' => 'Laporan Tuntutan',
+            'icon' => null,
+            'parent' => 'laporan',
+        ],
+        'laporan.laporan-tuntutan.show' => [
+            'name' => 'Butiran Laporan Tuntutan',
+            'icon' => null,
+            'parent' => 'laporan.laporan-tuntutan',
+        ],
         'pengurusan' => [
             'name' => 'Pengurusan',
             'icon' => 'management',
@@ -194,6 +204,26 @@ class BreadcrumbService
             'name' => 'Senarai Kenderaan',
             'icon' => null,
             'parent' => 'pengurusan',
+        ],
+        'pengurusan.senarai-selenggara' => [
+            'name' => 'Senarai Selenggara',
+            'icon' => null,
+            'parent' => 'pengurusan',
+        ],
+        'pengurusan.tambah-selenggara' => [
+            'name' => 'Tambah Selenggara',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-selenggara',
+        ],
+        'pengurusan.show-selenggara' => [
+            'name' => 'Butiran Selenggara',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-selenggara',
+        ],
+        'pengurusan.edit-selenggara' => [
+            'name' => 'Kemaskini Selenggara',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-selenggara',
         ],
         'pengurusan.aktiviti-log' => [
             'name' => 'Aktiviti Log',

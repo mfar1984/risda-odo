@@ -3,12 +3,19 @@ import 'package:provider/provider.dart';
 import 'core/api_client.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
+import 'services/hive_service.dart';
 import 'repositories/driver_log_repository.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 
-void main() {
+Future<void> main() async {
+  // Ensure Flutter is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Hive (offline storage)
+  await HiveService.init();
+  
   runApp(const MyApp());
 }
 
@@ -20,14 +27,13 @@ class MyApp extends StatelessWidget {
     // Initialize services
     final apiClient = ApiClient();
     final apiService = ApiService(apiClient);
-    final authService = AuthService(apiClient, apiService);
     final driverLogRepository = DriverLogRepository(apiService);
 
     return MultiProvider(
       providers: [
         Provider<ApiClient>.value(value: apiClient),
         Provider<ApiService>.value(value: apiService),
-        ChangeNotifierProvider<AuthService>.value(value: authService),
+        ChangeNotifierProvider<AuthService>(create: (_) => AuthService()),
         Provider<DriverLogRepository>.value(value: driverLogRepository),
       ],
       child: MaterialApp(

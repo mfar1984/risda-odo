@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
+import '../services/api_service.dart';
+import '../core/api_client.dart';
 import 'checkin_screen.dart';
 import 'checkout_screen.dart';
 import 'claim_main_tab.dart';
 import 'logs_screen.dart';
+import 'program_detail_screen.dart';
+import 'dart:developer' as developer;
 
 class DoTab extends StatefulWidget {
   const DoTab({super.key});
@@ -15,6 +19,15 @@ class DoTab extends StatefulWidget {
 }
 
 class _DoTabState extends State<DoTab> {
+  late final ApiService _apiService;
+  
+  List<dynamic> _currentPrograms = [];
+  List<dynamic> _ongoingPrograms = [];
+  List<dynamic> _pastPrograms = [];
+  
+  bool _isLoading = true;
+  String? _errorMessage;
+  
   // Analytics data that can be refreshed
   List<FlSpot> checkInData = [
     const FlSpot(0, 8),
@@ -46,8 +59,63 @@ class _DoTabState extends State<DoTab> {
     const FlSpot(11, 14),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _apiService = ApiService(ApiClient());
+    _loadPrograms();
+  }
+
+  Future<void> _loadPrograms() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      developer.log('🔄 Loading programs from API...');
+      
+      // Fetch all three program categories
+      final currentResponse = await _apiService.getPrograms(status: 'current');
+      final ongoingResponse = await _apiService.getPrograms(status: 'ongoing');
+      final pastResponse = await _apiService.getPrograms(status: 'past');
+
+      if (currentResponse['success'] == true) {
+        _currentPrograms = currentResponse['data'] ?? [];
+        developer.log('✅ Loaded ${_currentPrograms.length} current programs');
+      }
+
+      if (ongoingResponse['success'] == true) {
+        _ongoingPrograms = ongoingResponse['data'] ?? [];
+        developer.log('✅ Loaded ${_ongoingPrograms.length} ongoing programs');
+      }
+
+      if (pastResponse['success'] == true) {
+        _pastPrograms = pastResponse['data'] ?? [];
+        developer.log('✅ Loaded ${_pastPrograms.length} past programs');
+      }
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      developer.log('❌ Error loading programs: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+      }
+    }
+  }
+
   Future<void> _refreshData() async {
-    // Simulate fetching new data
+    // Refresh programs
+    await _loadPrograms();
+    
+    // Simulate fetching new data for analytics
     await Future.delayed(const Duration(seconds: 1));
 
     // Update with "new" data (for demo purposes)
@@ -248,6 +316,95 @@ class _DoTabState extends State<DoTab> {
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              // Program Card
+              Card(
+                color: Colors.white,
+                elevation: 3,
+                shadowColor: PastelColors.primary.withOpacity(0.15),
+                margin: const EdgeInsets.all(3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(3),
+                  side: BorderSide(color: PastelColors.border, width: 1),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.event_note, color: PastelColors.primary, size: 20),
+                          const SizedBox(width: 8),
+                          Text('Program', style: AppTextStyles.h2),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      DefaultTabController(
+                        length: 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            TabBar(
+                              labelColor: PastelColors.primary,
+                              unselectedLabelColor: PastelColors.textLight,
+                              indicatorColor: PastelColors.primary,
+                              tabs: const [
+                                Tab(text: 'Current'),
+                                Tab(text: 'Ongoing'),
+                                Tab(text: 'Past'),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 160,
+                              child: _isLoading
+                                  ? const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(20.0),
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    )
+                                  : _errorMessage != null
+                                      ? SingleChildScrollView(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.error_outline, size: 32, color: PastelColors.error),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                'Gagal memuatkan program',
+                                                style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              ElevatedButton(
+                                                onPressed: _loadPrograms,
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: PastelColors.primary,
+                                                  foregroundColor: Colors.white,
+                                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                                ),
+                                                child: const Text('Cuba Lagi', style: TextStyle(fontSize: 12)),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : TabBarView(
+                                          children: [
+                                            _buildProgramListFromApi(_currentPrograms),
+                                            _buildProgramListFromApi(_ongoingPrograms),
+                                            _buildProgramListFromApi(_pastPrograms),
+                                          ],
+                                        ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               // Add a small padding at the bottom to ensure pull-to-refresh works well
               const SizedBox(height: 20),
             ],
@@ -291,6 +448,158 @@ class _DoTabState extends State<DoTab> {
       bgColor: bgColor ?? Colors.white,
       borderColor: borderColor ?? PastelColors.border,
       onTap: onTap,
+    );
+  }
+
+  Widget _buildProgramListFromApi(List<dynamic> programs) {
+    if (programs.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.event_busy, size: 32, color: PastelColors.textLight),
+              const SizedBox(height: 8),
+              Text(
+                'Tiada program dijumpai',
+                style: AppTextStyles.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 0),
+      itemCount: programs.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 3),
+      itemBuilder: (context, i) {
+        final program = programs[i];
+        final statusLabel = program['status_label'] ?? program['status'] ?? 'N/A';
+        final programName = program['nama_program'] ?? 'Program Tidak Dikenali';
+        final startDate = program['tarikh_mula_formatted'] ?? '';
+        final endDate = program['tarikh_selesai_formatted'] ?? '';
+        
+        // Determine status color based on status
+        Color statusColor = PastelColors.primary;
+        if (statusLabel.toLowerCase().contains('selesai') || statusLabel.toLowerCase().contains('completed')) {
+          statusColor = PastelColors.textLight;
+        } else if (statusLabel.toLowerCase().contains('aktif') || statusLabel.toLowerCase().contains('active')) {
+          statusColor = PastelColors.success;
+        } else if (statusLabel.toLowerCase().contains('tertunda') || statusLabel.toLowerCase().contains('pending')) {
+          statusColor = PastelColors.warning;
+        }
+
+        return GestureDetector(
+          onTap: () {
+            // Navigate to program detail screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProgramDetailScreen(
+                  programId: program['id'],
+                ),
+              ),
+            );
+          },
+          child: Card(
+            margin: EdgeInsets.zero,
+            elevation: 0.5,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
+            color: PastelColors.background,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(programName, style: AppTextStyles.h3),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                statusLabel,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: statusColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (startDate.isNotEmpty && endDate.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today,
+                                  size: 10,
+                                  color: PastelColors.textLight,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$startDate - $endDate',
+                                  style: AppTextStyles.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (program['pemohon'] != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.person_outline,
+                                  size: 10,
+                                  color: PastelColors.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    'Ketuk untuk lihat butiran',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: PastelColors.primary,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: PastelColors.textLight,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

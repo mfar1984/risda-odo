@@ -115,9 +115,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         // 🎨 DUMMY MODE - Skip sync
         await Future.delayed(const Duration(milliseconds: 100));
       } else if (_steps[i].contains('Checking Login Status')) {
-        // Check login status using AuthService
-        // No need to do anything here, will check at the end
-        await Future.delayed(const Duration(milliseconds: 100));
+        // Initialize AuthService (check Hive for cached session)
+        await authService.initialize();
       }
       
       await Future.delayed(const Duration(milliseconds: 600));
@@ -132,14 +131,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         _percentDone = true;
       });
       
-      // Navigate based on login status
-      final isLoggedIn = authService.isLoggedIn;
+      // Navigate based on authentication status from Hive
+      final isAuthenticated = authService.isAuthenticated;
       
-      if (isLoggedIn) {
+      if (isAuthenticated) {
+        // User has cached session, auto-login to dashboard
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const DashboardScreen()),
         );
       } else {
+        // No cached session, show login screen
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
         );

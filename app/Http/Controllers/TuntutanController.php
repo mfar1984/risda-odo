@@ -1,0 +1,358 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Tuntutan;
+use App\Models\LogPemandu;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+class TuntutanController extends Controller
+{
+    /**
+     * Display a listing of claims (Laporan Tuntutan)
+     */
+    public function index(Request $request)
+    {
+        // Check permission
+        if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'lihat')) {
+            abort(403, 'Akses dinafikan');
+        }
+
+        $query = Tuntutan::with([
+            'logPemandu.pemandu.risdaStaf',
+            'logPemandu.program',
+            'diprosesOleh'
+        ])->forCurrentUser();
+
+        // Apply filters
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        if ($request->filled('tarikh_dari') && $request->filled('tarikh_hingga')) {
+            $query->whereBetween('created_at', [
+                $request->tarikh_dari . ' 00:00:00',
+                $request->tarikh_hingga . ' 23:59:59',
+            ]);
+        }
+
+        // Search by program name
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('logPemandu.program', function ($q) use ($search) {
+                $q->where('nama_program', 'like', "%{$search}%");
+            });
+        }
+
+        $tuntutan = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        $kategori_list = [
+            'tol' => 'Tol',
+            'parking' => 'Parking',
+            'f&b' => 'Makanan & Minuman',
+            'accommodation' => 'Penginapan',
+            'fuel' => 'Minyak',
+            'car_maintenance' => 'Penyelenggaraan Kenderaan',
+            'others' => 'Lain-lain',
+        ];
+
+        $status_list = [
+            'pending' => 'Pending',
+            'diluluskan' => 'Diluluskan',
+            'ditolak' => 'Ditolak',
+            'digantung' => 'Digantung',
+        ];
+
+        return view('laporan.laporan-tuntutan', compact(
+            'tuntutan',
+            'kategori_list',
+            'status_list'
+        ));
+    }
+
+    /**
+     * Display the specified claim
+     */
+    public function show(Tuntutan $tuntutan)
+    {
+        // Check permission
+        if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'lihat')) {
+            abort(403, 'Akses dinafikan');
+        }
+
+        $tuntutan->load([
+            'logPemandu.pemandu.risdaStaf',
+            'logPemandu.program.pemohon',
+            'logPemandu.program.pemandu',
+            'logPemandu.program.kenderaan',
+            'logPemandu.kenderaan',
+            'diprosesOleh.risdaStaf'
+        ]);
+
+        // Get all claims for the same program (to show related claims)
+        $relatedClaims = Tuntutan::with(['logPemandu', 'diprosesOleh.risdaStaf'])
+            ->whereHas('logPemandu', function($q) use ($tuntutan) {
+                $q->where('program_id', $tuntutan->logPemandu->program_id);
+            })
+            ->where('id', '!=', $tuntutan->id) // Exclude current claim
+            ->forCurrentUser()
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Calculate stats for this program's claims
+        $allProgramClaims = Tuntutan::whereHas('logPemandu', function($q) use ($tuntutan) {
+            $q->where('program_id', $tuntutan->logPemandu->program_id);
+        })
+        ->forCurrentUser()
+        ->get();
+
+        $stats = [
+            'jumlah_tuntutan' => $allProgramClaims->count(),
+            'jumlah_keseluruhan' => (float) $allProgramClaims->sum('jumlah'),
+            'pending' => $allProgramClaims->where('status', 'pending')->count(),
+            'diluluskan' => $allProgramClaims->where('status', 'diluluskan')->count(),
+            'ditolak' => $allProgramClaims->where('status', 'ditolak')->count(),
+            'jumlah_diluluskan' => (float) $allProgramClaims->where('status', 'diluluskan')->sum('jumlah'),
+        ];
+
+        return view('laporan.laporan-tuntutan-show', compact('tuntutan', 'relatedClaims', 'stats'));
+    }
+
+    /**
+     * Approve a claim
+     */
+    public function approve(Tuntutan $tuntutan)
+    {
+        // Check permission
+        if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'terima')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak mempunyai kebenaran untuk meluluskan tuntutan'
+            ], 403);
+        }
+
+        // Validate status
+        if (!$tuntutan->canBeApproved()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tuntutan ini tidak boleh diluluskan (status semasa: ' . $tuntutan->status_label . ')'
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $tuntutan->update([
+                'status' => 'diluluskan',
+                'diproses_oleh' => Auth::id(),
+                'tarikh_diproses' => now(),
+                'alasan_tolak' => null, // Clear rejection reason if any
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tuntutan berjaya diluluskan'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Ralat: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject a claim with reason
+     */
+    public function reject(Request $request, Tuntutan $tuntutan)
+    {
+        // Check permission
+        if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'tolak')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak mempunyai kebenaran untuk menolak tuntutan'
+            ], 403);
+        }
+
+        // Validate status
+        if (!$tuntutan->canBeRejected()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tuntutan ini tidak boleh ditolak (status semasa: ' . $tuntutan->status_label . ')'
+            ], 422);
+        }
+
+        // Validate reason
+        $request->validate([
+            'alasan_tolak' => 'required|string|min:10|max:1000',
+        ], [
+            'alasan_tolak.required' => 'Alasan penolakan wajib diisi',
+            'alasan_tolak.min' => 'Alasan penolakan mestilah sekurang-kurangnya 10 aksara',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $tuntutan->update([
+                'status' => 'ditolak',
+                'alasan_tolak' => $request->alasan_tolak,
+                'diproses_oleh' => Auth::id(),
+                'tarikh_diproses' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tuntutan berjaya ditolak. Pemandu boleh mengedit dan menghantar semula.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Ralat: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel a claim permanently with reason
+     */
+    public function cancel(Request $request, Tuntutan $tuntutan)
+    {
+        // Check permission
+        if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'gantung')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak mempunyai kebenaran untuk menggantung tuntutan'
+            ], 403);
+        }
+
+        // Validate status
+        if (!$tuntutan->canBeCancelled()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tuntutan ini tidak boleh digantung (status semasa: ' . $tuntutan->status_label . ')'
+            ], 422);
+        }
+
+        // Validate reason
+        $request->validate([
+            'alasan_gantung' => 'required|string|min:10|max:1000',
+        ], [
+            'alasan_gantung.required' => 'Alasan pembatalan wajib diisi',
+            'alasan_gantung.min' => 'Alasan pembatalan mestilah sekurang-kurangnya 10 aksara',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $tuntutan->update([
+                'status' => 'digantung',
+                'alasan_gantung' => $request->alasan_gantung,
+                'diproses_oleh' => Auth::id(),
+                'tarikh_diproses' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tuntutan berjaya digantung. Pemandu tidak boleh mengedit tuntutan ini.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Ralat: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Soft delete a claim
+     */
+    public function destroy(Tuntutan $tuntutan)
+    {
+        // Check permission
+        if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'padam')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak mempunyai kebenaran untuk memadam tuntutan'
+            ], 403);
+        }
+
+        try {
+            $tuntutan->delete(); // Soft delete
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tuntutan berjaya dipadam'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ralat: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Export claims to PDF
+     */
+    public function exportPdf(Request $request)
+    {
+        // Check permission
+        if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'lihat')) {
+            abort(403, 'Akses dinafikan');
+        }
+
+        $query = Tuntutan::with([
+            'logPemandu.pemandu.risdaStaf',
+            'logPemandu.program',
+            'diprosesOleh'
+        ])->forCurrentUser();
+
+        // Apply same filters as index
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        if ($request->filled('tarikh_dari') && $request->filled('tarikh_hingga')) {
+            $query->whereBetween('created_at', [
+                $request->tarikh_dari . ' 00:00:00',
+                $request->tarikh_hingga . ' 23:59:59',
+            ]);
+        }
+
+        $tuntutan = $query->orderBy('created_at', 'desc')->get();
+
+        // Calculate totals
+        $total_diluluskan = $tuntutan->where('status', 'diluluskan')->sum('jumlah');
+        $total_pending = $tuntutan->where('status', 'pending')->sum('jumlah');
+
+        $pdf = PDF::loadView('laporan.laporan-tuntutan-pdf', compact(
+            'tuntutan',
+            'total_diluluskan',
+            'total_pending',
+            'request'
+        ));
+
+        return $pdf->download('laporan-tuntutan-' . now()->format('Y-m-d') . '.pdf');
+    }
+}

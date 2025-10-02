@@ -122,6 +122,13 @@ class UserGroup extends Model
                 'lihat' => false,
                 'eksport' => false,
             ],
+            'laporan_tuntutan' => [
+                'lihat' => false,
+                'padam' => false,
+                'terima' => false,
+                'tolak' => false,
+                'gantung' => false,
+            ],
 
             'senarai_kumpulan' => [
                 'tambah' => false,
@@ -158,6 +165,10 @@ class UserGroup extends Model
                 'lihat' => false,
                 'kemaskini' => false,
                 'padam' => false,
+            ],
+            'integrasi' => [
+                'lihat' => false,
+                'kemaskini' => false,
             ],
             'tetapan_umum' => [
                 'lihat' => false,
@@ -208,11 +219,13 @@ class UserGroup extends Model
             'laporan_kilometer' => 'Laporan Kilometer',
             'laporan_kos' => 'Laporan Kos',
             'laporan_pemandu' => 'Laporan Pemandu',
+            'laporan_tuntutan' => 'Laporan Tuntutan',
 
             'senarai_kumpulan' => 'Senarai Kumpulan',
             'senarai_pengguna' => 'Senarai Pengguna',
             'senarai_kenderaan' => 'Senarai Kenderaan',
             'selenggara_kenderaan' => 'Selenggara Kenderaan',
+            'integrasi' => 'Integrasi (Cuaca, Email)',
             'tetapan_umum' => 'Tetapan Umum',
             'aktiviti_log' => 'Aktiviti Log',
             'aktiviti_log_keselamatan' => 'Aktiviti Log Keselamatan',

@@ -87,17 +87,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           CircleAvatar(
                             radius: 36,
                             backgroundColor: Colors.white,
-                            child: user != null && user.name.isNotEmpty
-                              ? Text(
-                                  user.name[0].toUpperCase(),
+                            child: user != null && (user['user']?['name'] ?? '').isNotEmpty
+                                ? Text(
+                                  (user['user']?['name'] ?? 'U')[0].toUpperCase(),
                                   style: TextStyle(fontSize: 30, color: PastelColors.primary),
                                 )
                               : Icon(Icons.person, color: PastelColors.primary, size: 40),
                           ),
                           const SizedBox(height: 12),
-                          Text(user?.name ?? 'User Name', style: AppTextStyles.h2.copyWith(color: Colors.white)),
+                          Text(user?['user']?['name'] ?? 'User Name', style: AppTextStyles.h2.copyWith(color: Colors.white)),
                           const SizedBox(height: 4),
-                          Text(user?.email ?? 'user@email.com', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70)),
+                          Text(user?['user']?['email'] ?? 'user@email.com', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70)),
                         ],
                       );
                     },

@@ -28,7 +28,8 @@ class LogPemanduController extends Controller
         ];
 
         $query = (clone $baseQuery)->with([
-            'pemandu:id,name,email',
+            'pemandu:id,name,email,staf_id',
+            'pemandu.risdaStaf:id,nama_penuh,no_pekerja',
             'kenderaan:id,no_plat,jenama,model',
         ]);
 
@@ -163,7 +164,7 @@ class LogPemanduController extends Controller
         $this->ensurePermission($user, 'lihat_butiran');
         $this->ensureLogAccessible($logPemandu, $user);
 
-        $logPemandu->load(['pemandu', 'kenderaan', 'program', 'creator', 'updater']);
+        $logPemandu->load(['pemandu', 'kenderaan', 'program', 'creator', 'updater', 'tuntutan']);
 
         return view('log-pemandu.show', [
             'log' => $logPemandu,

@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Carbon\Carbon;
+use App\Models\RisdaStaf;
 
 class LogPemandu extends Model
 {
@@ -28,6 +30,8 @@ class LogPemandu extends Model
         'liter_minyak',
         'kos_minyak',
         'stesen_minyak',
+        'foto_odometer_keluar',  // Start Journey photo
+        'foto_odometer_masuk',   // End Journey photo
         'resit_minyak',
         'status',
         'organisasi_id',
@@ -59,6 +63,19 @@ class LogPemandu extends Model
     {
         return $this->belongsTo(User::class, 'pemandu_id');
     }
+    
+    // Get staff details through user
+    public function risdaStaf(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            RisdaStaf::class,
+            User::class,
+            'id',        // Foreign key on users table
+            'id',        // Foreign key on risda_stafs table
+            'pemandu_id', // Local key on log_pemandu table
+            'staf_id'    // Local key on users table
+        );
+    }
 
     public function kenderaan(): BelongsTo
     {
@@ -78,6 +95,11 @@ class LogPemandu extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dikemaskini_oleh');
+    }
+
+    public function tuntutan()
+    {
+        return $this->hasMany(Tuntutan::class, 'log_pemandu_id');
     }
 
     // Accessors

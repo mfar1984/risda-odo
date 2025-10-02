@@ -63,11 +63,33 @@ class Kenderaan extends Model
     }
 
     /**
+     * Get all driver logs for this vehicle.
+     */
+    public function logPemandu(): HasMany
+    {
+        return $this->hasMany(LogPemandu::class, 'kenderaan_id');
+    }
+
+    /**
      * Get all maintenance records for this vehicle.
      */
     public function selenggaraKenderaan(): HasMany
     {
         return $this->hasMany(SelenggaraKenderaan::class, 'kenderaan_id');
+    }
+    
+    /**
+     * Get latest odometer reading from completed journeys.
+     */
+    public function getLatestOdometerAttribute(): ?int
+    {
+        $latestLog = $this->logPemandu()
+            ->where('status', 'selesai')
+            ->whereNotNull('odometer_masuk')
+            ->orderBy('masa_masuk', 'desc')
+            ->first();
+            
+        return $latestLog?->odometer_masuk;
     }
 
     /**

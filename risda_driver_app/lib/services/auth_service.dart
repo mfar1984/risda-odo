@@ -1,124 +1,250 @@
 import 'package:flutter/foundation.dart';
-import '../core/api_client.dart';
-import '../models/user.dart';
+import '../models/auth_hive_model.dart';
+import 'hive_service.dart';
 import 'api_service.dart';
+import '../core/api_client.dart';
 import 'dart:developer' as developer;
 
 class AuthService extends ChangeNotifier {
-  final ApiClient _apiClient;
-  final ApiService _apiService;
-  
-  User? _currentUser;
-  String? _authToken;
+  AuthHive? _currentAuth;
   bool _isLoading = false;
+  Map<String, dynamic>? _fullUserData; // Store complete API response
+  
+  // API Client & Service
+  final ApiClient _apiClient = ApiClient();
+  late final ApiService _apiService;
 
-  AuthService(this._apiClient, this._apiService);
+  AuthService() {
+    _apiService = ApiService(_apiClient);
+  }
 
-  User? get currentUser => _currentUser;
-  String? get authToken => _authToken;
+  AuthHive? get currentAuth => _currentAuth;
+  bool get isAuthenticated => _currentAuth != null;
   bool get isLoading => _isLoading;
-  bool get isLoggedIn => _currentUser != null && _authToken != null;
 
-  /// Login - DUMMY MODE untuk testing design
-  Future<bool> login(String email, String password) async {
+  /// Initialize - Check Hive for existing session
+  Future<void> initialize() async {
+    _isLoading = true;
+    notifyListeners();
+
     try {
-      _setLoading(true);
+      _currentAuth = HiveService.getCurrentAuth();
       
-      // 🎨 DUMMY LOGIN FOR DESIGN TESTING
-      // Kredensial yang diterima:
-      // Email: demo@risda.my ATAU faizan@jara.my
-      // Password: password
-      
-      await Future.delayed(const Duration(seconds: 1)); // Simulasi network delay
-      
-      if ((email == 'demo@risda.my' || email == 'faizan@jara.my') && password == 'password') {
-        _authToken = 'dummy_token_12345';
-        _apiClient.setAuthToken(_authToken);
+      if (_currentAuth != null) {
+        // Check if session is still valid (< 7 days old)
+        final daysSinceLogin = DateTime.now().difference(_currentAuth!.loginAt).inDays;
         
-        // Create dummy user data
-        _currentUser = User(
-          id: 1,
-          name: email == 'demo@risda.my' ? 'Demo User' : 'Muhammad Faizan',
-          email: email,
-          phone: '011-1234 5678',
-          staffId: 'RISDA001',
-          stationName: 'JARA',
-          divisionName: 'Bahagian Teknologi Maklumat',
-          jenisOrganisasi: 'stesen',
-          organisasiId: 1,
-          createdAt: DateTime.now(),
+        if (daysSinceLogin > 7) {
+          // Session expired, logout
+          developer.log('⏰ Session expired (> 7 days), logging out...');
+          await logout();
+        } else {
+          // Set auth token in API client for subsequent requests
+          _apiClient.setAuthToken(_currentAuth!.token);
+          
+          // Load full user data from Hive settings box (raw storage)
+          final cachedData = HiveService.settingsBox.get('full_user_data');
+          if (cachedData != null && cachedData is Map) {
+            _fullUserData = Map<String, dynamic>.from(cachedData as Map);
+          }
+          
+          developer.log('✅ Session valid, auto-login successful');
+          developer.log('👤 User: ${_currentAuth!.name} (${_currentAuth!.email})');
+          // Session valid, try to refresh token if online (TODO: implement later)
+          // _tryRefreshToken();
+        }
+      } else {
+        developer.log('ℹ️ No cached session found');
+      }
+    } catch (e) {
+      developer.log('❌ Auth initialization error: $e');
+      _currentAuth = null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  String? _lastErrorMessage;
+  String? get lastErrorMessage => _lastErrorMessage;
+
+  /// Login with credentials (REAL API)
+  Future<bool> login(String email, String password, {bool rememberMe = true}) async {
+    _isLoading = true;
+    _lastErrorMessage = null;
+    notifyListeners();
+
+    try {
+      // 🚀 Call Real API
+      final response = await _apiService.login(email.trim(), password);
+      
+      // Check if login successful
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        final user = data['user'];
+        final token = data['token'];
+        
+        // Create auth data from API response
+        final authData = AuthHive(
+          token: token,
+          userId: user['id'],
+          name: user['name'],
+          email: user['email'],
+          jenisOrganisasi: user['jenis_organisasi'] ?? '',
+          organisasiId: user['organisasi_id']?.toString() ?? '',
+          organisasiName: user['stesen']?['nama'] ?? user['bahagian']?['nama'] ?? '',
+          role: user['kumpulan']?['nama'] ?? 'Driver',
+          loginAt: DateTime.now(),
+          lastSync: DateTime.now(),
+          rememberMe: rememberMe,
         );
+
+        // Set auth token in API client for future requests
+        _apiClient.setAuthToken(token);
+
+        // Save to Hive
+        await HiveService.saveAuth(authData);
         
-        _setLoading(false);
+        // Store full user data (including staf) to Hive settings box
+        _fullUserData = data;
+        await HiveService.settingsBox.put('full_user_data', data);
+
+        _currentAuth = authData;
+        _isLoading = false;
         notifyListeners();
+        
+        developer.log('✅ Login successful: ${authData.name} (${authData.email})');
+        developer.log('📍 Organisasi: ${authData.organisasiName} (${authData.jenisOrganisasi})');
+        if (data['user']['staf'] != null) {
+          developer.log('👤 Staf: ${data['user']['staf']['no_pekerja']} - ${data['user']['staf']['jawatan']}');
+        }
         return true;
       }
-      
-      // Login failed - wrong credentials
-      _setLoading(false);
+
+      // Login failed - store error message from API
+      _lastErrorMessage = response['message'] ?? 'Login gagal';
+      developer.log('❌ Login failed: $_lastErrorMessage');
+      _isLoading = false;
+      notifyListeners();
       return false;
+
+    } catch (e) {
+      // Network or other error
+      _lastErrorMessage = 'Ralat sambungan. Cuba lagi.';
+      developer.log('❌ Login error: $e');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Logout (REAL API)
+  Future<void> logout() async {
+    try {
+      developer.log('🔐 Logging out...');
       
-      /* 🔌 REAL API LOGIN (Commented untuk design testing)
-      final response = await _apiService.login(email, password);
+      // Call API logout endpoint (revoke current token)
+      try {
+        await _apiService.logout();
+        developer.log('✅ API logout successful');
+      } catch (e) {
+        developer.log('⚠️ API logout failed (continuing with local logout): $e');
+      }
+
+      // Clear API client token
+      _apiClient.clearAuthToken();
+
+      // Clear Hive auth and full user data
+      await HiveService.clearAuth();
+      await HiveService.settingsBox.delete('full_user_data');
+
+      _currentAuth = null;
+      _fullUserData = null;
+      notifyListeners();
       
-      if (response['success'] == true || response['token'] != null) {
-        _authToken = response['token'];
-        _apiClient.setAuthToken(_authToken);
+      developer.log('✅ Logout successful');
+    } catch (e) {
+      developer.log('❌ Logout error: $e');
+    }
+  }
+
+  /// Refresh user data from API (updates profile picture, etc.)
+  Future<void> refreshUserData() async {
+    try {
+      developer.log('🔄 Refreshing user data from API...');
+      
+      final response = await _apiService.getCurrentUser();
+      
+      if (response['success'] == true && response['data'] != null) {
+        // Update full user data
+        _fullUserData = response['data'];
         
-        if (response['user'] != null) {
-          _currentUser = User.fromJson(response['user']);
-        } else {
-          _currentUser = await _apiService.getProfile();
+        // Save to Hive
+        await HiveService.settingsBox.put('full_user_data', response['data']);
+        
+        // Update current auth if user data changed
+        if (_currentAuth != null) {
+          final user = response['data'];
+          _currentAuth = AuthHive(
+            token: _currentAuth!.token,
+            userId: user['id'],
+            name: user['name'],
+            email: user['email'],
+            jenisOrganisasi: user['jenis_organisasi'] ?? '',
+            organisasiId: user['organisasi_id']?.toString() ?? '',
+            organisasiName: user['stesen']?['nama'] ?? user['bahagian']?['nama'] ?? '',
+            role: user['kumpulan']?['nama'] ?? 'Driver',
+            loginAt: _currentAuth!.loginAt,
+            lastSync: DateTime.now(),
+            rememberMe: _currentAuth!.rememberMe,
+          );
+          await HiveService.saveAuth(_currentAuth!);
         }
         
         notifyListeners();
-        _setLoading(false);
-        return true;
+        developer.log('✅ User data refreshed successfully');
       }
-      
-      _setLoading(false);
-      return false;
-      */
     } catch (e) {
-      developer.log('Login error: $e');
-      _setLoading(false);
-      return false;
+      developer.log('❌ Refresh user data error: $e');
+      // Don't throw error, just log it
     }
   }
 
-  /// Logout - DUMMY MODE
-  Future<void> logout() async {
+  /// Try to refresh token (if online)
+  Future<void> _tryRefreshToken() async {
     try {
-      // 🎨 DUMMY LOGOUT - Skip API call
-      // await _apiService.logout();
-      await Future.delayed(const Duration(milliseconds: 500));
+      // TODO: Call API to refresh token
+      // if (await ConnectivityService.isOnline()) {
+      //   final response = await apiService.post('/api/refresh-token');
+      //   if (response.success) {
+      //     _currentAuth!.token = response.data['token'];
+      //     _currentAuth!.lastSync = DateTime.now();
+      //     await _currentAuth!.save(); // HiveObject save method
+      //     notifyListeners();
+      //     developer.log('Token refreshed successfully');
+      //   }
+      // }
     } catch (e) {
-      developer.log('Logout error: $e');
-    } finally {
-      _currentUser = null;
-      _authToken = null;
-      _apiClient.clearAuthToken();
-      notifyListeners();
+      developer.log('Token refresh error: $e');
     }
   }
 
-  /// Update Profile
-  Future<bool> updateProfile(Map<String, dynamic> data) async {
-    try {
-      _setLoading(true);
-      _currentUser = await _apiService.updateProfile(data);
-      notifyListeners();
-      _setLoading(false);
-      return true;
-    } catch (e) {
-      developer.log('Update profile error: $e');
-      _setLoading(false);
-      return false;
-    }
+  /// Get current user data as Map (with full staf data)
+  Map<String, dynamic> get currentUser {
+    if (_currentAuth == null) return {};
+    // Return full user data including staf info from API
+    return _fullUserData ?? _currentAuth!.toJson();
   }
 
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
+  /// Get user ID
+  int? get userId => _currentAuth?.userId;
+
+  /// Get user name
+  String? get userName => _currentAuth?.name;
+
+  /// Get user email
+  String? get userEmail => _currentAuth?.email;
+
+  /// Get auth token
+  String? get authToken => _currentAuth?.token;
 }

@@ -43,23 +43,28 @@ class ProfileScreen extends StatelessWidget {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: Colors.white,
-                        child: Text(
-                          user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                          style: TextStyle(
-                            fontSize: 40,
-                            color: PastelColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        backgroundImage: user['user']?['profile_picture_url'] != null
+                            ? NetworkImage(user['user']!['profile_picture_url']!)
+                            : null,
+                        child: user['user']?['profile_picture_url'] == null
+                            ? Text(
+                                (user['user']?['name'] ?? '').isNotEmpty ? (user['user']?['name'] ?? 'U')[0].toUpperCase() : 'U',
+                                style: TextStyle(
+                                  fontSize: 40,
+                                  color: PastelColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null,
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        user.name,
+                        user['user']?['name'] ?? 'User Name',
                         style: AppTextStyles.h1.copyWith(color: Colors.white),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        user.email,
+                        user['user']?['email'] ?? 'user@email.com',
                         style: AppTextStyles.bodyLarge.copyWith(color: Colors.white70),
                       ),
                     ],
@@ -72,33 +77,39 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       _buildInfoCard(
-                        icon: Icons.badge,
-                        title: 'ID Pengguna',
-                        value: user.id.toString(),
+                        icon: Icons.badge_outlined,
+                        title: 'No. Pekerja',
+                        value: user['user']?['staf']?['no_pekerja'] ?? 'Tidak ditetapkan',
                       ),
                       const SizedBox(height: 12),
                       _buildInfoCard(
                         icon: Icons.person,
-                        title: 'Nama',
-                        value: user.name,
+                        title: 'Nama Penuh',
+                        value: user['user']?['staf']?['nama_penuh'] ?? user['user']?['name'] ?? 'N/A',
                       ),
                       const SizedBox(height: 12),
                       _buildInfoCard(
-                        icon: Icons.email,
-                        title: 'Email',
-                        value: user.email,
+                        icon: Icons.credit_card,
+                        title: 'No. Kad Pengenalan',
+                        value: user['user']?['staf']?['no_kad_pengenalan'] ?? 'Tidak ditetapkan',
                       ),
                       const SizedBox(height: 12),
                       _buildInfoCard(
                         icon: Icons.business,
-                        title: 'Jenis Organisasi',
-                        value: _getOrganisationType(user.jenisOrganisasi),
+                        title: _getRisdaStationTitle(user['user']?['jenis_organisasi']),
+                        value: _getRisdaStationName(user),
                       ),
                       const SizedBox(height: 12),
                       _buildInfoCard(
-                        icon: Icons.location_city,
-                        title: 'ID Organisasi',
-                        value: user.organisasiId?.toString() ?? 'Tidak ditetapkan',
+                        icon: Icons.work,
+                        title: 'Jawatan',
+                        value: user['user']?['staf']?['jawatan'] ?? user['user']?['kumpulan']?['nama'] ?? 'Tidak ditetapkan',
+                      ),
+                      const SizedBox(height: 12),
+                      _buildInfoCard(
+                        icon: Icons.phone,
+                        title: 'No. Telefon',
+                        value: user['user']?['staf']?['no_telefon'] ?? user['user']?['no_telefon'] ?? 'Tidak ditetapkan',
                       ),
                       const SizedBox(height: 24),
                       
@@ -185,16 +196,31 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  String _getOrganisationType(String? type) {
+  String _getRisdaStationTitle(String? type) {
     switch (type?.toLowerCase()) {
-      case 'semua':
-        return 'Semua';
       case 'bahagian':
-        return 'Bahagian';
+        return 'RISDA Bahagian';
       case 'stesen':
-        return 'Stesen';
+        return 'RISDA Stesen';
       default:
-        return type ?? 'Tidak ditetapkan';
+        return 'RISDA';
     }
+  }
+
+  String _getRisdaStationName(Map<String, dynamic> user) {
+    final userData = user['user'];
+    if (userData == null) return 'Tidak ditetapkan';
+    
+    // Check if stesen data exists
+    if (userData['stesen'] != null && userData['stesen']['nama'] != null) {
+      return userData['stesen']['nama'];
+    }
+    
+    // Check if bahagian data exists
+    if (userData['bahagian'] != null && userData['bahagian']['nama'] != null) {
+      return userData['bahagian']['nama'];
+    }
+    
+    return 'Tidak ditetapkan';
   }
 }

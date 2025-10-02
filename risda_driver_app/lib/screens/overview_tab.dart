@@ -1,18 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
+import '../services/api_service.dart';
+import '../core/api_client.dart';
+import 'dart:developer' as developer;
 
-class OverviewTab extends StatelessWidget {
+class OverviewTab extends StatefulWidget {
   const OverviewTab({super.key});
+
+  @override
+  State<OverviewTab> createState() => _OverviewTabState();
+}
+
+class _OverviewTabState extends State<OverviewTab> {
+  late final ApiService _apiService;
+  
+  // Dashboard Stats
+  int _totalTrips = 0;
+  double _totalDistance = 0.0;
+  double _fuelCost = 0.0;
+  double _maintenanceCost = 0.0;
+  double _parkingCost = 0.0;
+  double _fnbCost = 0.0;
+  double _accommodationCost = 0.0;
+  double _othersCost = 0.0;
+  double _tripsChange = 0.0;
+  double _distanceChange = 0.0;
+  double _fuelCostChange = 0.0;
+  double _maintenanceChange = 0.0;
+  double _parkingChange = 0.0;
+  double _fnbChange = 0.0;
+  double _accommodationChange = 0.0;
+  double _othersChange = 0.0;
+  
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _apiService = ApiService(ApiClient());
+    _loadDashboardStats();
+  }
+
+  Future<void> _loadData() async {
+    await _loadDashboardStats();
+  }
+
+  Future<void> _loadDashboardStats() async {
+    try {
+      final response = await _apiService.getDashboardStatistics();
+      
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        
+        if (mounted) {
+          setState(() {
+            _totalTrips = data['total_trips'] ?? 0;
+            _totalDistance = (data['total_distance'] ?? 0.0).toDouble();
+            _fuelCost = (data['fuel_cost'] ?? 0.0).toDouble();
+            _maintenanceCost = (data['maintenance_cost'] ?? 0.0).toDouble();
+            _parkingCost = (data['parking_cost'] ?? 0.0).toDouble();
+            _fnbCost = (data['fnb_cost'] ?? 0.0).toDouble();
+            _accommodationCost = (data['accommodation_cost'] ?? 0.0).toDouble();
+            _othersCost = (data['others_cost'] ?? 0.0).toDouble();
+            _tripsChange = (data['total_trips_change'] ?? 0.0).toDouble();
+            _distanceChange = (data['total_distance_change'] ?? 0.0).toDouble();
+            _fuelCostChange = (data['fuel_cost_change'] ?? 0.0).toDouble();
+            _maintenanceChange = (data['maintenance_change'] ?? 0.0).toDouble();
+            _parkingChange = (data['parking_change'] ?? 0.0).toDouble();
+            _fnbChange = (data['fnb_change'] ?? 0.0).toDouble();
+            _accommodationChange = (data['accommodation_change'] ?? 0.0).toDouble();
+            _othersChange = (data['others_change'] ?? 0.0).toDouble();
+          });
+        }
+        
+        developer.log('✅ Dashboard stats loaded: Trips=$_totalTrips, Distance=$_totalDistance km, Fuel=RM $_fuelCost, Maintenance=RM $_maintenanceCost, Parking=RM $_parkingCost, F&B=RM $_fnbCost, Accommodation=RM $_accommodationCost, Others=RM $_othersCost');
+      }
+    } catch (e) {
+      developer.log('❌ Error loading dashboard stats: $e');
+      // Don't rethrow, just log - stats are optional
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () async {
-        // Dummy refresh, can be replaced with real data fetch
-        await Future.delayed(const Duration(seconds: 1));
-      },
+      onRefresh: _loadData,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Padding(
@@ -162,128 +237,61 @@ class OverviewTab extends StatelessWidget {
                 children: [
                   _buildStatCard(
                     title: 'Total Trips',
-                    value: '124',
+                    value: _totalTrips.toString(),
                     icon: Icons.directions_car,
                     color: PastelColors.success,
-                    subtitle: '+12% from last month',
+                    subtitle: '${_tripsChange >= 0 ? '+' : ''}${_tripsChange.toStringAsFixed(1)}% from last month',
                   ),
                   _buildStatCard(
                     title: 'Total Distance',
-                    value: '1,432 km',
+                    value: '${_totalDistance.toStringAsFixed(0)} km',
                     icon: Icons.map,
                     color: PastelColors.warning,
-                    subtitle: '+8% from last month',
+                    subtitle: '${_distanceChange >= 0 ? '+' : ''}${_distanceChange.toStringAsFixed(1)}% from last month',
                   ),
                   _buildStatCard(
                     title: 'Fuel Cost',
-                    value: 'RM 1,245',
+                    value: 'RM ${_fuelCost.toStringAsFixed(2)}',
                     icon: Icons.local_gas_station,
                     color: PastelColors.info,
-                    subtitle: '-3% from last month',
+                    subtitle: '${_fuelCostChange >= 0 ? '+' : ''}${_fuelCostChange.toStringAsFixed(1)}% from last month',
                   ),
                   _buildStatCard(
                     title: 'Maintenance',
-                    value: 'RM 450',
+                    value: 'RM ${_maintenanceCost.toStringAsFixed(2)}',
                     icon: Icons.build,
                     color: PastelColors.error,
-                    subtitle: '+5% from last month',
+                    subtitle: '${_maintenanceChange >= 0 ? '+' : ''}${_maintenanceChange.toStringAsFixed(1)}% from last month',
+                  ),
+                  _buildStatCard(
+                    title: 'Parking',
+                    value: 'RM ${_parkingCost.toStringAsFixed(2)}',
+                    icon: Icons.local_parking,
+                    color: Color(0xFF9C27B0), // Purple
+                    subtitle: '${_parkingChange >= 0 ? '+' : ''}${_parkingChange.toStringAsFixed(1)}% from last month',
+                  ),
+                  _buildStatCard(
+                    title: 'F&B',
+                    value: 'RM ${_fnbCost.toStringAsFixed(2)}',
+                    icon: Icons.restaurant,
+                    color: Color(0xFFFF9800), // Orange
+                    subtitle: '${_fnbChange >= 0 ? '+' : ''}${_fnbChange.toStringAsFixed(1)}% from last month',
+                  ),
+                  _buildStatCard(
+                    title: 'Accommodation',
+                    value: 'RM ${_accommodationCost.toStringAsFixed(2)}',
+                    icon: Icons.hotel,
+                    color: Color(0xFF00BCD4), // Cyan
+                    subtitle: '${_accommodationChange >= 0 ? '+' : ''}${_accommodationChange.toStringAsFixed(1)}% from last month',
+                  ),
+                  _buildStatCard(
+                    title: 'Others',
+                    value: 'RM ${_othersCost.toStringAsFixed(2)}',
+                    icon: Icons.more_horiz,
+                    color: Color(0xFF607D8B), // Blue Grey
+                    subtitle: '${_othersChange >= 0 ? '+' : ''}${_othersChange.toStringAsFixed(1)}% from last month',
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              // Program Card
-              Card(
-                color: Colors.white,
-                elevation: 3,
-                shadowColor: PastelColors.primary.withOpacity(0.15),
-                margin: const EdgeInsets.all(3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(3),
-                  side: BorderSide(color: PastelColors.border, width: 1),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.event_note, color: PastelColors.primary, size: 20),
-                          const SizedBox(width: 8),
-                          Text('Program', style: AppTextStyles.h2),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      DefaultTabController(
-                        length: 3,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            TabBar(
-                              labelColor: PastelColors.primary,
-                              unselectedLabelColor: PastelColors.textLight,
-                              indicatorColor: PastelColors.primary,
-                              tabs: const [
-                                Tab(text: 'Current'),
-                                Tab(text: 'Ongoing'),
-                                Tab(text: 'Past'),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 160,
-                              child: TabBarView(
-                                children: [
-                                  _buildProgramList([
-                                    ProgramDummy(
-                                      name: 'Program Jelajah Madani',
-                                      status: 'Aktif',
-                                      statusColor: PastelColors.primary,
-                                      date: '11-7-2025 9:00AM - 13-7-2025, 16:00PM',
-                                    ),
-                                    ProgramDummy(
-                                      name: 'Program Inovasi Desa',
-                                      status: 'Aktif',
-                                      statusColor: PastelColors.primary,
-                                      date: '15-7-2025 8:00AM - 16-7-2025, 17:00PM',
-                                    ),
-                                  ]),
-                                  _buildProgramList([
-                                    ProgramDummy(
-                                      name: 'Program Komuniti Hijau',
-                                      status: 'Tertunda',
-                                      statusColor: PastelColors.warning,
-                                      date: '20-7-2025 10:00AM - 21-7-2025, 15:00PM',
-                                    ),
-                                    ProgramDummy(
-                                      name: 'Program Sukan Rakyat',
-                                      status: 'Tertunda',
-                                      statusColor: PastelColors.warning,
-                                      date: '22-7-2025 9:00AM - 23-7-2025, 16:00PM',
-                                    ),
-                                  ]),
-                                  _buildProgramList([
-                                    ProgramDummy(
-                                      name: 'Program Gotong Royong',
-                                      status: 'Selesai',
-                                      statusColor: PastelColors.textLight,
-                                      date: '1-7-2025 8:00AM - 2-7-2025, 12:00PM',
-                                    ),
-                                    ProgramDummy(
-                                      name: 'Program Derma Darah',
-                                      status: 'Selesai',
-                                      statusColor: PastelColors.textLight,
-                                      date: '3-7-2025 9:00AM - 3-7-2025, 13:00PM',
-                                    ),
-                                  ]),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ],
           ),
@@ -306,70 +314,6 @@ class OverviewTab extends StatelessWidget {
         const SizedBox(width: 4),
         Text(label, style: AppTextStyles.bodyMedium),
       ],
-    );
-  }
-
-  Widget _buildProgramList(List<ProgramDummy> programs) {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 0),
-      itemCount: programs.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 3),
-      itemBuilder: (context, i) {
-        final p = programs[i];
-        return Card(
-          margin: EdgeInsets.zero,
-          elevation: 0.5,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
-          ),
-          color: PastelColors.background,
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(p.name, style: AppTextStyles.h3),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: p.status == 'Selesai'
-                                  ? PastelColors.error.withOpacity(0.15)
-                                  : p.statusColor.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              p.status,
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: p.status == 'Selesai'
-                                    ? PastelColors.errorText
-                                    : p.statusColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(p.date, style: AppTextStyles.bodyMedium),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
   
@@ -415,18 +359,4 @@ class OverviewTab extends StatelessWidget {
       ),
     );
   }
-}
-
-class ProgramDummy {
-  final String name;
-  final String status;
-  final Color statusColor;
-  final String date;
-  
-  ProgramDummy({
-    required this.name,
-    required this.status,
-    required this.statusColor,
-    required this.date,
-  });
 }

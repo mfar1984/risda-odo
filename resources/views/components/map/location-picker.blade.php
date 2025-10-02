@@ -115,6 +115,22 @@
 @once
     @push('styles')
         <style>
+            /* Ensure map container stays below header and modals */
+            .leaflet-container {
+                z-index: 1 !important;
+            }
+
+            /* Leaflet controls should be above the map but below header */
+            .leaflet-control-container {
+                z-index: 10 !important;
+            }
+
+            /* Leaflet popup/tooltip should be visible but below header */
+            .leaflet-popup,
+            .leaflet-tooltip {
+                z-index: 100 !important;
+            }
+
             .leaflet-marker-dot {
                 background: #2563eb;
                 border: 2px solid #ffffff;

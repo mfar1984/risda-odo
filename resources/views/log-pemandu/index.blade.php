@@ -119,7 +119,7 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                            {{ $log->pemandu->name ?? 'Tidak Dinyatakan' }}
+                            {{ $log->pemandu->risdaStaf->nama_penuh ?? 'Tidak Dinyatakan' }}
                         </div>
                         <div class="text-xs text-gray-500 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
                             Destinasi: {{ $log->destinasi ?? '-' }}
