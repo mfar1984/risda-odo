@@ -44,7 +44,7 @@
                         </div>
                         <div style="flex: 1;">
                             <x-forms.input-label for="versi_sistem" value="Versi Sistem" />
-                            <div class="mt-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-700 font-medium">
+                            <div class="mt-1 px-3 bg-gray-50 border border-gray-300 rounded-md text-gray-700 font-medium flex items-center" style="min-height: 32px; font-size: 12px;">
                                 {{ $tetapan->versi_sistem }}
                                 @php
                                     $latestRelease = \App\Models\NotaKeluaran::getLatestVersion();

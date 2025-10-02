@@ -35,17 +35,27 @@ class _OverviewTabState extends State<OverviewTab> {
   double _accommodationChange = 0.0;
   double _othersChange = 0.0;
   
+  // Chart Data
+  String _chartPeriod = '6months';
+  List<FlSpot> _fuelChartData = [];
+  List<FlSpot> _claimsChartData = [];
+  List<String> _chartLabels = [];
+  double _chartMaxY = 100;
+  
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _apiService = ApiService(ApiClient());
-    _loadDashboardStats();
+    _loadData();
   }
 
   Future<void> _loadData() async {
-    await _loadDashboardStats();
+    await Future.wait([
+      _loadDashboardStats(),
+      _loadChartData(),
+    ]);
   }
 
   Future<void> _loadDashboardStats() async {
@@ -75,13 +85,52 @@ class _OverviewTabState extends State<OverviewTab> {
             _othersChange = (data['others_change'] ?? 0.0).toDouble();
           });
         }
-        
-        developer.log('✅ Dashboard stats loaded: Trips=$_totalTrips, Distance=$_totalDistance km, Fuel=RM $_fuelCost, Maintenance=RM $_maintenanceCost, Parking=RM $_parkingCost, F&B=RM $_fnbCost, Accommodation=RM $_accommodationCost, Others=RM $_othersCost');
       }
     } catch (e) {
-      developer.log('❌ Error loading dashboard stats: $e');
       // Don't rethrow, just log - stats are optional
     }
+  }
+
+  Future<void> _loadChartData() async {
+    try {
+      final response = await _apiService.getOverviewChartData(period: _chartPeriod);
+      
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        final chartData = data['chart_data'] as List;
+        
+        if (mounted) {
+          setState(() {
+            _chartLabels = chartData.map((item) => item['label'] as String).toList();
+            
+            _fuelChartData = chartData.asMap().entries.map((entry) {
+              final value = double.tryParse(entry.value['fuel_cost'].toString()) ?? 0.0;
+              return FlSpot(entry.key.toDouble(), value);
+            }).toList();
+            
+            _claimsChartData = chartData.asMap().entries.map((entry) {
+              final value = double.tryParse(entry.value['claims'].toString()) ?? 0.0;
+              return FlSpot(entry.key.toDouble(), value);
+            }).toList();
+            
+            // Calculate max Y for chart scaling
+            final maxFuel = _fuelChartData.map((spot) => spot.y).reduce((a, b) => a > b ? a : b);
+            final maxClaims = _claimsChartData.map((spot) => spot.y).reduce((a, b) => a > b ? a : b);
+            _chartMaxY = (maxFuel > maxClaims ? maxFuel : maxClaims) * 1.2; // Add 20% padding
+            if (_chartMaxY < 100) _chartMaxY = 100; // Minimum scale
+          });
+        }
+      }
+    } catch (e) {
+      // Use empty data on error
+    }
+  }
+
+  void _toggleChartPeriod() {
+    setState(() {
+      _chartPeriod = _chartPeriod == '6months' ? '1month' : '6months';
+    });
+    _loadChartData();
   }
 
   @override
@@ -111,10 +160,27 @@ class _OverviewTabState extends State<OverviewTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(Icons.bar_chart, color: PastelColors.primary, size: 20),
-                          const SizedBox(width: 8),
-                          Text('Analytics', style: AppTextStyles.h2),
+                          Row(
+                            children: [
+                              Icon(Icons.bar_chart, color: PastelColors.primary, size: 20),
+                              const SizedBox(width: 8),
+                              Text('Cost Analytics (RM)', style: AppTextStyles.h2),
+                            ],
+                          ),
+                          OutlinedButton(
+                            onPressed: _toggleChartPeriod,
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              _chartPeriod == '6months' ? '6 Months' : '1 Month',
+                              style: AppTextStyles.bodySmall,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -147,9 +213,11 @@ class _OverviewTabState extends State<OverviewTab> {
                                   showTitles: true,
                                   reservedSize: 28,
                                   getTitlesWidget: (value, meta) {
-                                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    if (value.toInt() < 0 || value.toInt() >= _chartLabels.length) {
+                                      return const Text('');
+                                    }
                                     return Text(
-                                      months[value.toInt() % 12],
+                                      _chartLabels[value.toInt()],
                                       style: AppTextStyles.bodySmall,
                                     );
                                   },
@@ -165,43 +233,17 @@ class _OverviewTabState extends State<OverviewTab> {
                             borderData: FlBorderData(show: false),
                             lineBarsData: [
                               LineChartBarData(
-                                spots: const [
-                                  FlSpot(0, 10),
-                                  FlSpot(1, 12),
-                                  FlSpot(2, 8),
-                                  FlSpot(3, 15),
-                                  FlSpot(4, 13),
-                                  FlSpot(5, 17),
-                                  FlSpot(6, 14),
-                                  FlSpot(7, 16),
-                                  FlSpot(8, 12),
-                                  FlSpot(9, 18),
-                                  FlSpot(10, 15),
-                                  FlSpot(11, 20),
-                                ],
+                                spots: _fuelChartData,
                                 isCurved: true,
-                                color: PastelColors.success, // Claim = Green card
+                                color: Colors.orange, // Fuel Cost = Orange
                                 barWidth: 3,
                                 dotData: const FlDotData(show: false),
                                 belowBarData: BarAreaData(show: false),
                               ),
                               LineChartBarData(
-                                spots: const [
-                                  FlSpot(0, 5),
-                                  FlSpot(1, 7),
-                                  FlSpot(2, 6),
-                                  FlSpot(3, 8),
-                                  FlSpot(4, 7),
-                                  FlSpot(5, 9),
-                                  FlSpot(6, 8),
-                                  FlSpot(7, 10),
-                                  FlSpot(8, 7),
-                                  FlSpot(9, 11),
-                                  FlSpot(10, 9),
-                                  FlSpot(11, 13),
-                                ],
+                                spots: _claimsChartData,
                                 isCurved: true,
-                                color: PastelColors.warning, // Total Kos = Yellow card
+                                color: PastelColors.success, // Claims = Green
                                 barWidth: 3,
                                 dotData: const FlDotData(show: false),
                                 belowBarData: BarAreaData(show: false),
@@ -209,7 +251,7 @@ class _OverviewTabState extends State<OverviewTab> {
                             ],
                             lineTouchData: const LineTouchData(enabled: true),
                             minY: 0,
-                            maxY: 25,
+                            maxY: _chartMaxY,
                           ),
                         ),
                       ),
@@ -217,8 +259,8 @@ class _OverviewTabState extends State<OverviewTab> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildLegend('Claim', PastelColors.success),
-                          _buildLegend('Total Kos', PastelColors.warning),
+                          _buildLegend('Fuel Cost', Colors.orange),
+                          _buildLegend('Total Claims', PastelColors.success),
                         ],
                       ),
                     ],

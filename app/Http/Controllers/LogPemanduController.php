@@ -10,6 +10,25 @@ use Illuminate\Http\Request;
 class LogPemanduController extends Controller
 {
     /**
+     * Get tab counts for auto-refresh (AJAX endpoint)
+     */
+    public function getTabCounts(Request $request)
+    {
+        $user = $request->user();
+        $baseQuery = LogPemandu::query();
+        $this->applyOrganisationScope($baseQuery, $user);
+
+        $tabCounts = [
+            'semua' => (clone $baseQuery)->count(),
+            'aktif' => (clone $baseQuery)->where('status', 'dalam_perjalanan')->count(),
+            'selesai' => (clone $baseQuery)->where('status', 'selesai')->count(),
+            'tertunda' => (clone $baseQuery)->where('status', 'tertunda')->count(),
+        ];
+
+        return response()->json($tabCounts);
+    }
+
+    /**
      * Display a listing of driver logs with tabbed status view.
      */
     public function index(Request $request)

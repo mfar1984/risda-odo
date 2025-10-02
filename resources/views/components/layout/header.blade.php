@@ -34,12 +34,131 @@
             <!-- Right side - Notification and menu icons -->
             <div class="topbar-right">
                 <!-- Notification Bell with Badge -->
-                <div class="relative">
-                    <button class="topbar-notification-btn">
+                <div class="relative" x-data="{
+                    open: false,
+                    notifications: [],
+                    unreadCount: 0,
+                    loading: false,
+                    async fetchNotifications() {
+                        this.loading = true;
+                        try {
+                            const prevUnreadCount = this.unreadCount;
+                            const response = await fetch('/notifications', {
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                }
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                                this.notifications = data.data;
+                                this.unreadCount = data.unread_count;
+                                
+                                // Play bell sound if new notification
+                                if (this.unreadCount > prevUnreadCount) {
+                                    this.playBellSound();
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Failed to fetch notifications:', error);
+                        }
+                        this.loading = false;
+                    },
+                    playBellSound() {
+                        // Create notification bell sound
+                        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUKnl86xhGwU7k9n0yXgiBS16yO/ajj4IF14w4IuYIwU2jdLuxG8gAycF');
+                        audio.volume = 0.5;
+                        audio.play().catch(e => console.log('Sound play failed:', e));
+                    },
+                    async markAsRead(id) {
+                        try {
+                            await fetch(`/notifications/${id}/mark-as-read`, {
+                                method: 'POST',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                }
+                            });
+                            await this.fetchNotifications();
+                        } catch (error) {
+                            console.error('Failed to mark as read:', error);
+                        }
+                    },
+                    async markAllAsRead() {
+                        try {
+                            await fetch('/notifications/mark-all-as-read', {
+                                method: 'POST',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                }
+                            });
+                            await this.fetchNotifications();
+                        } catch (error) {
+                            console.error('Failed to mark all as read:', error);
+                        }
+                    },
+                    init() {
+                        this.fetchNotifications();
+                        // Auto-refresh every 5 seconds for near real-time
+                        setInterval(() => this.fetchNotifications(), 5000);
+                    }
+                }" @click.away="open = false">
+                    <button @click="open = !open; if(open) fetchNotifications()" class="topbar-notification-btn">
                         <span class="material-symbols-outlined">notifications</span>
                         <!-- Notification Badge -->
-                        <span class="notification-badge">3</span>
+                        <span x-show="unreadCount > 0" x-text="unreadCount" class="notification-badge"></span>
                     </button>
+
+                    <!-- Notification Dropdown -->
+                    <div x-show="open" x-transition class="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                        <!-- Header -->
+                        <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                            <h3 class="text-sm font-semibold text-gray-900">Notifikasi</h3>
+                            <button @click="markAllAsRead()" x-show="unreadCount > 0" class="text-xs text-blue-600 hover:text-blue-800">
+                                Tandakan Semua Dibaca
+                            </button>
+                        </div>
+
+                        <!-- Notifications List -->
+                        <div class="max-h-96 overflow-y-auto">
+                            <template x-if="loading">
+                                <div class="px-4 py-8 text-center text-gray-500">
+                                    <span class="material-symbols-outlined animate-spin">refresh</span>
+                                    <p class="mt-2 text-sm">Memuatkan...</p>
+                                </div>
+                            </template>
+
+                            <template x-if="!loading && notifications.length === 0">
+                                <div class="px-4 py-8 text-center text-gray-500">
+                                    <span class="material-symbols-outlined text-4xl">notifications_off</span>
+                                    <p class="mt-2 text-sm">Tiada notifikasi baharu</p>
+                                </div>
+                            </template>
+
+                            <template x-for="notification in notifications" :key="notification.id">
+                                <a :href="notification.action_url" 
+                                   @click="markAsRead(notification.id)"
+                                   class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 transition-colors"
+                                   :class="{ 'bg-blue-50': !notification.read_at }">
+                                    <div class="flex items-start">
+                                        <span class="material-symbols-outlined text-blue-600 mr-3 mt-0.5" x-text="notification.type === 'claim_created' || notification.type === 'claim_resubmitted' ? 'receipt_long' : notification.type === 'journey_started' ? 'trip_origin' : notification.type === 'journey_ended' ? 'flag' : 'info'"></span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900" x-text="notification.title"></p>
+                                            <p class="text-sm text-gray-600 mt-1" x-text="notification.message"></p>
+                                            <p class="text-xs text-gray-500 mt-1" x-text="new Date(notification.created_at).toLocaleString('ms-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })"></p>
+                                        </div>
+                                        <span x-show="!notification.read_at" class="ml-2 h-2 w-2 bg-blue-600 rounded-full"></span>
+                                    </div>
+                                </a>
+                            </template>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="px-4 py-3 border-t border-gray-200 text-center">
+                            <a href="#" class="text-sm text-blue-600 hover:text-blue-800">Lihat Semua Notifikasi</a>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Apps Grid Menu Icon -->

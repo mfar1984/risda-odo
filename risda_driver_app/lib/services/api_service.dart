@@ -618,4 +618,117 @@ class ApiService {
       rethrow;
     }
   }
+
+  // ==================== App Information ====================
+  
+  /// Get app information (public endpoint - no auth required)
+  Future<Map<String, dynamic>> getAppInfo() async {
+    try {
+      final response = await _apiClient.dio.get('/app-info');
+      return response.data;
+    } catch (e) {
+      developer.log('Get app info error: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== Privacy Policy ====================
+  
+  /// Get privacy policy (public endpoint - no auth required)
+  Future<Map<String, dynamic>> getPrivacyPolicy() async {
+    try {
+      final response = await _apiClient.dio.get('/privacy-policy');
+      return response.data;
+    } catch (e) {
+      developer.log('Get privacy policy error: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== Chart Data ====================
+  
+  /// Get overview chart data (Fuel Cost vs Claims)
+  Future<Map<String, dynamic>> getOverviewChartData({String period = '6months'}) async {
+    try {
+      final response = await _apiClient.dio.get('/chart/overview', queryParameters: {'period': period});
+      return response.data;
+    } catch (e) {
+      developer.log('Get overview chart data error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get Do tab chart data (Start vs End Journey)
+  Future<Map<String, dynamic>> getDoActivityChartData({String period = '6months'}) async {
+    try {
+      final response = await _apiClient.dio.get('/chart/do-activity', queryParameters: {'period': period});
+      return response.data;
+    } catch (e) {
+      developer.log('Get do activity chart data error: $e');
+      rethrow;
+    }
+  }
+
+  /// Register FCM token
+  Future<Map<String, dynamic>> registerFcmToken(String token) async {
+    try {
+      final response = await _apiClient.dio.post('/notifications/register-token', data: {
+        'token': token,
+        'device_type': 'android', // TODO: Detect platform
+        'device_id': 'flutter-web-or-mobile', // TODO: Get actual device ID
+      });
+      return response.data;
+    } catch (e) {
+      developer.log('Register FCM token error: $e');
+      rethrow;
+    }
+  }
+
+  /// Remove FCM token
+  Future<Map<String, dynamic>> removeFcmToken(String token) async {
+    try {
+      final response = await _apiClient.dio.post('/notifications/remove-token', data: {
+        'token': token,
+      });
+      return response.data;
+    } catch (e) {
+      developer.log('Remove FCM token error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get all notifications
+  Future<Map<String, dynamic>> getNotifications({bool? unreadOnly}) async {
+    try {
+      final response = await _apiClient.dio.get('/notifications', queryParameters: {
+        if (unreadOnly != null) 'unread_only': unreadOnly,
+      });
+      return response.data;
+    } catch (e) {
+      developer.log('Get notifications error: $e');
+      rethrow;
+    }
+  }
+
+  /// Mark notification as read
+  Future<Map<String, dynamic>> markNotificationAsRead(int id) async {
+    try {
+      final response = await _apiClient.dio.post('/notifications/$id/mark-as-read');
+      return response.data;
+    } catch (e) {
+      developer.log('Mark notification as read error: $e');
+      rethrow;
+    }
+  }
+
+  /// Mark all notifications as read
+  Future<Map<String, dynamic>> markAllNotificationsAsRead() async {
+    try {
+      final response = await _apiClient.dio.post('/notifications/mark-all-as-read');
+      return response.data;
+    } catch (e) {
+      developer.log('Mark all notifications as read error: $e');
+      rethrow;
+    }
+  }
 }

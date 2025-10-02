@@ -22,6 +22,13 @@ Route::middleware('auth')->group(function () {
         return view('settings.index');
     })->name('settings.index');
 
+    // Notification Routes (Web - for Bell Icon)
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+        Route::post('/{id}/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('mark-as-read');
+        Route::post('/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('mark-all-as-read');
+    });
+
     // Program Routes (Permission-based)
     Route::middleware('permission:program,lihat')->group(function () {
         Route::get('/program', [App\Http\Controllers\ProgramController::class, 'index'])->name('program.index');
@@ -55,6 +62,7 @@ Route::middleware('auth')->group(function () {
 
     // Log Pemandu Routes (Permission-based)
     Route::get('/log-pemandu', [LogPemanduController::class, 'index'])->name('log-pemandu.index');
+    Route::get('/log-pemandu/tab-counts', [LogPemanduController::class, 'getTabCounts'])->name('log-pemandu.tab-counts');
     Route::get('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'show'])->name('log-pemandu.show');
     Route::get('/log-pemandu/{logPemandu}/edit', [LogPemanduController::class, 'edit'])->name('log-pemandu.edit');
     Route::put('/log-pemandu/{logPemandu}', [LogPemanduController::class, 'update'])->name('log-pemandu.update');

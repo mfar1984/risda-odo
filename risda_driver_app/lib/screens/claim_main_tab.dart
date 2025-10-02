@@ -488,7 +488,7 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
       case 'digantung':
         bgColor = Colors.grey.shade200;
         textColor = Colors.grey.shade700;
-        label = 'Digantung';
+        label = 'Dibatalkan';
         break;
       default:
         bgColor = Colors.grey.shade100;

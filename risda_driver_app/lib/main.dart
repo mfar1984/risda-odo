@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'core/api_client.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/hive_service.dart';
+import 'services/firebase_service.dart';
 import 'repositories/driver_log_repository.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
@@ -12,6 +15,26 @@ import 'screens/dashboard_screen.dart';
 Future<void> main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase (skip on web for now - web FCM needs different setup)
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp(
+        options: const FirebaseOptions(
+          apiKey: 'AIzaSyBp2C6KN_C8J3YKsFHvHt6kI20YW7kJYvY',
+          appId: '1:664926126437:android:abc123',
+          messagingSenderId: '664926126437',
+          projectId: 'jara-risda',
+          storageBucket: 'jara-risda.firebasestorage.app',
+        ),
+      );
+      
+      // Initialize Firebase Cloud Messaging (mobile only)
+      await FirebaseService().initialize();
+    } catch (e) {
+      debugPrint('Firebase initialization error: $e');
+    }
+  }
   
   // Initialize Hive (offline storage)
   await HiveService.init();

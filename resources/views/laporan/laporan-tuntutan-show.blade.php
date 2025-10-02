@@ -346,8 +346,8 @@
     </x-ui.page-header>
 
     {{-- Reject Modal --}}
-    <div id="rejectModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div id="rejectModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[1100] flex items-center justify-center">
+        <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Tolak Tuntutan</h3>
                 <form id="rejectForm" method="POST" action="{{ route('laporan.laporan-tuntutan.reject', $tuntutan->id) }}">
@@ -377,8 +377,8 @@
     </div>
 
     {{-- Cancel Modal --}}
-    <div id="cancelModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div id="cancelModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[1100] flex items-center justify-center">
+        <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="mt-3">
                 <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Batal Tuntutan</h3>
                 <form id="cancelForm" method="POST" action="{{ route('laporan.laporan-tuntutan.cancel', $tuntutan->id) }}">

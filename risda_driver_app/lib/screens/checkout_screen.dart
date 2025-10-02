@@ -95,8 +95,8 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         final kenderaan = journey['kenderaan'];
         
         if (program != null) {
-          programNameController.text = program['nama'] ?? '';
-          locationController.text = program['lokasi'] ?? '';
+          programNameController.text = program['nama_program'] ?? '';
+          locationController.text = program['lokasi_program'] ?? '';
           
           // Set Estimation KM
           if (program['jarak_anggaran'] != null) {
@@ -106,7 +106,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
           // Set Request By
           if (program['permohonan_dari'] != null) {
             final requestBy = program['permohonan_dari'];
-            requestByController.text = requestBy['nama'] ?? '';
+            requestByController.text = requestBy['nama_penuh'] ?? '';
           }
         }
         
@@ -471,8 +471,6 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
             }
           }
         }
-        
-        developer.log('End Journey Error Details: $detailedError');
         
       setState(() {
         isSubmitting = false;

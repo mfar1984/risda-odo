@@ -94,6 +94,22 @@
                                     <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">dashboard</span>
                                     <span class="truncate">/dashboard/statistics</span>
                                 </button>
+                                <button onclick="showSection('app-info')" id="menu-app-info" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">info</span>
+                                    <span class="truncate">/app-info</span>
+                                </button>
+                                <button onclick="showSection('privacy-policy')" id="menu-privacy-policy" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">privacy_tip</span>
+                                    <span class="truncate">/privacy-policy</span>
+                                </button>
+                                <button onclick="showSection('chart-overview')" id="menu-chart-overview" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">show_chart</span>
+                                    <span class="truncate">/chart/overview</span>
+                                </button>
+                                <button onclick="showSection('chart-do-activity')" id="menu-chart-do-activity" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">analytics</span>
+                                    <span class="truncate">/chart/do-activity</span>
+                                </button>
                             </nav>
                         </div>
                     </div>
@@ -649,6 +665,9 @@ GET /api/programs?status=past       // Programs selesai</code></pre>
       "tarikh_mula_formatted": "01/10/2025",
       "tarikh_selesai": "2025-10-01 17:00:00",
       "tarikh_selesai_formatted": "01/10/2025",
+      "tarikh_kelulusan": "2025-09-30 14:30:00",
+      "tarikh_mula_aktif": "2025-10-01 08:15:00",
+      "tarikh_sebenar_selesai": null,
       "lokasi_program": "Kampung Sungai Rusa, Sibu",
       "lokasi_lat": "2.3225",
       "lokasi_long": "111.8248",
@@ -733,6 +752,9 @@ GET /api/programs/8</code></pre>
     "tarikh_mula_formatted": "01/10/2025",
     "tarikh_selesai": "2025-10-01 17:00:00",
     "tarikh_selesai_formatted": "01/10/2025",
+    "tarikh_kelulusan": "2025-09-30 14:30:00",
+    "tarikh_mula_aktif": "2025-10-01 08:15:00",
+    "tarikh_sebenar_selesai": null,
     "lokasi_program": "Kampung Sungai Rusa, Sibu",
     "lokasi_lat": "2.3225",
     "lokasi_long": "111.8248",
@@ -769,13 +791,23 @@ GET /api/programs/8</code></pre>
                         </div>
 
                         <h4 class="font-semibold text-gray-900 mb-3">Error Responses:</h4>
-                        <div class="space-y-2">
+                        <div class="space-y-2 mb-6">
                             <div class="bg-red-50 border-l-4 border-red-500 p-3">
                                 <span class="font-semibold text-red-700">404 Not Found</span> - Program tidak dijumpai atau tidak diberikan akses
                             </div>
                             <div class="bg-red-50 border-l-4 border-red-500 p-3">
                                 <span class="font-semibold text-red-700">401 Unauthorized</span> - Token tidak sah
                             </div>
+                        </div>
+
+                        <h4 class="font-semibold text-gray-900 mb-3">📅 Date Fields Explanation:</h4>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                            <ul class="text-sm text-blue-700 space-y-2">
+                                <li><strong>tarikh_kelulusan:</strong> Tarikh & masa program diluluskan oleh admin</li>
+                                <li><strong>tarikh_mula_aktif:</strong> Tarikh & masa program jadi aktif (bila driver mula journey pertama)</li>
+                                <li><strong>tarikh_sebenar_selesai:</strong> Tarikh & masa program sebenarnya selesai (tarikh end journey terakhir atau auto-close)</li>
+                                <li><strong>Note:</strong> Fields ini boleh jadi <code>null</code> jika program belum sampai stage tersebut</li>
+                            </ul>
                         </div>
                     </div>
 
@@ -1679,6 +1711,115 @@ Content-Type: application/json</code></pre>
 
                         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
                             <p class="text-sm text-blue-800"><strong>💡 Tips:</strong> Perfect for Overview/Dashboard screens in mobile apps. Percentage changes help visualize trends. If no data exists for last month, change will be 100% (new data). All claim categories (Fuel, Maintenance, Parking, F&B, Accommodation, Others) include both <strong>pending</strong> and <strong>approved</strong> claims. Note: "Tol" category is excluded as Sarawak doesn't have toll roads.</p>
+                        </div>
+                    </div>
+
+                    {{-- App Information Content --}}
+                    <div id="content-app-info" class="content-section hidden">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded">GET</span>
+                            /api/app-info
+                        </h3>
+                        
+                        <p class="text-gray-600 mb-4">Get application information including version, organization details, and contact information. <strong>This is a public endpoint</strong> (no authentication required).</p>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                            <h4 class="font-semibold text-gray-900 mb-2">Headers (Required)</h4>
+                            <div class="bg-gray-50 p-3 rounded">
+                                <code class="text-sm">X-API-Key: {your_api_key}</code><br>
+                                <code class="text-sm">Origin: http://localhost</code>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                            <h4 class="font-semibold text-gray-900 mb-2">Success Response (200)</h4>
+                            <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm"><code>{
+  "success": true,
+  "data": {
+    "app_name": "JARA Mobile App",
+    "system_full_name": "JARA (Jejak Aset & Rekod Automotif)",
+    "version": "1.6.0",
+    "build_number": 160,
+    "release_date": "01 October 2025",
+    "organization": "RISDA",
+    "department": "RISDA Bahagian Sibu",
+    "address": {...},
+    "phone": ["084-344712", "084-344713"],
+    "email": "prbsibu@risda.gov.my",
+    "backend_url": "https://jara.my",
+    "website_url": "https://www.jara.com.my",
+    "supported_platforms": ["Android", "iOS"],
+    "copyright": "© 1973 - 2025 RISDA"
+  }
+}</code></pre>
+                        </div>
+
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
+                            <p class="text-sm text-blue-800"><strong>💡 Tips:</strong> Version and release date are automatically synced from Nota Keluaran. Copyright year is dynamic (current year).</p>
+                        </div>
+                    </div>
+
+                    {{-- Privacy Policy Content --}}
+                    <div id="content-privacy-policy" class="content-section hidden">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded">GET</span>
+                            /api/privacy-policy
+                        </h3>
+                        
+                        <p class="text-gray-600 mb-4">Get privacy policy content for the mobile app. <strong>This is a public endpoint</strong> (no authentication required).</p>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                            <h4 class="font-semibold text-gray-900 mb-2">Headers (Required)</h4>
+                            <div class="bg-gray-50 p-3 rounded">
+                                <code class="text-sm">X-API-Key: {your_api_key}</code><br>
+                                <code class="text-sm">Origin: http://localhost</code>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
+                            <p class="text-sm text-blue-800"><strong>💡 Tips:</strong> Response includes title, effective_date, last_updated, sections array, and acknowledgment. Sections may contain heading, content, list, footer, and contact fields.</p>
+                        </div>
+                    </div>
+
+                    {{-- Chart Overview Content --}}
+                    <div id="content-chart-overview" class="content-section hidden">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded">GET</span>
+                            /api/chart/overview
+                        </h3>
+                        
+                        <p class="text-gray-600 mb-4">Get overview chart data showing Fuel Cost vs Total Claims over time.</p>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                            <h4 class="font-semibold text-gray-900 mb-2">Query Parameters (Optional)</h4>
+                            <div class="bg-gray-50 p-3 rounded">
+                                <code class="text-sm font-semibold">period</code>: <code>1month</code> or <code>6months</code> (default)
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
+                            <p class="text-sm text-blue-800"><strong>💡 Tips:</strong> Returns chart_data array with period, label, fuel_cost, and claims. Use for Overview tab analytics.</p>
+                        </div>
+                    </div>
+
+                    {{-- Chart Do Activity Content --}}
+                    <div id="content-chart-do-activity" class="content-section hidden">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded">GET</span>
+                            /api/chart/do-activity
+                        </h3>
+                        
+                        <p class="text-gray-600 mb-4">Get Do tab chart data showing Start Journey vs End Journey counts over time.</p>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                            <h4 class="font-semibold text-gray-900 mb-2">Query Parameters (Optional)</h4>
+                            <div class="bg-gray-50 p-3 rounded">
+                                <code class="text-sm font-semibold">period</code>: <code>1month</code> or <code>6months</code> (default)
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
+                            <p class="text-sm text-blue-800"><strong>💡 Tips:</strong> Returns chart_data array with period, label, start_journey, and end_journey counts. Use for Do tab trip activity analytics.</p>
                         </div>
                     </div>
 

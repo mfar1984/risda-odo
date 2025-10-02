@@ -16,6 +16,9 @@ class Program extends Model
         'status',
         'tarikh_mula',
         'tarikh_selesai',
+        'tarikh_kelulusan',
+        'tarikh_mula_aktif',
+        'tarikh_sebenar_selesai',
         'lokasi_program',
         'lokasi_lat',
         'lokasi_long',
@@ -33,6 +36,9 @@ class Program extends Model
     protected $casts = [
         'tarikh_mula' => 'datetime',
         'tarikh_selesai' => 'datetime',
+        'tarikh_kelulusan' => 'datetime',
+        'tarikh_mula_aktif' => 'datetime',
+        'tarikh_sebenar_selesai' => 'datetime',
         'jarak_anggaran' => 'decimal:2',
     ];
 

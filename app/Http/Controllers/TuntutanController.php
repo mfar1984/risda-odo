@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Services\FirebaseService;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class TuntutanController extends Controller
@@ -157,6 +158,37 @@ class TuntutanController extends Controller
                 'alasan_tolak' => null, // Clear rejection reason if any
             ]);
 
+            // Send notification to driver
+            $driverId = $tuntutan->logPemandu->pemandu_id;
+            
+            // Create database notification (for bell count)
+            \App\Models\Notification::create([
+                'user_id' => $driverId,
+                'type' => 'claim_approved',
+                'title' => 'Tuntutan Diluluskan',
+                'message' => "Tuntutan anda sebanyak RM {$tuntutan->jumlah} untuk {$tuntutan->kategori_label} telah diluluskan.",
+                'data' => [
+                    'claim_id' => $tuntutan->id,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori,
+                ],
+                'action_url' => "/laporan/laporan-tuntutan/{$tuntutan->id}",
+            ]);
+
+            // Send FCM push notification
+            $firebaseService = app(FirebaseService::class);
+            $firebaseService->sendToUser(
+                $driverId,
+                'Tuntutan Diluluskan',
+                "Tuntutan anda sebanyak RM {$tuntutan->jumlah} untuk {$tuntutan->kategori_label} telah diluluskan.",
+                [
+                    'type' => 'claim_approved',
+                    'claim_id' => $tuntutan->id,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori,
+                ]
+            );
+
             DB::commit();
 
             return response()->json([
@@ -211,6 +243,39 @@ class TuntutanController extends Controller
                 'tarikh_diproses' => now(),
             ]);
 
+            // Send notification to driver
+            $driverId = $tuntutan->logPemandu->pemandu_id;
+            
+            // Create database notification (for bell count)
+            \App\Models\Notification::create([
+                'user_id' => $driverId,
+                'type' => 'claim_rejected',
+                'title' => 'Tuntutan Ditolak',
+                'message' => "Tuntutan anda sebanyak RM {$tuntutan->jumlah} untuk {$tuntutan->kategori_label} telah ditolak. Sila semak alasan dan kemukakan semula.",
+                'data' => [
+                    'claim_id' => $tuntutan->id,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori,
+                    'reason' => $request->alasan_tolak,
+                ],
+                'action_url' => "/laporan/laporan-tuntutan/{$tuntutan->id}",
+            ]);
+
+            // Send FCM push notification
+            $firebaseService = app(FirebaseService::class);
+            $firebaseService->sendToUser(
+                $driverId,
+                'Tuntutan Ditolak',
+                "Tuntutan anda sebanyak RM {$tuntutan->jumlah} untuk {$tuntutan->kategori_label} telah ditolak. Sila semak alasan dan kemukakan semula.",
+                [
+                    'type' => 'claim_rejected',
+                    'claim_id' => $tuntutan->id,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori,
+                    'reason' => $request->alasan_tolak,
+                ]
+            );
+
             DB::commit();
 
             return response()->json([
@@ -264,6 +329,39 @@ class TuntutanController extends Controller
                 'diproses_oleh' => Auth::id(),
                 'tarikh_diproses' => now(),
             ]);
+
+            // Send notification to driver
+            $driverId = $tuntutan->logPemandu->pemandu_id;
+            
+            // Create database notification (for bell count)
+            \App\Models\Notification::create([
+                'user_id' => $driverId,
+                'type' => 'claim_cancelled',
+                'title' => 'Tuntutan Dibatalkan',
+                'message' => "Tuntutan anda sebanyak RM {$tuntutan->jumlah} untuk {$tuntutan->kategori_label} telah dibatalkan.",
+                'data' => [
+                    'claim_id' => $tuntutan->id,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori,
+                    'reason' => $request->alasan_gantung,
+                ],
+                'action_url' => "/laporan/laporan-tuntutan/{$tuntutan->id}",
+            ]);
+
+            // Send FCM push notification
+            $firebaseService = app(FirebaseService::class);
+            $firebaseService->sendToUser(
+                $driverId,
+                'Tuntutan Dibatalkan',
+                "Tuntutan anda sebanyak RM {$tuntutan->jumlah} untuk {$tuntutan->kategori_label} telah dibatalkan.",
+                [
+                    'type' => 'claim_cancelled',
+                    'claim_id' => $tuntutan->id,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori,
+                    'reason' => $request->alasan_gantung,
+                ]
+            );
 
             DB::commit();
 

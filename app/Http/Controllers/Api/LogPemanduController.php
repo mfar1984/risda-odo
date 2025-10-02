@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\LogPemandu;
 use App\Models\Program;
 use App\Models\Kenderaan;
+use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -171,10 +173,36 @@ class LogPemanduController extends Controller
             'status' => 'dalam_perjalanan',
         ]);
 
+        // Auto-update Program status: LULUS → AKTIF (when first journey starts)
+        if ($program->status === 'lulus') {
+            $program->update([
+                'status' => 'aktif',
+                'tarikh_mula_aktif' => now(), // Set actual start date/time
+            ]);
+        }
+
         // Load relationships
         $log->load([
             'program:id,nama_program,lokasi_program,lokasi_lat,lokasi_long,jarak_anggaran',
             'kenderaan:id,no_plat,jenama,model',
+        ]);
+
+        // Create notification for admin (backend bell icon)
+        Notification::create([
+            'user_id' => null, // Global notification for all admins
+            'type' => 'journey_started',
+            'title' => 'Perjalanan Bermula',
+            'message' => "{$user->name} telah memulakan perjalanan untuk program '{$program->nama_program}'.",
+            'data' => [
+                'log_id' => $log->id,
+                'driver_id' => $user->id,
+                'driver_name' => $user->name,
+                'program_id' => $program->id,
+                'program_name' => $program->nama_program,
+                'vehicle_id' => $log->kenderaan_id,
+                'vehicle_plate' => $log->kenderaan->no_plat ?? 'N/A',
+            ],
+            'action_url' => "/log-pemandu/{$log->id}",
         ]);
 
         return response()->json([
@@ -264,6 +292,44 @@ class LogPemanduController extends Controller
         $log->load([
             'program:id,nama_program,lokasi_program',
             'kenderaan:id,no_plat,jenama,model',
+        ]);
+
+        // Update program's tarikh_sebenar_selesai to LAST end journey time
+        $program = $log->program;
+        if ($program) {
+            // Get latest end journey time for this program
+            $latestEndJourney = LogPemandu::where('program_id', $program->id)
+                ->where('status', 'selesai')
+                ->orderBy('masa_masuk', 'desc')
+                ->first();
+            
+            if ($latestEndJourney) {
+                $program->update([
+                    'tarikh_sebenar_selesai' => $latestEndJourney->masa_masuk,
+                ]);
+            }
+        }
+
+        // Create notification for admin (backend bell icon)
+        $user = Auth::user();
+        $program = $log->program;
+        Notification::create([
+            'user_id' => null, // Global notification for all admins
+            'type' => 'journey_ended',
+            'title' => 'Perjalanan Selesai',
+            'message' => "{$user->name} telah menamatkan perjalanan untuk program '{$program->nama_program}'.",
+            'data' => [
+                'log_id' => $log->id,
+                'driver_id' => $user->id,
+                'driver_name' => $user->name,
+                'program_id' => $program->id,
+                'program_name' => $program->nama_program,
+                'vehicle_id' => $log->kenderaan_id,
+                'vehicle_plate' => $log->kenderaan->no_plat ?? 'N/A',
+                'distance' => $log->jarak_perjalanan ?? 0,
+                'fuel_cost' => $log->kos_minyak ?? 0,
+            ],
+            'action_url' => "/log-pemandu/{$log->id}",
         ]);
 
         return response()->json([

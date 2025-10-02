@@ -219,7 +219,6 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Nama</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">RISDA</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Jawatan</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">No Tel</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Permohonan</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Kelulusan</th>
                                 </tr>
@@ -245,35 +244,14 @@
                                         {{ $program->pemohon->jawatan ?? 'N/A' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                        {{ $program->pemohon->no_telefon ?? 'N/A' }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         {{ $program->created_at->format('d/m/Y') }}
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                        <div class="text-left">
-                                            @if($program->status === 'lulus')
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    Lulus
-                                                </span>
-                                                @if($program->updated_at > $program->created_at)
-                                                    <div class="text-xs text-gray-500 mt-1">{{ $program->updated_at->format('d/m/Y') }}</div>
-                                                @endif
-                                            @elseif($program->status === 'tolak')
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                    Ditolak
-                                                </span>
-                                                @if($program->updated_at > $program->created_at)
-                                                    <div class="text-xs text-gray-500 mt-1">{{ $program->updated_at->format('d/m/Y') }}</div>
-                                                @endif
-                                            @elseif($program->status === 'draf')
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                    Menunggu
-                                                </span>
-                                            @else
-                                                <span class="text-gray-500">-</span>
-                                            @endif
-                                        </div>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                        @if($program->tarikh_kelulusan)
+                                            {{ $program->tarikh_kelulusan->format('d/m/Y H:i') }}
+                                        @else
+                                            -
+                                        @endif
                                     </td>
                                 </tr>
                             </tbody>
@@ -321,15 +299,15 @@
                                         {{ $program->pemandu->no_telefon ?? 'N/A' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                        @if($program->status === 'aktif')
-                                            {{ $program->tarikh_mula->format('d/m/Y') }}
+                                        @if($program->tarikh_mula_aktif)
+                                            {{ $program->tarikh_mula_aktif->format('d/m/Y H:i') }}
                                         @else
                                             -
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                        @if($program->status === 'selesai')
-                                            {{ $program->tarikh_selesai->format('d/m/Y') }}
+                                        @if($program->tarikh_sebenar_selesai)
+                                            {{ $program->tarikh_sebenar_selesai->format('d/m/Y H:i') }}
                                         @else
                                             -
                                         @endif

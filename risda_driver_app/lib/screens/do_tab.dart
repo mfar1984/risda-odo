@@ -28,42 +28,25 @@ class _DoTabState extends State<DoTab> {
   bool _isLoading = true;
   String? _errorMessage;
   
-  // Analytics data that can be refreshed
-  List<FlSpot> checkInData = [
-    const FlSpot(0, 8),
-    const FlSpot(1, 10),
-    const FlSpot(2, 7),
-    const FlSpot(3, 12),
-    const FlSpot(4, 11),
-    const FlSpot(5, 13),
-    const FlSpot(6, 12),
-    const FlSpot(7, 14),
-    const FlSpot(8, 10),
-    const FlSpot(9, 15),
-    const FlSpot(10, 13),
-    const FlSpot(11, 17),
-  ];
-
-  List<FlSpot> checkOutData = [
-    const FlSpot(0, 6),
-    const FlSpot(1, 8),
-    const FlSpot(2, 5),
-    const FlSpot(3, 9),
-    const FlSpot(4, 8),
-    const FlSpot(5, 10),
-    const FlSpot(6, 9),
-    const FlSpot(7, 11),
-    const FlSpot(8, 8),
-    const FlSpot(9, 12),
-    const FlSpot(10, 10),
-    const FlSpot(11, 14),
-  ];
+  // Chart Data
+  String _chartPeriod = '6months';
+  List<FlSpot> _startJourneyData = [];
+  List<FlSpot> _endJourneyData = [];
+  List<String> _chartLabels = [];
+  double _chartMaxY = 20;
 
   @override
   void initState() {
     super.initState();
     _apiService = ApiService(ApiClient());
-    _loadPrograms();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    await Future.wait([
+      _loadPrograms(),
+      _loadChartData(),
+    ]);
   }
 
   Future<void> _loadPrograms() async {
@@ -73,8 +56,6 @@ class _DoTabState extends State<DoTab> {
     });
 
     try {
-      developer.log('🔄 Loading programs from API...');
-      
       // Fetch all three program categories
       final currentResponse = await _apiService.getPrograms(status: 'current');
       final ongoingResponse = await _apiService.getPrograms(status: 'ongoing');
@@ -82,17 +63,14 @@ class _DoTabState extends State<DoTab> {
 
       if (currentResponse['success'] == true) {
         _currentPrograms = currentResponse['data'] ?? [];
-        developer.log('✅ Loaded ${_currentPrograms.length} current programs');
       }
 
       if (ongoingResponse['success'] == true) {
         _ongoingPrograms = ongoingResponse['data'] ?? [];
-        developer.log('✅ Loaded ${_ongoingPrograms.length} ongoing programs');
       }
 
       if (pastResponse['success'] == true) {
         _pastPrograms = pastResponse['data'] ?? [];
-        developer.log('✅ Loaded ${_pastPrograms.length} past programs');
       }
 
       if (mounted) {
@@ -101,7 +79,6 @@ class _DoTabState extends State<DoTab> {
         });
       }
     } catch (e) {
-      developer.log('❌ Error loading programs: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -111,22 +88,54 @@ class _DoTabState extends State<DoTab> {
     }
   }
 
-  Future<void> _refreshData() async {
-    // Refresh programs
-    await _loadPrograms();
-    
-    // Simulate fetching new data for analytics
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Update with "new" data (for demo purposes)
-    setState(() {
-      // Slightly modify the data to simulate refresh
-      for (int i = 0; i < checkInData.length; i++) {
-        final randomChange = ([-0.5, 0, 0.5]..shuffle()).first;
-        checkInData[i] = FlSpot(checkInData[i].x, checkInData[i].y + randomChange);
-        checkOutData[i] = FlSpot(checkOutData[i].x, checkOutData[i].y + randomChange);
+  Future<void> _loadChartData() async {
+    try {
+      final response = await _apiService.getDoActivityChartData(period: _chartPeriod);
+      
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+        final chartData = data['chart_data'] as List;
+        
+        if (mounted) {
+          setState(() {
+            _chartLabels = chartData.map((item) => item['label'] as String).toList();
+            
+            _startJourneyData = chartData.asMap().entries.map((entry) {
+              final value = (entry.value['start_journey'] as num).toDouble();
+              return FlSpot(entry.key.toDouble(), value);
+            }).toList();
+            
+            _endJourneyData = chartData.asMap().entries.map((entry) {
+              final value = (entry.value['end_journey'] as num).toDouble();
+              return FlSpot(entry.key.toDouble(), value);
+            }).toList();
+            
+            // Calculate max Y for chart scaling
+            final maxStart = _startJourneyData.isNotEmpty 
+                ? _startJourneyData.map((spot) => spot.y).reduce((a, b) => a > b ? a : b) 
+                : 0;
+            final maxEnd = _endJourneyData.isNotEmpty 
+                ? _endJourneyData.map((spot) => spot.y).reduce((a, b) => a > b ? a : b) 
+                : 0;
+            _chartMaxY = (maxStart > maxEnd ? maxStart : maxEnd) * 1.2; // Add 20% padding
+            if (_chartMaxY < 10) _chartMaxY = 10; // Minimum scale
+          });
+        }
       }
+    } catch (e) {
+      // Use empty data on error
+    }
+  }
+
+  void _toggleChartPeriod() {
+    setState(() {
+      _chartPeriod = _chartPeriod == '6months' ? '1month' : '6months';
     });
+    _loadChartData();
+  }
+
+  Future<void> _refreshData() async {
+    await _loadData();
   }
 
   @override
@@ -156,10 +165,27 @@ class _DoTabState extends State<DoTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(Icons.analytics, color: PastelColors.primary, size: 20),
-                          const SizedBox(width: 8),
-                          Text('Comprehensive Analytics', style: AppTextStyles.h2),
+                          Row(
+                            children: [
+                              Icon(Icons.analytics, color: PastelColors.primary, size: 20),
+                              const SizedBox(width: 8),
+                              Text('Trip Activity', style: AppTextStyles.h2),
+                            ],
+                          ),
+                          OutlinedButton(
+                            onPressed: _toggleChartPeriod,
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              _chartPeriod == '6months' ? '6 Months' : '1 Month',
+                              style: AppTextStyles.bodySmall,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -192,9 +218,11 @@ class _DoTabState extends State<DoTab> {
                                   showTitles: true,
                                   reservedSize: 28,
                                   getTitlesWidget: (value, meta) {
-                                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    if (value.toInt() < 0 || value.toInt() >= _chartLabels.length) {
+                                      return const Text('');
+                                    }
                                     return Text(
-                                      months[value.toInt() % 12],
+                                      _chartLabels[value.toInt()],
                                       style: AppTextStyles.bodySmall,
                                     );
                                   },
@@ -210,17 +238,17 @@ class _DoTabState extends State<DoTab> {
                             borderData: FlBorderData(show: false),
                             lineBarsData: [
                               LineChartBarData(
-                                spots: checkInData,
+                                spots: _startJourneyData,
                                 isCurved: true,
-                                color: PastelColors.success, // Check In = Green card
+                                color: PastelColors.success, // Start Journey = Green
                                 barWidth: 3,
                                 dotData: const FlDotData(show: false),
                                 belowBarData: BarAreaData(show: false),
                               ),
                               LineChartBarData(
-                                spots: checkOutData,
+                                spots: _endJourneyData,
                                 isCurved: true,
-                                color: PastelColors.warning, // Check Out = Yellow card
+                                color: Colors.orange, // End Journey = Orange
                                 barWidth: 3,
                                 dotData: const FlDotData(show: false),
                                 belowBarData: BarAreaData(show: false),
@@ -228,7 +256,7 @@ class _DoTabState extends State<DoTab> {
                             ],
                             lineTouchData: const LineTouchData(enabled: true),
                             minY: 0,
-                            maxY: 20,
+                            maxY: _chartMaxY,
                           ),
                         ),
                       ),
@@ -237,7 +265,7 @@ class _DoTabState extends State<DoTab> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _buildLegend('Start Journey', PastelColors.success),
-                          _buildLegend('End Journey', PastelColors.warning),
+                          _buildLegend('End Journey', Colors.orange),
                         ],
                       ),
                     ],

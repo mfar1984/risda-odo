@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Program;
 use App\Models\RisdaStaf;
 use App\Models\Kenderaan;
+use App\Models\User;
+use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -119,7 +121,41 @@ class ProgramController extends Controller
         // Set default status to 'draf' for new programs
         $data['status'] = 'draf';
 
-        Program::create($data);
+        $program = Program::create($data);
+
+        // Send notification to assigned driver
+        $driver = User::where('staf_id', $program->pemandu_id)->first();
+        if ($driver) {
+            // Create database notification (for bell count)
+            \App\Models\Notification::create([
+                'user_id' => $driver->id,
+                'type' => 'program_assigned',
+                'title' => 'Program Baru Ditugaskan',
+                'message' => "Anda telah ditugaskan untuk program '{$program->nama_program}' pada {$program->tarikh_mula}.",
+                'data' => [
+                    'program_id' => $program->id,
+                    'program_name' => $program->nama_program,
+                    'program_date' => $program->tarikh_mula,
+                    'location' => $program->lokasi_program,
+                ],
+                'action_url' => "/program/{$program->id}",
+            ]);
+
+            // Send FCM push notification
+            $firebaseService = app(FirebaseService::class);
+            $firebaseService->sendToUser(
+                $driver->id,
+                'Program Baru Ditugaskan',
+                "Anda telah ditugaskan untuk program '{$program->nama_program}' pada {$program->tarikh_mula}.",
+                [
+                    'type' => 'program_assigned',
+                    'program_id' => $program->id,
+                    'program_name' => $program->nama_program,
+                    'program_date' => $program->tarikh_mula,
+                    'location' => $program->lokasi_program,
+                ]
+            );
+        }
 
         return redirect()->route('program.index')
             ->with('success', 'Program berjaya dicipta.');
@@ -187,6 +223,18 @@ class ProgramController extends Controller
 
         $data = $request->all();
         $data['dikemaskini_oleh'] = auth()->id();
+
+        // Check if status changed from 'lulus' to something else
+        if ($program->status === 'lulus' && $request->status !== 'lulus') {
+            // Delete notification for this program
+            $driver = User::where('staf_id', $program->pemandu_id)->first();
+            if ($driver) {
+                \App\Models\Notification::where('user_id', $driver->id)
+                    ->where('type', 'program_approved')
+                    ->where('data->program_id', $program->id)
+                    ->delete();
+            }
+        }
 
         $program->update($data);
 
@@ -313,8 +361,43 @@ class ProgramController extends Controller
 
         $program->update([
             'status' => 'lulus',
+            'tarikh_kelulusan' => now(), // Set approval date/time
             'dikemaskini_oleh' => auth()->id(),
         ]);
+
+        // Send notification to assigned driver
+        $driver = User::where('staf_id', $program->pemandu_id)->first();
+        if ($driver) {
+            // Create database notification (for bell count)
+            \App\Models\Notification::create([
+                'user_id' => $driver->id,
+                'type' => 'program_approved',
+                'title' => 'Program Diluluskan',
+                'message' => "Program '{$program->nama_program}' telah diluluskan dan akan bermula pada {$program->tarikh_mula}.",
+                'data' => [
+                    'program_id' => $program->id,
+                    'program_name' => $program->nama_program,
+                    'program_date' => $program->tarikh_mula,
+                    'location' => $program->lokasi_program,
+                ],
+                'action_url' => "/program/{$program->id}",
+            ]);
+
+            // Send FCM push notification
+            $firebaseService = app(FirebaseService::class);
+            $firebaseService->sendToUser(
+                $driver->id,
+                'Program Diluluskan',
+                "Program '{$program->nama_program}' telah diluluskan dan akan bermula pada {$program->tarikh_mula}.",
+                [
+                    'type' => 'program_approved',
+                    'program_id' => $program->id,
+                    'program_name' => $program->nama_program,
+                    'program_date' => $program->tarikh_mula,
+                    'location' => $program->lokasi_program,
+                ]
+            );
+        }
 
         return redirect()->route('program.index')
             ->with('success', "Program '{$program->nama_program}' berjaya diluluskan.");

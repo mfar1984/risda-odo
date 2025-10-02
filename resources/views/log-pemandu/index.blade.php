@@ -248,4 +248,38 @@
             <x-ui.pagination :paginator="$logs" record-label="log" />
         </div>
     </x-ui.page-header>
+
+    {{-- Auto-refresh tab counts (like notification bell) --}}
+    <script>
+        // Auto-refresh tab counts every 5 seconds
+        async function refreshTabCounts() {
+            try {
+                const response = await fetch('{{ route('log-pemandu.tab-counts') }}', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                // Update each tab count
+                const tabs = ['semua', 'aktif', 'selesai', 'tertunda'];
+                tabs.forEach(tab => {
+                    const badge = document.querySelector(`a[href*="tab=${tab}"] .bg-gray-100`);
+                    if (badge && data[tab] !== undefined) {
+                        badge.textContent = new Intl.NumberFormat().format(data[tab]);
+                    }
+                });
+            } catch (error) {
+                console.error('Error refreshing tab counts:', error);
+            }
+        }
+
+        // Refresh every 5 seconds
+        setInterval(refreshTabCounts, 5000);
+        
+        // Initial load
+        refreshTabCounts();
+    </script>
 </x-dashboard-layout>

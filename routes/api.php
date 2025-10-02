@@ -32,6 +32,12 @@ Route::middleware(['api.token', 'api.cors'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);
     });
+    
+    // App Information (public)
+    Route::get('/app-info', [\App\Http\Controllers\Api\AppInfoController::class, 'index']);
+    
+    // Privacy Policy (public)
+    Route::get('/privacy-policy', [\App\Http\Controllers\Api\PrivacyPolicyController::class, 'index']);
 });
 
 // Protected routes (require API token + user authentication via Sanctum)
@@ -82,5 +88,18 @@ Route::middleware(['api.token', 'api.cors', 'auth:sanctum'])->group(function () 
     
     // Dashboard Statistics
     Route::get('/dashboard/statistics', [\App\Http\Controllers\Api\DashboardController::class, 'statistics']); // Get dashboard stats
+
+    // Chart Data
+    Route::get('/chart/overview', [\App\Http\Controllers\Api\ChartDataController::class, 'overview']); // Overview chart (Fuel vs Claims)
+    Route::get('/chart/do-activity', [\App\Http\Controllers\Api\ChartDataController::class, 'doActivity']); // Do tab chart (Start vs End Journey)
+
+    // Notifications
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\NotificationController::class, 'index']); // Get all notifications
+        Route::post('/{id}/mark-as-read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']); // Mark as read
+        Route::post('/mark-all-as-read', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']); // Mark all as read
+        Route::post('/register-token', [\App\Http\Controllers\Api\NotificationController::class, 'registerToken']); // Register FCM token
+        Route::post('/remove-token', [\App\Http\Controllers\Api\NotificationController::class, 'removeToken']); // Remove FCM token
+    });
 });
 

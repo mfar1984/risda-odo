@@ -177,6 +177,128 @@ class NotaKeluaranSeeder extends Seeder
                     'Pewujudan templat PDF khusus di `resources/views/laporan/pdf/*` untuk perkongsian laporan.'
                 ],
                 'urutan' => 150,
+                'is_latest' => false,
+            ],
+            [
+                'versi' => '1.6.0',
+                'nama_versi' => 'Integrasi & Selenggara Kenderaan',
+                'jenis_keluaran' => 'blue',
+                'tarikh_keluaran' => Carbon::create(2025, 10, 1),
+                'penerangan' => 'Modul integrasi API, Email SMTP, Cuaca dan pengurusan selenggara kenderaan lengkap.',
+                'ciri_baharu' => [
+                    'Modul Integrasi (API, Email SMTP, Cuaca) dengan tab terpisah dan kawalan multi-tenancy.',
+                    'Pengurusan Selenggara Kenderaan dengan kategori kos dinamik, upload invois dan status penyelenggaraan.',
+                    'Halaman Dokumentasi API dengan sidebar menu berkumpulan dan contoh endpoint lengkap.',
+                    'Laporan Tuntutan dengan workflow kelulusan (Lulus, Tolak, Batal) dan eksport PDF.'
+                ],
+                'penambahbaikan' => [
+                    'CORS configuration dengan sokongan multiple domains dan wildcard origins.',
+                    'Modal popup berpusat (z-index 1100) untuk semua halaman tuntutan.',
+                    'API token generation dengan visibility toggle dan copy to clipboard.',
+                    'Breadcrumb untuk semua halaman selenggara dan integrasi.'
+                ],
+                'pembetulan_pepijat' => [
+                    'Penetapan z-index modal supaya tidak bertindih dengan topbar (header: 1000, modal: 1100).',
+                    'Pelarasan status badge "Digantung" → "Dibatalkan" untuk konsistensi UI.',
+                    'Auto-scroll issue pada API documentation dengan scrollable sidebar dan content area.'
+                ],
+                'perubahan_teknikal' => [
+                    'Middleware `ApiCorsMiddleware` dan `ApiTokenMiddleware` untuk validasi global API.',
+                    'Laravel Sanctum untuk user authentication dengan custom hash service (Argon2id + email salt).',
+                    'Observer pattern untuk auto-update status selenggara kenderaan.',
+                    'Soft deletes untuk modul Tuntutan dengan audit trail lengkap.'
+                ],
+                'urutan' => 160,
+                'is_latest' => false,
+            ],
+            [
+                'versi' => '1.7.0',
+                'nama_versi' => 'Aplikasi Mudah Alih & Sistem Notifikasi',
+                'jenis_keluaran' => 'blue',
+                'tarikh_keluaran' => Carbon::create(2025, 10, 2),
+                'penerangan' => 'Pelancaran aplikasi mudah alih JARA Driver dengan sistem notifikasi real-time dan auto-refresh.',
+                'ciri_baharu' => [
+                    'Aplikasi Flutter JARA Driver dengan 5 tab: Overview, Do, Claim, Report, Logs.',
+                    'Sistem Notifikasi FCM (Firebase Cloud Messaging) untuk push notification real-time.',
+                    'Bell notification dengan auto-refresh 5 saat (backend & mobile app).',
+                    'Auto-refresh tab count pada Log Pemandu (Semua/Aktif/Selesai/Tertunda) setiap 5 saat.',
+                    'Start Journey & End Journey dengan GPS, foto odometer dan fuel tracking.',
+                    'Pengurusan Tuntutan (Tol, Parking, F&B, Accommodation, Fuel, Car Maintenance, Others).',
+                    'Chart analytics untuk Overview (Fuel & Claims per month) dan Do tab (Journey stats).',
+                    'Profile management dengan upload foto profil dan change password.',
+                    'Privacy Policy dan About screen dengan versi dinamik dari TetapanUmum.'
+                ],
+                'penambahbaikan' => [
+                    'API endpoints lengkap: Auth, Programs, Log Pemandu, Tuntutan, Notifications, Profile, Charts.',
+                    'Multi-platform support: Android, iOS, Web dengan responsive design.',
+                    'Offline support menggunakan Hive untuk local data persistence.',
+                    'Real-time notification dengan polling 5 saat untuk near real-time updates.',
+                    'Modal drawer design untuk detail view (Program, Log, Claim, Report).',
+                    'Cross-platform image handling dengan XFile dan Uint8List.',
+                    'API documentation update dengan 27 completed endpoints (93% coverage).'
+                ],
+                'pembetulan_pepijat' => [
+                    'Field name mismatch antara backend (`nama_program`) dan Flutter (`nama`) pada End Journey.',
+                    'Bell icon clickable area fixed dengan IgnorePointer pada badge.',
+                    'Status label "Digantung" → "Dibatalkan" untuk konsistensi dengan backend.',
+                    'Notification count update selepas approve/reject/cancel tuntutan.',
+                    'Auto-delete notification bila program status berubah dari "Lulus" ke status lain.',
+                    'Image.file assertion error pada Flutter Web dengan conditional rendering.'
+                ],
+                'perubahan_teknikal' => [
+                    'Flutter Clean Architecture: core, models, services, repositories, screens, widgets.',
+                    'Hive adapters untuk serialization/deserialization Dart objects.',
+                    'Firebase Admin SDK (kreait/firebase-php) untuk send FCM dari Laravel.',
+                    'Laravel Notifications (database) untuk backend bell icon.',
+                    'Alpine.js untuk dynamic frontend behavior (notification bell, token toggle).',
+                    'Singleton pattern untuk ApiClient di Flutter (consistent token management).',
+                    'Platform detection dengan kIsWeb untuk conditional UI/API usage.',
+                    'Laravel Method Spoofing (_method=PUT) untuk FormData compatibility.',
+                    'Timezone handling: UTC to Malaysia (UTC+8) untuk display di Flutter.',
+                    'Auto-refresh menggunakan setInterval (JavaScript) dan Timer.periodic (Flutter).'
+                ],
+                'urutan' => 170,
+                'is_latest' => false,
+            ],
+            [
+                'versi' => '1.7.1',
+                'nama_versi' => 'Penjejakan Tarikh Sebenar & Auto-Status Program',
+                'jenis_keluaran' => 'blue',
+                'tarikh_keluaran' => Carbon::create(2025, 10, 3),
+                'penerangan' => 'Sistem penjejakan tarikh sebenar program dan auto-update status berdasarkan aktiviti perjalanan.',
+                'ciri_baharu' => [
+                    'Tarikh Kelulusan: Rekod tarikh & masa program diluluskan oleh admin.',
+                    'Tarikh Mula Aktif: Rekod tarikh & masa program jadi aktif (bila driver mula journey pertama).',
+                    'Tarikh Sebenar Selesai: Rekod tarikh & masa program sebenarnya selesai (end journey terakhir atau auto-close).',
+                    'Auto-update Program Status: LULUS → AKTIF (bila start journey), AKTIF → SELESAI (auto scheduler hourly).',
+                    'Auto-detect Tertunda: LULUS → TERTUNDA jika tarikh_mula sudah lepas dan tiada journey dimulakan.',
+                    'Artisan Command: `php artisan program:update-status` untuk manual trigger status update.'
+                ],
+                'penambahbaikan' => [
+                    'Paparan tarikh sebenar di "Maklumat Pemohon Program" dengan format d/m/Y H:i.',
+                    'Paparan tarikh mula aktif dan sebenar selesai di "Maklumat Pemandu Program".',
+                    'Removed redundant "Kelulusan" column dari Maklumat Pemandu (sudah ada di Pemohon).',
+                    'Removed "No Tel" column dari Maklumat Pemohon untuk UI yang lebih kemas.',
+                    'API response update: Tambah 3 date fields (tarikh_kelulusan, tarikh_mula_aktif, tarikh_sebenar_selesai).',
+                    'Backfill existing approved programs dengan tarikh_kelulusan = created_at (data migration).',
+                    'Scheduler Laravel (hourly) untuk auto-close programs dan detect tertunda programs.'
+                ],
+                'pembetulan_pepijat' => [
+                    'Program show page displaying "-" for Kelulusan bila status bukan "lulus" (sekarang guna tarikh_kelulusan).',
+                    'Tarikh sebenar selesai tidak update bila driver end journey multiple times (sekarang guna latest).',
+                    'Status badge logic confusing dengan multiple conditional checks (simplified to direct date display).'
+                ],
+                'perubahan_teknikal' => [
+                    'Migration: Add 3 datetime columns (tarikh_kelulusan, tarikh_mula_aktif, tarikh_sebenar_selesai) to programs table.',
+                    'Model Program: Update fillable & casts untuk support 3 date fields.',
+                    'ProgramController@approve: Auto-set tarikh_kelulusan = now() on approval.',
+                    'Api\\LogPemanduController@startJourney: Auto-set tarikh_mula_aktif & change status to "aktif".',
+                    'Api\\LogPemanduController@endJourney: Auto-update tarikh_sebenar_selesai dengan latest end journey time.',
+                    'UpdateProgramStatus Command: Auto-close AKTIF programs & mark LULUS as TERTUNDA bila tarikh lepas.',
+                    'routes/console.php: Schedule program:update-status command to run hourly.',
+                    'API Documentation: Add field explanation untuk 3 new date fields dengan examples.'
+                ],
+                'urutan' => 171,
                 'is_latest' => true,
             ],
         ];
@@ -202,6 +324,6 @@ class NotaKeluaranSeeder extends Seeder
             );
         }
 
-        NotaKeluaran::where('versi', '!=', '1.5.0')->update(['is_latest' => false]);
+        NotaKeluaran::where('versi', '!=', '1.7.1')->update(['is_latest' => false]);
     }
 }

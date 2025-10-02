@@ -80,16 +80,9 @@ class _ClaimScreenState extends State<ClaimScreen> {
             ? tempLogId 
             : null;
         isLoading = false;
-        
-        // Debug logging
-        print('✅ ClaimScreen: Loaded ${logs.length} logs');
-        print('✅ ClaimScreen: selectedLogId = $selectedLogId');
-        if (logs.isNotEmpty) {
-          print('✅ ClaimScreen: First log ID = ${logs.first['id']}');
-        }
       });
     } catch (e) {
-      setState(() {
+    setState(() {
         completedLogs = [];
         selectedLogId = null;
         selectedCategory = null;
@@ -316,9 +309,9 @@ class _ClaimScreenState extends State<ClaimScreen> {
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                   // Log Perjalanan Selection
                   Text('Log Perjalanan', style: AppTextStyles.h2),
                   const SizedBox(height: 8),
@@ -366,9 +359,9 @@ class _ClaimScreenState extends State<ClaimScreen> {
                                     
                                     return DropdownMenuItem<int>(
                                       value: log['id'],
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                                           Text(
                                             log['program']?['nama_program'] ?? 'Tiada Program',
                                             style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600),
@@ -401,7 +394,7 @@ class _ClaimScreenState extends State<ClaimScreen> {
                       border: Border.all(color: PastelColors.border),
                     ),
                     child: DropdownButtonFormField<String>(
-                      value: selectedCategory,
+                  value: selectedCategory,
                       decoration: const InputDecoration(
                         border: InputBorder.none,
                         hintText: 'Pilih Kategori',
@@ -424,10 +417,10 @@ class _ClaimScreenState extends State<ClaimScreen> {
                   // Amount
                   Text('Jumlah (RM)', style: AppTextStyles.h2),
                   const SizedBox(height: 8),
-                  TextField(
-                    controller: amountController,
+                TextField(
+                  controller: amountController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
+                  decoration: InputDecoration(
                       hintText: 'Contoh: 12.50',
                       prefixText: 'RM ',
                       filled: true,
@@ -495,14 +488,14 @@ class _ClaimScreenState extends State<ClaimScreen> {
                     )
                   else
                     Stack(
-                      children: [
-                        Container(
+                        children: [
+                          Container(
                           width: double.infinity,
                           height: 200,
-                          decoration: BoxDecoration(
+                            decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: PastelColors.border),
+                              border: Border.all(color: PastelColors.border),
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
@@ -520,11 +513,11 @@ class _ClaimScreenState extends State<ClaimScreen> {
                               },
                             ),
                           ),
-                        ),
-                        Positioned(
+                          ),
+                          Positioned(
                           top: 8,
                           right: 8,
-                          child: IconButton(
+                            child: IconButton(
                             icon: const Icon(Icons.close, color: Colors.red),
                             onPressed: _removeReceiptImage,
                             style: IconButton.styleFrom(
@@ -532,21 +525,21 @@ class _ClaimScreenState extends State<ClaimScreen> {
                               padding: const EdgeInsets.all(8),
                             ),
                           ),
-                        ),
-                      ],
                     ),
+                  ],
+                ),
 
                   const SizedBox(height: 32),
 
                   // Submit Button
-                  SizedBox(
-                    width: double.infinity,
+                SizedBox(
+                  width: double.infinity,
                     height: 50,
-                    child: ElevatedButton(
+                  child: ElevatedButton(
                       onPressed: isSubmitting ? null : _submitClaim,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: PastelColors.primary,
-                        foregroundColor: Colors.white,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: PastelColors.primary,
+                      foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -558,11 +551,11 @@ class _ClaimScreenState extends State<ClaimScreen> {
                               widget.existingClaim != null ? 'KEMASKINI TUNTUTAN' : 'HANTAR TUNTUTAN',
                               style: AppTextStyles.h2.copyWith(color: Colors.white),
                             ),
-                    ),
                   ),
-                ],
-              ),
-            ),
+                ),
+              ],
+        ),
+      ),
     );
   }
-}
+  }

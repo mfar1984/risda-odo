@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Tuntutan;
 use App\Models\LogPemandu;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -170,6 +171,24 @@ class TuntutanController extends Controller
 
             $tuntutan->load(['logPemandu.program', 'logPemandu.kenderaan']);
 
+            // Create notification for admin (backend bell icon)
+            Notification::create([
+                'user_id' => null, // Global notification for all admins
+                'type' => 'claim_created',
+                'title' => 'Tuntutan Baru',
+                'message' => "{$user->name} telah mengemukakan tuntutan baru sebanyak RM {$tuntutan->jumlah} untuk {$tuntutan->kategori_label}.",
+                'data' => [
+                    'claim_id' => $tuntutan->id,
+                    'driver_id' => $user->id,
+                    'driver_name' => $user->name,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori,
+                    'program_id' => $log->program_id,
+                    'program_name' => $log->program->nama_program ?? 'N/A',
+                ],
+                'action_url' => "/laporan/laporan-tuntutan/{$tuntutan->id}",
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Tuntutan berjaya dihantar',
@@ -256,6 +275,24 @@ class TuntutanController extends Controller
             ]);
 
             $tuntutan->load(['logPemandu.program', 'logPemandu.kenderaan']);
+
+            // Create notification for admin (backend bell icon) - RESUBMISSION
+            Notification::create([
+                'user_id' => null, // Global notification for all admins
+                'type' => 'claim_resubmitted',
+                'title' => 'Tuntutan Dikemuka Semula',
+                'message' => "{$user->name} telah mengemukakan semula tuntutan sebanyak RM {$tuntutan->jumlah} untuk {$tuntutan->kategori_label}.",
+                'data' => [
+                    'claim_id' => $tuntutan->id,
+                    'driver_id' => $user->id,
+                    'driver_name' => $user->name,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori,
+                    'program_id' => $tuntutan->logPemandu->program_id,
+                    'program_name' => $tuntutan->logPemandu->program->nama_program ?? 'N/A',
+                ],
+                'action_url' => "/laporan/laporan-tuntutan/{$tuntutan->id}",
+            ]);
 
             return response()->json([
                 'success' => true,

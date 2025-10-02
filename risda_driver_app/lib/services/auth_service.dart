@@ -3,6 +3,7 @@ import '../models/auth_hive_model.dart';
 import 'hive_service.dart';
 import 'api_service.dart';
 import '../core/api_client.dart';
+import 'firebase_service.dart';
 import 'dart:developer' as developer;
 
 class AuthService extends ChangeNotifier {
@@ -142,6 +143,14 @@ class AuthService extends ChangeNotifier {
   Future<void> logout() async {
     try {
       developer.log('🔐 Logging out...');
+      
+      // Remove FCM token
+      try {
+        await FirebaseService().removeToken();
+        developer.log('✅ FCM token removed');
+      } catch (e) {
+        developer.log('⚠️ FCM token removal failed: $e');
+      }
       
       // Call API logout endpoint (revoke current token)
       try {

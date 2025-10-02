@@ -1,58 +1,201 @@
 import 'package:flutter/material.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
+import '../services/api_service.dart';
+import '../core/api_client.dart';
+import 'dart:developer' as developer;
+import 'package:intl/intl.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
+  @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
+
+class _NotificationScreenState extends State<NotificationScreen> {
+  final ApiService _apiService = ApiService(ApiClient());
+  List<Map<String, dynamic>> _notifications = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await _apiService.getNotifications();
+      if (response['success'] == true && mounted) {
+        setState(() {
+          _notifications = List<Map<String, dynamic>>.from(response['data'] ?? []);
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      developer.log('Load notifications error: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _markAsRead(int id) async {
+    try {
+      await _apiService.markNotificationAsRead(id);
+      _loadNotifications(); // Reload
+    } catch (e) {
+      developer.log('Mark as read error: $e');
+    }
+  }
+
+  Future<void> _markAllAsRead() async {
+    try {
+      await _apiService.markAllNotificationsAsRead();
+      _loadNotifications(); // Reload
+    } catch (e) {
+      developer.log('Mark all as read error: $e');
+    }
+  }
+
+  Color _getNotificationColor(String type) {
+    switch (type) {
+      case 'claim_approved':
+        return PastelColors.success;
+      case 'claim_rejected':
+      case 'claim_cancelled':
+        return PastelColors.error;
+      case 'program_assigned':
+      case 'program_approved':
+        return PastelColors.info;
+      case 'journey_started':
+      case 'journey_ended':
+        return PastelColors.warning;
+      default:
+        return PastelColors.info;
+    }
+  }
+
+  IconData _getNotificationIcon(String type) {
+    switch (type) {
+      case 'claim_approved':
+        return Icons.check_circle;
+      case 'claim_rejected':
+        return Icons.cancel;
+      case 'claim_cancelled':
+        return Icons.block;
+      case 'program_assigned':
+      case 'program_approved':
+        return Icons.event;
+      case 'journey_started':
+        return Icons.trip_origin;
+      case 'journey_ended':
+        return Icons.flag;
+      default:
+        return Icons.notifications;
+    }
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return '';
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('dd MMM yyyy, HH:mm').format(date);
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: PastelColors.primary,
-        title: Text('Notification', style: AppTextStyles.h2.copyWith(color: Colors.white)),
+        title: Text('Notifications', style: AppTextStyles.h2.copyWith(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      backgroundColor: PastelColors.background,
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            color: PastelColors.info,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6), side: BorderSide(color: PastelColors.border)),
-            child: ListTile(
-              leading: Icon(Icons.notifications, color: PastelColors.infoText),
-              title: Text('Claim Approved', style: AppTextStyles.bodyLarge),
-              subtitle: Text('Your claim for Program A has been approved.', style: AppTextStyles.bodyMedium),
+        actions: [
+          if (_notifications.any((n) => n['read_at'] == null))
+            TextButton(
+              onPressed: _markAllAsRead,
+              child: const Text('Mark All Read', style: TextStyle(color: Colors.white, fontSize: 12)),
             ),
-          ),
-          Card(
-            color: PastelColors.success,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6), side: BorderSide(color: PastelColors.border)),
-            child: ListTile(
-              leading: Icon(Icons.check_circle, color: PastelColors.successText),
-              title: Text('Check In Successful', style: AppTextStyles.bodyLarge),
-              subtitle: Text('You have checked in for Program B.', style: AppTextStyles.bodyMedium),
-            ),
-          ),
-          Card(
-            color: PastelColors.warning,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6), side: BorderSide(color: PastelColors.border)),
-            child: ListTile(
-              leading: Icon(Icons.warning, color: PastelColors.warningText),
-              title: Text('Vehicle Maintenance Due', style: AppTextStyles.bodyLarge),
-              subtitle: Text('Vehicle QAA1234 is due for maintenance.', style: AppTextStyles.bodyMedium),
-            ),
-          ),
-          Card(
-            color: PastelColors.error,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6), side: BorderSide(color: PastelColors.border)),
-            child: ListTile(
-              leading: Icon(Icons.error, color: PastelColors.errorText),
-              title: Text('Claim Rejected', style: AppTextStyles.bodyLarge),
-              subtitle: Text('Your claim for Program C was rejected.', style: AppTextStyles.bodyMedium),
-            ),
-          ),
         ],
       ),
+      backgroundColor: PastelColors.background,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _notifications.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.notifications_off, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      Text('No notifications', style: AppTextStyles.bodyLarge.copyWith(color: Colors.grey[600])),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadNotifications,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _notifications.length,
+                    itemBuilder: (context, index) {
+                      final notif = _notifications[index];
+                      final isRead = notif['read_at'] != null;
+                      final color = _getNotificationColor(notif['type'] ?? '');
+                      final icon = _getNotificationIcon(notif['type'] ?? '');
+
+                      return Card(
+                        color: isRead ? Colors.white : color.withOpacity(0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          side: BorderSide(
+                            color: isRead ? PastelColors.border : color.withOpacity(0.3),
+                            width: isRead ? 1 : 2,
+                          ),
+                        ),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          leading: Icon(icon, color: color),
+                          title: Text(
+                            notif['title'] ?? 'Notification',
+                            style: AppTextStyles.bodyLarge.copyWith(
+                              fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text(
+                                notif['message'] ?? '',
+                                style: AppTextStyles.bodyMedium,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _formatDate(notif['created_at']),
+                                style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                          trailing: !isRead
+                              ? IconButton(
+                                  icon: const Icon(Icons.check, color: Colors.green),
+                                  onPressed: () => _markAsRead(notif['id']),
+                                )
+                              : null,
+                          onTap: () {
+                            if (!isRead) {
+                              _markAsRead(notif['id']);
+                            }
+                            // TODO: Navigate to detail screen based on action_url or data
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
     );
   }
-} 
+}

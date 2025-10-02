@@ -7,14 +7,18 @@ import 'do_tab.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'notification_screen.dart';
+import '../services/api_service.dart';
+import '../core/api_client.dart';
+import 'dart:async';
+import 'dart:developer' as developer;
 import 'help_screen.dart';
+import 'privacy_policy_screen.dart';
 import 'about_screen.dart';
 import 'login_screen.dart';
 import 'checkin_screen.dart';
 import 'checkout_screen.dart';
 import 'logs_screen.dart';
 import 'report_tab.dart';
-import 'sync_status_screen.dart';
 import '../services/auth_service.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -26,6 +30,43 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
+  final ApiService _apiService = ApiService(ApiClient());
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationCount();
+    // Auto-refresh notification count every 5 seconds
+    _startNotificationPolling();
+  }
+
+  @override
+  void dispose() {
+    _notificationTimer?.cancel();
+    super.dispose();
+  }
+
+  Timer? _notificationTimer;
+
+  void _startNotificationPolling() {
+    _notificationTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      _loadNotificationCount();
+    });
+  }
+
+  Future<void> _loadNotificationCount() async {
+    try {
+      final response = await _apiService.getNotifications();
+      if (response['success'] == true && mounted) {
+        setState(() {
+          _unreadCount = response['unread_count'] ?? 0;
+        });
+      }
+    } catch (e) {
+      developer.log('Load notification count error: $e');
+    }
+  }
 
   final List<Widget> _pages = [
     const OverviewTab(),
@@ -114,14 +155,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen()));
               },
             ),
-            ListTile(
-              leading: Icon(Icons.settings, color: PastelColors.primary),
-              title: Text('Settings', style: AppTextStyles.bodyLarge),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsScreen()));
-              },
-            ),
             const Divider(),
             ListTile(
               leading: Icon(Icons.logout, color: PastelColors.primary),
@@ -159,31 +192,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           padding: EdgeInsets.zero,
           children: [
             const SizedBox(height: 32),
-            // Sync Status - New Item
-            ListTile(
-              leading: Icon(Icons.sync, color: PastelColors.primary),
-              title: Text('Sync Status', style: AppTextStyles.bodyLarge),
-              subtitle: Text('View sync status and resolve issues'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.push(context, MaterialPageRoute(builder: (_) => SyncStatusScreen()));
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: Icon(Icons.notifications, color: PastelColors.primary),
-              title: Text('Notification', style: AppTextStyles.bodyLarge),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationScreen()));
-              },
-            ),
             ListTile(
               leading: Icon(Icons.privacy_tip, color: PastelColors.primary),
               title: Text('Privacy Policy', style: AppTextStyles.bodyLarge),
               onTap: () {
                 Navigator.of(context).pop();
-                Navigator.push(context, MaterialPageRoute(builder: (_) => HelpScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => PrivacyPolicyScreen()));
               },
             ),
             ListTile(
@@ -229,9 +243,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         actions: [
-          // Debug button
-          // Debug button removed - no longer needed
-          // Removed Sync button and kept only the menu button
+          // Notification Bell Icon with Badge
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 26),
+                onPressed: () async {
+                  // Navigate to notification screen
+                  await Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationScreen()));
+                  // Reload count after returning
+                  _loadNotificationCount();
+                },
+              ),
+              // Badge - IgnorePointer to allow clicking through to IconButton
+              Positioned(
+                right: 10,
+                top: 10,
+                child: IgnorePointer(
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 14,
+                      minHeight: 14,
+                    ),
+                    child: Text(
+                      _unreadCount > 99 ? '99+' : '$_unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 4),
+          // Menu button
           Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.more_vert, color: Colors.white),

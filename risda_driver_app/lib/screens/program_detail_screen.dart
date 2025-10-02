@@ -38,8 +38,6 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
     });
 
     try {
-      developer.log('🔄 Loading program detail for ID: ${widget.programId}');
-      
       final response = await _apiService.getProgramDetail(widget.programId);
 
       if (response['success'] == true && response['data'] != null) {
@@ -47,12 +45,10 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
           _programData = response['data'];
           _isLoading = false;
         });
-        developer.log('✅ Program detail loaded successfully');
       } else {
         throw Exception('Failed to load program details');
       }
     } catch (e) {
-      developer.log('❌ Error loading program detail: $e');
       setState(() {
         _isLoading = false;
         _errorMessage = e.toString();
@@ -83,7 +79,6 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
         }
       }
     } catch (e) {
-      developer.log('❌ Error opening Google Maps: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
