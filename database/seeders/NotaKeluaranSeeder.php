@@ -299,6 +299,43 @@ class NotaKeluaranSeeder extends Seeder
                     'API Documentation: Add field explanation untuk 3 new date fields dengan examples.'
                 ],
                 'urutan' => 171,
+                'is_latest' => false,
+            ],
+            [
+                'versi' => '1.7.2',
+                'nama_versi' => 'Aplikasi Mudah Alih Enhanced & Notifikasi Auto-Status',
+                'jenis_keluaran' => 'blue',
+                'tarikh_keluaran' => Carbon::create(2025, 10, 3),
+                'penerangan' => 'Penambahbaikan aplikasi mudah alih dengan paparan tarikh sebenar program dan sistem notifikasi auto-status.',
+                'ciri_baharu' => [
+                    'Program Detail Screen: Tambah card "Tarikh Sebenar" untuk papar 3 tarikh baharu (Kelulusan, Mula Aktif, Sebenar Selesai).',
+                    'Auto-Close Notification: Backend & mobile notification bila program auto-ditutup (AKTIF → SELESAI).',
+                    'Tertunda Notification: Backend & mobile notification bila program jadi TERTUNDA (LULUS → TERTUNDA).',
+                    'Notification Icons: Tambah icon `check_circle` untuk auto-closed dan `warning` untuk tertunda.',
+                    'Timezone Support: Format tarikh dengan Malaysia timezone (UTC+8) untuk display di mobile app.'
+                ],
+                'penambahbaikan' => [
+                    'Flutter Program Model: Update untuk support tarikh_kelulusan, tarikh_mula_aktif, tarikh_sebenar_selesai.',
+                    'Program Detail UI: Display tarikh dengan format dd/MM/yyyy HH:mm, atau "-" jika null.',
+                    'Notification Screen: Handle new notification types (program_auto_closed, program_tertunda).',
+                    'UpdateProgramStatus Command: Send notification ke admin & driver bila auto-close atau tertunda.',
+                    'Backend Bell Icon: Update icon logic untuk support notification types baharu.',
+                    'Mobile Notification: FCM push notification dengan title & body yang sesuai untuk setiap type.'
+                ],
+                'pembetulan_pepijat' => [
+                    'API response tidak return tarikh_kelulusan, tarikh_mula_aktif, tarikh_sebenar_selesai (fixed di formatProgramData method).',
+                    'Flutter app tidak dapat display tarikh sebenar kerana API tidak return fields tersebut.',
+                    'Notification icon tidak display untuk auto-close dan tertunda notifications.'
+                ],
+                'perubahan_teknikal' => [
+                    'Flutter lib/models/program.dart: Add 3 nullable DateTime fields (tarikhKelulusan, tarikhMulaAktif, tarikhSebenarSelesai).',
+                    'Flutter lib/screens/program_detail_screen.dart: Add _formatDateTime() helper untuk convert UTC to Malaysia timezone.',
+                    'Api\\ProgramController@formatProgramData: Add tarikh_kelulusan, tarikh_mula_aktif, tarikh_sebenar_selesai to API response.',
+                    'UpdateProgramStatus Command: Integrate Notification::create & FCM push notification untuk auto-status changes.',
+                    'header.blade.php: Update Alpine.js notification icon logic untuk handle program_auto_closed & program_tertunda.',
+                    'notification_screen.dart: Add color & icon mapping untuk new notification types dengan PastelColors theme.'
+                ],
+                'urutan' => 172,
                 'is_latest' => true,
             ],
         ];
@@ -324,6 +361,6 @@ class NotaKeluaranSeeder extends Seeder
             );
         }
 
-        NotaKeluaran::where('versi', '!=', '1.7.1')->update(['is_latest' => false]);
+        NotaKeluaran::where('versi', '!=', '1.7.2')->update(['is_latest' => false]);
     }
 }

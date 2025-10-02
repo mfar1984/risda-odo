@@ -90,10 +90,12 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Clean white background
       appBar: AppBar(
         title: const Text('Butiran Program'),
         backgroundColor: PastelColors.primary,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -168,10 +170,18 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Program Header Card
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade100,
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -229,11 +239,69 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Location Card with Google Maps button
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
+            // Actual Dates Card (NEW)
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade100,
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.access_time, color: PastelColors.primary),
+                        const SizedBox(width: 8),
+                        Text('Tarikh Sebenar', style: AppTextStyles.h3),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoRow(
+                      Icons.check_circle,
+                      'Tarikh Kelulusan',
+                      _formatDateTime(_programData!['tarikh_kelulusan']),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      Icons.play_arrow,
+                      'Tarikh Mula Aktif',
+                      _formatDateTime(_programData!['tarikh_mula_aktif']),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      Icons.flag,
+                      'Tarikh Sebenar Selesai',
+                      _formatDateTime(_programData!['tarikh_sebenar_selesai']),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Location Card with Google Maps button
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade100,
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -274,10 +342,18 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
 
             // Vehicle Information Card
             if (vehicle != null) ...[
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade100,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -312,10 +388,18 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
 
             // Requestor Information Card
             if (requestor != null) ...[
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade100,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -349,10 +433,18 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
             ],
 
             // Description Card
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade100,
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -376,6 +468,32 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
         ),
       ),
     );
+  }
+
+  String _formatDateTime(dynamic dateTimeStr) {
+    if (dateTimeStr == null || dateTimeStr == '') {
+      return '-';
+    }
+
+    try {
+      // Parse UTC datetime from server
+      final utcDateTime = DateTime.parse(dateTimeStr);
+      
+      // Convert to Malaysia timezone (UTC+8)
+      final malaysiaDateTime = utcDateTime.add(const Duration(hours: 8));
+      
+      // Format: dd/MM/yyyy HH:mm
+      final day = malaysiaDateTime.day.toString().padLeft(2, '0');
+      final month = malaysiaDateTime.month.toString().padLeft(2, '0');
+      final year = malaysiaDateTime.year.toString();
+      final hour = malaysiaDateTime.hour.toString().padLeft(2, '0');
+      final minute = malaysiaDateTime.minute.toString().padLeft(2, '0');
+      
+      return '$day/$month/$year $hour:$minute';
+    } catch (e) {
+      developer.log('Error formatting datetime: $e', name: 'ProgramDetail');
+      return '-';
+    }
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {

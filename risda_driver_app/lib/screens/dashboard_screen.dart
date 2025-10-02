@@ -107,15 +107,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: Colors.white,
       drawer: Drawer(
         elevation: 0,
+        backgroundColor: Colors.white,
+        width: 320, // MUCH WIDER drawer
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        child: Column(
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            // Profile section with pastel green gradient
+            // Profile section with CLEAR blue gradient
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 36),
               decoration: const BoxDecoration(
-                gradient: PastelColors.primaryGradient,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF1E3A8A), // Dark blue (top)
+                    Color(0xFF3B82F6), // Bright blue (middle)
+                    Color(0xFF60A5FA), // Light blue (bottom)
+                  ],
+                  stops: [0.0, 0.5, 1.0], // Clear gradient stops
+                ),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -146,67 +158,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            
+            // Profile
             ListTile(
               leading: Icon(Icons.person, color: PastelColors.primary),
               title: Text('Profile', style: AppTextStyles.bodyLarge),
+              hoverColor: PastelColors.primary.withOpacity(0.1),
               onTap: () {
                 Navigator.of(context).pop();
                 Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen()));
               },
             ),
-            const Divider(),
-            ListTile(
-              leading: Icon(Icons.logout, color: PastelColors.primary),
-              title: Text('Logout', style: AppTextStyles.bodyLarge),
-              onTap: _logout,
-            ),
-            const Spacer(),
-            Padding(
-              padding: EdgeInsets.only(left: 16, right: 16, bottom: 24, top: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: ListTile(
-                      tileColor: PastelColors.error.withOpacity(0.08),
-                      leading: Icon(Icons.delete_forever, color: PastelColors.errorText),
-                      title: Center(child: Text('Delete Account', style: AppTextStyles.bodyLarge.copyWith(color: PastelColors.errorText))),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        // TODO: Implement delete account logic
-                      },
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      endDrawer: Drawer(
-        elevation: 0,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const SizedBox(height: 32),
+            
+            // Privacy Policy
             ListTile(
               leading: Icon(Icons.privacy_tip, color: PastelColors.primary),
               title: Text('Privacy Policy', style: AppTextStyles.bodyLarge),
+              hoverColor: PastelColors.primary.withOpacity(0.1),
               onTap: () {
                 Navigator.of(context).pop();
                 Navigator.push(context, MaterialPageRoute(builder: (_) => PrivacyPolicyScreen()));
               },
             ),
+            
+            // About
             ListTile(
               leading: Icon(Icons.info_outline, color: PastelColors.primary),
               title: Text('About', style: AppTextStyles.bodyLarge),
+              hoverColor: PastelColors.primary.withOpacity(0.1),
               onTap: () {
                 Navigator.of(context).pop();
                 Navigator.push(context, MaterialPageRoute(builder: (_) => AboutScreen()));
               },
+            ),
+            
+            const Divider(),
+            
+            // Logout
+            ListTile(
+              leading: Icon(Icons.logout, color: PastelColors.primary),
+              title: Text('Logout', style: AppTextStyles.bodyLarge),
+              hoverColor: PastelColors.primary.withOpacity(0.1),
+              onTap: _logout,
             ),
           ],
         ),
@@ -284,16 +278,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(width: 4),
-          // Menu button
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.more_vert, color: Colors.white),
-              onPressed: () {
-                Scaffold.of(context).openEndDrawer();
-              },
-            ),
-          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: _pages[_selectedIndex],

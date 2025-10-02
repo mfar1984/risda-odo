@@ -71,6 +71,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case 'journey_started':
       case 'journey_ended':
         return PastelColors.warning;
+      case 'program_auto_closed':
+        return PastelColors.success;
+      case 'program_tertunda':
+        return PastelColors.error;
       default:
         return PastelColors.info;
     }
@@ -91,6 +95,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return Icons.trip_origin;
       case 'journey_ended':
         return Icons.flag;
+      case 'program_auto_closed':
+        return Icons.check_circle_outline;
+      case 'program_tertunda':
+        return Icons.warning_amber;
       default:
         return Icons.notifications;
     }

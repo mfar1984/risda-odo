@@ -113,29 +113,82 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                       
-                      // Edit Profile Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const EditProfileScreen(),
+                      // Action Buttons Row
+                      Row(
+                        children: [
+                          // Edit Profile Button
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const EditProfileScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.edit, size: 20),
+                              label: const Text('Edit Profile'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: PastelColors.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
-                            );
-                          },
-                          icon: const Icon(Icons.edit),
-                          label: const Text('Edit Profile'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: PastelColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          // Delete Account Button
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                // Show confirmation dialog
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Delete Account'),
+                                    content: const Text(
+                                      'Are you sure you want to delete your account? This action cannot be undone.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          // TODO: Implement delete account logic
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Delete account feature coming soon'),
+                                            ),
+                                          );
+                                        },
+                                        child: const Text(
+                                          'Delete',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.delete_forever, size: 20),
+                              label: const Text('Delete Account'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: PastelColors.error,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

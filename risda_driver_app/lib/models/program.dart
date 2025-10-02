@@ -5,6 +5,9 @@ class Program {
   final String? penerangan;
   final DateTime? tarikhMula;
   final DateTime? tarikhSelesai;
+  final DateTime? tarikhKelulusan;
+  final DateTime? tarikhMulaAktif;
+  final DateTime? tarikhSebenarSelesai;
   final String status;
   final String? pemohonNama;
   final String? pemanduNama;
@@ -17,6 +20,9 @@ class Program {
     this.penerangan,
     this.tarikhMula,
     this.tarikhSelesai,
+    this.tarikhKelulusan,
+    this.tarikhMulaAktif,
+    this.tarikhSebenarSelesai,
     required this.status,
     this.pemohonNama,
     this.pemanduNama,
@@ -34,6 +40,15 @@ class Program {
           : null,
       tarikhSelesai: json['tarikh_selesai'] != null 
           ? DateTime.tryParse(json['tarikh_selesai']) 
+          : null,
+      tarikhKelulusan: json['tarikh_kelulusan'] != null 
+          ? DateTime.tryParse(json['tarikh_kelulusan']) 
+          : null,
+      tarikhMulaAktif: json['tarikh_mula_aktif'] != null 
+          ? DateTime.tryParse(json['tarikh_mula_aktif']) 
+          : null,
+      tarikhSebenarSelesai: json['tarikh_sebenar_selesai'] != null 
+          ? DateTime.tryParse(json['tarikh_sebenar_selesai']) 
           : null,
       status: json['status'] ?? 'draf',
       pemohonNama: json['pemohon_nama'],

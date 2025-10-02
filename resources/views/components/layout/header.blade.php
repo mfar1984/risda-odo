@@ -142,7 +142,7 @@
                                    class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 transition-colors"
                                    :class="{ 'bg-blue-50': !notification.read_at }">
                                     <div class="flex items-start">
-                                        <span class="material-symbols-outlined text-blue-600 mr-3 mt-0.5" x-text="notification.type === 'claim_created' || notification.type === 'claim_resubmitted' ? 'receipt_long' : notification.type === 'journey_started' ? 'trip_origin' : notification.type === 'journey_ended' ? 'flag' : 'info'"></span>
+                                        <span class="material-symbols-outlined text-blue-600 mr-3 mt-0.5" x-text="notification.type === 'claim_created' || notification.type === 'claim_resubmitted' ? 'receipt_long' : notification.type === 'journey_started' ? 'trip_origin' : notification.type === 'journey_ended' ? 'flag' : notification.type === 'program_auto_closed' ? 'check_circle' : notification.type === 'program_tertunda' ? 'warning' : 'info'"></span>
                                         <div class="flex-1 min-w-0">
                                             <p class="text-sm font-medium text-gray-900" x-text="notification.title"></p>
                                             <p class="text-sm text-gray-600 mt-1" x-text="notification.message"></p>
