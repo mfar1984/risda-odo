@@ -232,6 +232,20 @@ class SenaraiProgramController extends Controller
 
         $filename = 'laporan-program-' . str($program->nama_program)->slug('-') . '.pdf';
 
+        // Log activity
+        activity()
+            ->performedOn($program)
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'program_name' => $program->nama_program,
+                'filename' => $filename,
+                'format' => 'pdf',
+            ])
+            ->event('exported')
+            ->log("Program '{$program->nama_program}' telah dieksport ke PDF");
+
         return $pdf->download($filename);
     }
 

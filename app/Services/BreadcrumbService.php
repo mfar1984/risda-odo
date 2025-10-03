@@ -235,6 +235,11 @@ class BreadcrumbService
             'icon' => null,
             'parent' => 'pengurusan',
         ],
+        'pengurusan.show-aktiviti-log' => [
+            'name' => 'Butiran Aktiviti',
+            'icon' => null,
+            'parent' => 'pengurusan.aktiviti-log',
+        ],
         'pengurusan.aktiviti-log-keselamatan' => [
             'name' => 'Aktiviti Log Keselamatan',
             'icon' => null,

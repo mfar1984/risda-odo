@@ -471,5 +471,18 @@ function exportProgram() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    // Log export activity via AJAX
+    fetch('{{ route("program.log-export", $program) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            filename: `program_${programId}_${programName.replace(/\s+/g, '_')}.json`,
+            format: 'json'
+        })
+    }).catch(error => console.error('Failed to log export:', error));
 }
 </script>

@@ -368,6 +368,190 @@
             <nav class="breadcrumb-nav">
                 <x-ui.breadcrumb />
             </nav>
+
+            <!-- Weather Widget -->
+            @php
+                $user = auth()->user();
+                $weatherConfig = null;
+                
+                if ($user) {
+                    if ($user->jenis_organisasi === 'stesen' && $user->organisasi_id) {
+                        $weatherConfig = \App\Models\WeatherConfig::where('jenis_organisasi', 'stesen')
+                            ->where('organisasi_id', $user->organisasi_id)
+                            ->first();
+                    } elseif ($user->jenis_organisasi === 'bahagian' && $user->organisasi_id) {
+                        $weatherConfig = \App\Models\WeatherConfig::where('jenis_organisasi', 'bahagian')
+                            ->where('organisasi_id', $user->organisasi_id)
+                            ->first();
+                    } elseif ($user->jenis_organisasi === 'semua') {
+                        $weatherConfig = \App\Models\WeatherConfig::where('jenis_organisasi', 'semua')
+                            ->whereNull('organisasi_id')
+                            ->first();
+                    }
+                }
+
+                $weatherData = $weatherConfig && $weatherConfig->weather_current_data ? $weatherConfig->weather_current_data : null;
+                $locationName = $weatherConfig ? $weatherConfig->weather_default_location : 'Bintulu';
+                $lastUpdated = $weatherConfig && $weatherConfig->weather_last_update ? \Carbon\Carbon::parse($weatherConfig->weather_last_update)->diffForHumans() : 'Tidak tersedia';
+            @endphp
+
+            @if($weatherData)
+                <div class="relative ml-auto" x-data="{ open: false }">
+                    <!-- Weather Button (Hover to show) -->
+                    <div @mouseenter="open = true" @mouseleave="open = false" class="flex items-center gap-1.5 px-2 py-1">
+                        <!-- Sun Icon -->
+                        <span class="text-xl">☀️</span>
+                        <!-- Temperature -->
+                        <span class="text-sm font-semibold text-gray-900" style="font-family: Poppins, sans-serif;">
+                            {{ round($weatherData['temp'] ?? 0) }}°C
+                        </span>
+                        <span class="text-gray-400">|</span>
+                        <!-- Weather Description -->
+                        <span class="text-sm text-gray-600" style="font-family: Poppins, sans-serif;">
+                            {{ ucfirst($weatherData['description'] ?? 'Cerah') }}
+                        </span>
+                    </div>
+
+                    <!-- Weather Detail Modal (Compact) -->
+                    <div x-show="open" 
+                         @mouseenter="open = true" 
+                         @mouseleave="open = false"
+                         x-transition
+                         class="absolute right-0 mt-1 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 overflow-hidden"
+                         style="top: 100%;">
+                        
+                        <!-- Header (Compact) -->
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 text-white">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-bold" style="font-family: Poppins, sans-serif;">
+                                        Cuaca {{ $locationName }}, Malaysia
+                                    </h3>
+                                    <p class="text-xs text-blue-100" style="font-family: Poppins, sans-serif;">
+                                        {{ now()->translatedFormat('l, d F Y') }}
+                                    </p>
+                                </div>
+                                <div class="text-3xl font-bold">
+                                    {{ round($weatherData['temp'] ?? 0) }}°C
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Weather (Compact) -->
+                        <div class="p-3 bg-gradient-to-br from-blue-50 to-white">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">☀️</span>
+                                    <div>
+                                        <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Keadaan</p>
+                                        <p class="text-xs font-semibold text-gray-900" style="font-family: Poppins, sans-serif;">
+                                            {{ ucfirst($weatherData['description'] ?? 'Cerah') }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">🌡️</span>
+                                    <div>
+                                        <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Suhu</p>
+                                        <p class="text-xs font-semibold text-gray-900" style="font-family: Poppins, sans-serif;">
+                                            {{ round($weatherData['temp'] ?? 0) }}°C
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Info (Compact) -->
+                        <div class="px-4 py-3 bg-white border-t border-gray-100">
+                            <h4 class="text-xs font-semibold text-gray-700 mb-2" style="font-family: Poppins, sans-serif;">Maklumat Semasa</h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <!-- Feels Like -->
+                                <div>
+                                    <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Terasa Seperti:</p>
+                                    <p class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif;">
+                                        {{ round($weatherData['feels_like'] ?? 0) }}°C
+                                    </p>
+                                </div>
+                                <!-- Humidity -->
+                                <div>
+                                    <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Kelembapan:</p>
+                                    <p class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif;">
+                                        {{ $weatherData['humidity'] ?? 0 }}%
+                                    </p>
+                                </div>
+                                <!-- Wind Speed -->
+                                <div>
+                                    <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Kelajuan Angin:</p>
+                                    <p class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif;">
+                                        {{ $weatherData['wind_speed'] ?? 0 }} km/j
+                                    </p>
+                                </div>
+                                <!-- Pressure -->
+                                <div>
+                                    <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Tekanan:</p>
+                                    <p class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif;">
+                                        {{ $weatherData['pressure'] ?? 0 }} hPa
+                                    </p>
+                                </div>
+                                <!-- Visibility -->
+                                <div>
+                                    <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Jarak Penglihatan:</p>
+                                    <p class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif;">
+                                        {{ round(($weatherData['visibility'] ?? 0) / 1000) }} km
+                                    </p>
+                                </div>
+                                <!-- UV Index -->
+                                <div>
+                                    <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Indeks UV:</p>
+                                    <p class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif;">
+                                        {{ $weatherData['uvi'] ?? 0 }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Today's Forecast -->
+                        @if(isset($weatherData['temp_min']) && isset($weatherData['temp_max']))
+                            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                                <h4 class="text-xs font-semibold text-gray-700 mb-3" style="font-family: Poppins, sans-serif;">Ramalan Hari Ini</h4>
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="flex flex-col items-center">
+                                        <span class="text-2xl mb-1">🌡️</span>
+                                        <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Min</p>
+                                        <p class="text-sm font-semibold text-red-600" style="font-family: Poppins, sans-serif;">
+                                            {{ round($weatherData['temp_min']) }}°C
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <span class="text-2xl mb-1">🌡️</span>
+                                        <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Max</p>
+                                        <p class="text-sm font-semibold text-blue-600" style="font-family: Poppins, sans-serif;">
+                                            {{ round($weatherData['temp_max']) }}°C
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <span class="text-2xl mb-1">💧</span>
+                                        <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">Hujan</p>
+                                        <p class="text-sm font-semibold text-cyan-600" style="font-family: Poppins, sans-serif;">
+                                            {{ $weatherData['rain'] ?? 0 }}%
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Footer -->
+                        <div class="px-6 py-3 bg-gray-100 border-t border-gray-200 flex items-center justify-between">
+                            <p class="text-xs text-gray-500" style="font-family: Poppins, sans-serif;">
+                                Dikemas kini: {{ $lastUpdated }}
+                            </p>
+                            <p class="text-xs text-gray-400" style="font-family: Poppins, sans-serif;">
+                                {{ now()->format('h:i A') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 

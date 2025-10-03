@@ -123,6 +123,19 @@ class ProgramController extends Controller
 
         $program = Program::create($data);
 
+        // Log activity
+        activity()
+            ->performedOn($program)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'program_name' => $program->nama_program,
+                'status' => $program->status,
+            ])
+            ->event('created')
+            ->log("Program '{$program->nama_program}' telah dicipta");
+
         // Send notification to assigned driver
         $driver = User::where('staf_id', $program->pemandu_id)->first();
         if ($driver) {
@@ -236,7 +249,23 @@ class ProgramController extends Controller
             }
         }
 
+        $oldStatus = $program->status;
         $program->update($data);
+
+        // Log activity
+        activity()
+            ->performedOn($program)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'program_name' => $program->nama_program,
+                'old_status' => $oldStatus,
+                'new_status' => $program->status,
+                'changes' => $program->getChanges(),
+            ])
+            ->event('updated')
+            ->log("Program '{$program->nama_program}' telah dikemaskini");
 
         return redirect()->route('program.index')
             ->with('success', 'Program berjaya dikemaskini.');
@@ -250,7 +279,22 @@ class ProgramController extends Controller
         // Check access permission
         $this->checkProgramAccess($program);
 
+        $programName = $program->nama_program;
+        $programId = $program->id;
+        
         $program->delete();
+
+        // Log activity
+        activity()
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'program_id' => $programId,
+                'program_name' => $programName,
+            ])
+            ->event('deleted')
+            ->log("Program '{$programName}' telah dipadam");
 
         return redirect()->route('program.index')
             ->with('success', 'Program berjaya dipadam.');
@@ -399,6 +443,21 @@ class ProgramController extends Controller
             );
         }
 
+        // Log activity
+        activity()
+            ->performedOn($program)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'program_name' => $program->nama_program,
+                'old_status' => 'draf',
+                'new_status' => 'lulus',
+                'approved_at' => $program->tarikh_kelulusan,
+            ])
+            ->event('approved')
+            ->log("Program '{$program->nama_program}' telah diluluskan");
+
         return redirect()->route('program.index')
             ->with('success', "Program '{$program->nama_program}' berjaya diluluskan.");
     }
@@ -422,8 +481,47 @@ class ProgramController extends Controller
             'dikemaskini_oleh' => auth()->id(),
         ]);
 
+        // Log activity
+        activity()
+            ->performedOn($program)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'program_name' => $program->nama_program,
+                'old_status' => 'draf',
+                'new_status' => 'tolak',
+            ])
+            ->event('rejected')
+            ->log("Program '{$program->nama_program}' telah ditolak");
+
         return redirect()->route('program.index')
             ->with('success', "Program '{$program->nama_program}' berjaya ditolak.");
+    }
+
+    /**
+     * Log export activity (called via AJAX from client-side export)
+     */
+    public function logExport(Request $request, Program $program)
+    {
+        // Check access permission
+        $this->checkProgramAccess($program);
+
+        // Log activity
+        activity()
+            ->performedOn($program)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'program_name' => $program->nama_program,
+                'filename' => $request->input('filename'),
+                'format' => $request->input('format', 'json'),
+            ])
+            ->event('exported')
+            ->log("Program '{$program->nama_program}' telah dieksport");
+
+        return response()->json(['success' => true]);
     }
 
     /**

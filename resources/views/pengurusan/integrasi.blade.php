@@ -372,19 +372,19 @@
                                         <x-forms.input-error class="mt-2" :messages="$errors->get('weather_api_key')" />
                                     </div>
 
-                                    <!-- Row 3: Base URL -->
+                                    <!-- Row 3: Base URL (Readonly) -->
                                     <div style="margin-bottom: 20px;">
                                         <x-forms.input-label for="weather_base_url" value="URL Asas" />
                                         <x-forms.text-input
                                             id="weather_base_url"
                                             name="weather_base_url"
                                             type="text"
-                                            class="mt-1 block w-full"
+                                            class="mt-1 block w-full bg-gray-50"
                                             value="{{ old('weather_base_url', $weatherConfig->weather_base_url ?? 'https://api.openweathermap.org/data/2.5') }}"
                                             placeholder="https://api.openweathermap.org/data/2.5"
+                                            readonly
                                         />
-                                        <p class="mt-1 text-xs text-gray-500">URL endpoint API untuk OpenWeatherMap</p>
-                                        <x-forms.input-error class="mt-2" :messages="$errors->get('weather_base_url')" />
+                                        <p class="mt-1 text-xs text-gray-500">URL endpoint API untuk OpenWeatherMap (tetap)</p>
                                     </div>
                                 </div>
 
@@ -392,22 +392,28 @@
                                 <div style="margin-bottom: 32px;">
                                     <h4 class="text-base font-semibold text-gray-900 mb-4" style="font-family: Poppins, sans-serif !important; font-size: 13px !important;">Tetapan Lokasi Lalai</h4>
 
-                                    <!-- Row 1: Default Location -->
+                                    <!-- Row 1: Default Location with Auto-Geocoding -->
                                     <div style="margin-bottom: 20px;">
                                         <x-forms.input-label for="weather_default_location" value="Lokasi Lalai" />
-                                        <x-forms.text-input
-                                            id="weather_default_location"
-                                            name="weather_default_location"
-                                            type="text"
-                                            class="mt-1 block w-full"
-                                            value="{{ old('weather_default_location', $weatherConfig->weather_default_location) }}"
-                                            placeholder="Contoh: Kuala Lumpur, Malaysia"
-                                        />
-                                        <p class="mt-1 text-xs text-gray-500">Nama lokasi untuk paparan (tidak mempengaruhi data cuaca)</p>
+                                        <div class="flex gap-2 mt-1">
+                                            <x-forms.text-input
+                                                id="weather_default_location"
+                                                name="weather_default_location"
+                                                type="text"
+                                                class="block w-full"
+                                                value="{{ old('weather_default_location', $weatherConfig->weather_default_location) }}"
+                                                placeholder="Contoh: Sibu, Sarawak, Malaysia"
+                                            />
+                                            <button type="button" onclick="getCoordinates()" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center gap-2 whitespace-nowrap" style="font-family: Poppins, sans-serif !important; font-size: 12px !important; height: 32px;">
+                                                <span class="material-symbols-outlined" style="font-size: 16px;">my_location</span>
+                                                Koordinat
+                                            </button>
+                                        </div>
+                                        <p class="mt-1 text-xs text-gray-500">Masukkan nama lokasi dan klik butang untuk auto-populate koordinat</p>
                                         <x-forms.input-error class="mt-2" :messages="$errors->get('weather_default_location')" />
                                     </div>
 
-                                    <!-- Row 2: Latitude & Longitude -->
+                                    <!-- Row 2: Latitude & Longitude (Auto-populated, Readonly) -->
                                     <div style="display: flex; gap: 20px; margin-bottom: 20px;">
                                         <div style="flex: 1;">
                                             <x-forms.input-label for="weather_default_lat" value="Latitud" />
@@ -416,11 +422,12 @@
                                                 name="weather_default_lat"
                                                 type="number"
                                                 step="0.00000001"
-                                                class="mt-1 block w-full"
+                                                class="mt-1 block w-full bg-gray-50"
                                                 value="{{ old('weather_default_lat', $weatherConfig->weather_default_lat) }}"
-                                                placeholder="3.1390"
+                                                placeholder="Auto-populated"
+                                                readonly
                                             />
-                                            <p class="mt-1 text-xs text-gray-500">Nilai antara -90 hingga 90</p>
+                                            <p class="mt-1 text-xs text-gray-500">Nilai antara -90 hingga 90 (auto)</p>
                                             <x-forms.input-error class="mt-2" :messages="$errors->get('weather_default_lat')" />
                                         </div>
                                         <div style="flex: 1;">
@@ -430,11 +437,12 @@
                                                 name="weather_default_long"
                                                 type="number"
                                                 step="0.00000001"
-                                                class="mt-1 block w-full"
+                                                class="mt-1 block w-full bg-gray-50"
                                                 value="{{ old('weather_default_long', $weatherConfig->weather_default_long) }}"
-                                                placeholder="101.6869"
+                                                placeholder="Auto-populated"
+                                                readonly
                                             />
-                                            <p class="mt-1 text-xs text-gray-500">Nilai antara -180 hingga 180</p>
+                                            <p class="mt-1 text-xs text-gray-500">Nilai antara -180 hingga 180 (auto)</p>
                                             <x-forms.input-error class="mt-2" :messages="$errors->get('weather_default_long')" />
                                         </div>
                                     </div>
@@ -508,7 +516,7 @@
                                             <div>
                                                 <div class="text-xs text-blue-600 mb-1" style="font-family: Poppins, sans-serif !important;">Status Cache</div>
                                                 <div class="text-sm font-medium text-blue-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                                    @if($integrasi->isWeatherCacheValid())
+                                                    @if($weatherConfig->isWeatherCacheValid())
                                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                                             <span class="material-symbols-outlined mr-1" style="font-size: 12px;">check_circle</span>
                                                             Aktif
@@ -824,5 +832,66 @@
             </div>
         </div>
     </x-ui.page-header>
+
+    <!-- Geocoding JavaScript -->
+    <script>
+        async function getCoordinates() {
+            const locationInput = document.getElementById('weather_default_location');
+            const latInput = document.getElementById('weather_default_lat');
+            const longInput = document.getElementById('weather_default_long');
+            const apiKeyInput = document.getElementById('weather_api_key');
+            
+            const location = locationInput.value.trim();
+            const apiKey = apiKeyInput.value.trim();
+            
+            if (!location) {
+                alert('Sila masukkan nama lokasi terlebih dahulu.');
+                locationInput.focus();
+                return;
+            }
+            
+            if (!apiKey) {
+                alert('Sila masukkan API Key terlebih dahulu.');
+                apiKeyInput.focus();
+                return;
+            }
+            
+            // Show loading state
+            const button = event.target.closest('button');
+            const originalHTML = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<span class="material-symbols-outlined animate-spin" style="font-size: 16px;">progress_activity</span> Mencari...';
+            
+            try {
+                // Use OpenWeatherMap Geocoding API
+                const response = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(location)}&limit=1&appid=${apiKey}`);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    const result = data[0];
+                    latInput.value = result.lat.toFixed(8);
+                    longInput.value = result.lon.toFixed(8);
+                    
+                    // Update location name with formatted result
+                    if (result.state) {
+                        locationInput.value = `${result.name}, ${result.state}, ${result.country}`;
+                    } else {
+                        locationInput.value = `${result.name}, ${result.country}`;
+                    }
+                    
+                    alert(`✅ Koordinat berjaya ditemui!\n\nLokasi: ${locationInput.value}\nLatitud: ${result.lat}\nLongitud: ${result.lon}`);
+                } else {
+                    alert('❌ Lokasi tidak ditemui. Sila cuba dengan nama lokasi yang lain.');
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                alert('❌ Ralat: Gagal mendapatkan koordinat. Sila semak API Key anda atau sambungan internet.');
+            } finally {
+                // Restore button
+                button.disabled = false;
+                button.innerHTML = originalHTML;
+            }
+        }
+    </script>
 </x-dashboard-layout>
 

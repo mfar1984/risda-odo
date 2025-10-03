@@ -111,10 +111,10 @@ class IntegrasiController extends Controller
         $user = auth()->user();
         $weatherConfig = WeatherConfig::getForCurrentUser();
         
-        // Multi-tenancy check
+        // Multi-tenancy check (use loose comparison for organisasi_id to handle string/int type differences)
         if ($user->jenis_organisasi !== 'semua' && 
             ($weatherConfig->jenis_organisasi !== $user->jenis_organisasi || 
-             $weatherConfig->organisasi_id !== $user->organisasi_id)) {
+             $weatherConfig->organisasi_id != $user->organisasi_id)) {
             return redirect()->back()
                 ->with('error', 'Anda tidak mempunyai kebenaran untuk kemaskini konfigurasi ini.');
         }
@@ -167,10 +167,10 @@ class IntegrasiController extends Controller
         $user = auth()->user();
         $emailConfig = EmailConfig::getForCurrentUser();
         
-        // Check if user can edit this config
+        // Check if user can edit this config (use loose comparison for organisasi_id to handle string/int type differences)
         if ($user->jenis_organisasi !== 'semua' && 
             ($emailConfig->jenis_organisasi !== $user->jenis_organisasi || 
-             $emailConfig->organisasi_id !== $user->organisasi_id)) {
+             $emailConfig->organisasi_id != $user->organisasi_id)) {
             return redirect()->back()
                 ->with('error', 'Anda tidak mempunyai kebenaran untuk kemaskini konfigurasi ini.');
         }

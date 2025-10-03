@@ -60,6 +60,10 @@ Route::middleware('auth')->group(function () {
         Route::patch('/program/{program}/reject', [App\Http\Controllers\ProgramController::class, 'reject'])->name('reject-program');
     });
 
+    Route::middleware('permission:program,lihat')->group(function () {
+        Route::post('/program/{program}/log-export', [App\Http\Controllers\ProgramController::class, 'logExport'])->name('program.log-export');
+    });
+
     // Log Pemandu Routes (Permission-based)
     Route::get('/log-pemandu', [LogPemanduController::class, 'index'])->name('log-pemandu.index');
     Route::get('/log-pemandu/tab-counts', [LogPemanduController::class, 'getTabCounts'])->name('log-pemandu.tab-counts');
@@ -278,9 +282,7 @@ Route::middleware('auth')->group(function () {
 
         // Aktiviti Log Routes (Permission-based)
         Route::middleware('permission:aktiviti_log,lihat')->group(function () {
-            Route::get('/aktiviti-log', function () {
-                return view('pengurusan.aktiviti-log');
-            })->name('aktiviti-log');
+            Route::get('/aktiviti-log', [App\Http\Controllers\AktivitiLogController::class, 'index'])->name('aktiviti-log');
         });
 
         // Aktiviti Log Keselamatan Routes (Permission-based)
