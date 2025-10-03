@@ -210,6 +210,11 @@ class BreadcrumbService
             'icon' => null,
             'parent' => 'pengurusan',
         ],
+        'pengurusan.integrasi' => [
+            'name' => 'Integrasi',
+            'icon' => null,
+            'parent' => 'pengurusan',
+        ],
         'pengurusan.tambah-selenggara' => [
             'name' => 'Tambah Selenggara',
             'icon' => null,

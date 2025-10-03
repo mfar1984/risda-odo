@@ -162,9 +162,100 @@
                 </div>
 
                 <!-- Apps Grid Menu Icon -->
-                <button class="topbar-grid-btn">
-                    <span class="material-symbols-outlined">apps</span>
-                </button>
+                <!-- Quick Apps Shortcut Menu (Aplikasi Pantas) -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" class="topbar-grid-btn" title="Aplikasi Pantas">
+                        <span class="material-symbols-outlined">apps</span>
+                    </button>
+
+                    <!-- Apps Grid Modal -->
+                    <div x-show="open" 
+                         @click.away="open = false" 
+                         x-transition
+                         class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
+                         style="top: 100%;">
+                        
+                        <!-- Modal Header -->
+                        <div class="px-4 py-3 border-b border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">Aplikasi Pantas</h3>
+                        </div>
+
+                        <!-- Apps Grid -->
+                        <div class="p-4 grid grid-cols-3 gap-2">
+                            <!-- Dashboard -->
+                            <a href="{{ route('dashboard') }}" class="flex flex-col items-center p-3 rounded-lg hover:bg-blue-50 transition-colors group">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-1.5 group-hover:bg-blue-200 transition-colors">
+                                    <span class="material-symbols-outlined text-blue-600" style="font-size: 20px;">dashboard</span>
+                                </div>
+                                <span class="text-xs font-medium text-gray-700 text-center" style="font-family: Poppins, sans-serif !important; font-size: 10px;">Dashboard</span>
+                            </a>
+
+                            <!-- Program -->
+                            <a href="{{ route('program.index') }}" class="flex flex-col items-center p-3 rounded-lg hover:bg-green-50 transition-colors group">
+                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-1.5 group-hover:bg-green-200 transition-colors">
+                                    <span class="material-symbols-outlined text-green-600" style="font-size: 20px;">event</span>
+                                </div>
+                                <span class="text-xs font-medium text-gray-700 text-center" style="font-family: Poppins, sans-serif !important; font-size: 10px;">Program</span>
+                            </a>
+
+                            <!-- Log Pemandu -->
+                            <a href="{{ route('log-pemandu.index') }}" class="flex flex-col items-center p-3 rounded-lg hover:bg-purple-50 transition-colors group">
+                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-1.5 group-hover:bg-purple-200 transition-colors">
+                                    <span class="material-symbols-outlined text-purple-600" style="font-size: 20px;">route</span>
+                                </div>
+                                <span class="text-xs font-medium text-gray-700 text-center" style="font-family: Poppins, sans-serif !important; font-size: 10px;">Log Pemandu</span>
+                            </a>
+
+                            <!-- Kenderaan -->
+                            <a href="{{ route('pengurusan.senarai-kenderaan') }}" class="flex flex-col items-center p-3 rounded-lg hover:bg-orange-50 transition-colors group">
+                                <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mb-1.5 group-hover:bg-orange-200 transition-colors">
+                                    <span class="material-symbols-outlined text-orange-600" style="font-size: 20px;">directions_car</span>
+                                </div>
+                                <span class="text-xs font-medium text-gray-700 text-center" style="font-family: Poppins, sans-serif !important; font-size: 10px;">Kenderaan</span>
+                            </a>
+
+                            <!-- Selenggara -->
+                            <a href="{{ route('pengurusan.senarai-selenggara') }}" class="flex flex-col items-center p-3 rounded-lg hover:bg-yellow-50 transition-colors group">
+                                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mb-1.5 group-hover:bg-yellow-200 transition-colors">
+                                    <span class="material-symbols-outlined text-yellow-600" style="font-size: 20px;">build</span>
+                                </div>
+                                <span class="text-xs font-medium text-gray-700 text-center" style="font-family: Poppins, sans-serif !important; font-size: 10px;">Selenggara</span>
+                            </a>
+
+                            <!-- Laporan Tuntutan -->
+                            <a href="{{ route('laporan.laporan-tuntutan') }}" class="flex flex-col items-center p-3 rounded-lg hover:bg-pink-50 transition-colors group">
+                                <div class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mb-1.5 group-hover:bg-pink-200 transition-colors">
+                                    <span class="material-symbols-outlined text-pink-600" style="font-size: 20px;">receipt_long</span>
+                                </div>
+                                <span class="text-xs font-medium text-gray-700 text-center" style="font-family: Poppins, sans-serif !important; font-size: 10px;">Tuntutan</span>
+                            </a>
+
+                            <!-- Pengurusan Kumpulan -->
+                            <a href="{{ route('pengurusan.senarai-kumpulan') }}" class="flex flex-col items-center p-3 rounded-lg hover:bg-indigo-50 transition-colors group">
+                                <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mb-1.5 group-hover:bg-indigo-200 transition-colors">
+                                    <span class="material-symbols-outlined text-indigo-600" style="font-size: 20px;">shield</span>
+                                </div>
+                                <span class="text-xs font-medium text-gray-700 text-center" style="font-family: Poppins, sans-serif !important; font-size: 10px;">Roles</span>
+                            </a>
+
+                            <!-- Users -->
+                            <a href="{{ route('pengurusan.senarai-pengguna') }}" class="flex flex-col items-center p-3 rounded-lg hover:bg-cyan-50 transition-colors group">
+                                <div class="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center mb-1.5 group-hover:bg-cyan-200 transition-colors">
+                                    <span class="material-symbols-outlined text-cyan-600" style="font-size: 20px;">group</span>
+                                </div>
+                                <span class="text-xs font-medium text-gray-700 text-center" style="font-family: Poppins, sans-serif !important; font-size: 10px;">Users</span>
+                            </a>
+
+                            <!-- Tetapan -->
+                            <a href="{{ route('pengurusan.tetapan-umum') }}" class="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-1.5 group-hover:bg-gray-200 transition-colors">
+                                    <span class="material-symbols-outlined text-gray-600" style="font-size: 20px;">settings</span>
+                                </div>
+                                <span class="text-xs font-medium text-gray-700 text-center" style="font-family: Poppins, sans-serif !important; font-size: 10px;">Tetapan</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Help & Support -->
                 <div class="relative" x-data="{ open: false }">
