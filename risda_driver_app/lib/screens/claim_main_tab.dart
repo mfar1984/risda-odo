@@ -222,13 +222,6 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
                       ]),
                     ],
                     
-                    // Receipt Section
-                    if (claim['resit'] != null) ...[
-                      const SizedBox(height: 16),
-                      _buildSectionTitle('Resit'),
-                      _buildReceiptPreview(claim['resit']),
-                    ],
-                    
                     // Rejection Reason Section
                     if (claim['alasan_tolak'] != null && claim['alasan_tolak'].toString().isNotEmpty) ...[
                       const SizedBox(height: 16),
@@ -414,52 +407,6 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildReceiptPreview(String receiptUrl) {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!, width: 1),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.network(
-          receiptUrl.startsWith('http') 
-              ? receiptUrl 
-              : 'http://localhost:8000$receiptUrl',
-          fit: BoxFit.cover,
-          width: double.infinity,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Resit tidak dapat dipaparkan',
-                    style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
       ),
     );
   }
