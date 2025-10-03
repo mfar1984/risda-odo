@@ -33,11 +33,31 @@ class IntegrasiController extends Controller
     public function generateApiToken(Request $request)
     {
         $integrasi = IntegrasiConfig::get();
+        
+        // Store old token (masked for security)
+        $oldToken = $integrasi->api_token ? substr($integrasi->api_token, 0, 10) . '...' . substr($integrasi->api_token, -10) : null;
+        
         $integrasi->generateApiToken();
 
         $integrasi->update([
             'dikemaskini_oleh' => auth()->id(),
         ]);
+
+        // Mask new token for logging
+        $newTokenMasked = substr($integrasi->api_token, 0, 10) . '...' . substr($integrasi->api_token, -10);
+
+        // Log activity
+        activity()
+            ->performedOn($integrasi)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'old_token_masked' => $oldToken,
+                'new_token_masked' => $newTokenMasked,
+            ])
+            ->event('generated_token')
+            ->log("API Token baharu telah dijana");
 
         return response()->json([
             'success' => true,
@@ -64,6 +84,10 @@ class IntegrasiController extends Controller
 
         $integrasi = IntegrasiConfig::get();
         
+        // Store old values for logging
+        $oldOrigins = $integrasi->api_allowed_origins ?? [];
+        $oldAllowAll = $integrasi->api_cors_allow_all;
+        
         // Process origins textarea to array
         $origins = [];
         if ($request->filled('api_allowed_origins')) {
@@ -81,6 +105,21 @@ class IntegrasiController extends Controller
             'api_cors_allow_all' => $request->boolean('api_cors_allow_all'),
             'dikemaskini_oleh' => auth()->id(),
         ]);
+
+        // Log activity
+        activity()
+            ->performedOn($integrasi)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'old_origins' => $oldOrigins,
+                'new_origins' => $origins,
+                'old_allow_all' => $oldAllowAll,
+                'new_allow_all' => $integrasi->api_cors_allow_all,
+            ])
+            ->event('updated_cors')
+            ->log("Konfigurasi CORS telah dikemaskini");
 
         return redirect()->route('pengurusan.integrasi', ['tab' => 'api'])
             ->with('success', 'Konfigurasi CORS berjaya dikemaskini.');
@@ -119,6 +158,11 @@ class IntegrasiController extends Controller
                 ->with('error', 'Anda tidak mempunyai kebenaran untuk kemaskini konfigurasi ini.');
         }
         
+        // Store old values for logging
+        $oldLocation = $weatherConfig->weather_default_location;
+        $oldUnits = $weatherConfig->weather_units;
+        $oldApiKey = $weatherConfig->weather_api_key;
+        
         $data = $request->only([
             'weather_api_key',
             'weather_base_url',
@@ -134,6 +178,31 @@ class IntegrasiController extends Controller
         $data['dikemaskini_oleh'] = auth()->id();
 
         $weatherConfig->update($data);
+
+        // Detect changes
+        $changes = [];
+        if ($oldLocation != $weatherConfig->weather_default_location) {
+            $changes['location'] = ['old' => $oldLocation, 'new' => $weatherConfig->weather_default_location];
+        }
+        if ($oldUnits != $weatherConfig->weather_units) {
+            $changes['units'] = ['old' => $oldUnits, 'new' => $weatherConfig->weather_units];
+        }
+        // Mask API key for security
+        $apiKeyChanged = $oldApiKey != $weatherConfig->weather_api_key;
+
+        // Log activity
+        activity()
+            ->performedOn($weatherConfig)
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'changes' => $changes,
+                'api_key_changed' => $apiKeyChanged,
+                'total_changes' => count($changes) + ($apiKeyChanged ? 1 : 0),
+            ])
+            ->event('updated_weather')
+            ->log("Konfigurasi cuaca telah dikemaskini (" . (count($changes) + ($apiKeyChanged ? 1 : 0)) . " medan diubah)");
 
         return redirect()->route('pengurusan.integrasi', ['tab' => 'cuaca'])
             ->with('success', 'Konfigurasi cuaca berjaya dikemaskini.');
@@ -175,6 +244,11 @@ class IntegrasiController extends Controller
                 ->with('error', 'Anda tidak mempunyai kebenaran untuk kemaskini konfigurasi ini.');
         }
 
+        // Store old values for logging
+        $oldHost = $emailConfig->smtp_host;
+        $oldPort = $emailConfig->smtp_port;
+        $oldFromAddress = $emailConfig->smtp_from_address;
+
         $data = $request->only([
             'smtp_host',
             'smtp_port',
@@ -188,14 +262,43 @@ class IntegrasiController extends Controller
             'smtp_max_retries',
         ]);
 
+        // Track password change
+        $passwordChanged = false;
         // Only update password if provided
         if ($request->filled('smtp_password')) {
             $data['smtp_password'] = $request->smtp_password;
+            $passwordChanged = true;
         }
 
         $data['dikemaskini_oleh'] = auth()->id();
 
         $emailConfig->update($data);
+
+        // Detect changes
+        $changes = [];
+        if ($oldHost != $emailConfig->smtp_host) {
+            $changes['smtp_host'] = ['old' => $oldHost, 'new' => $emailConfig->smtp_host];
+        }
+        if ($oldPort != $emailConfig->smtp_port) {
+            $changes['smtp_port'] = ['old' => $oldPort, 'new' => $emailConfig->smtp_port];
+        }
+        if ($oldFromAddress != $emailConfig->smtp_from_address) {
+            $changes['smtp_from_address'] = ['old' => $oldFromAddress, 'new' => $emailConfig->smtp_from_address];
+        }
+
+        // Log activity (NEVER log actual password!)
+        activity()
+            ->performedOn($emailConfig)
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'changes' => $changes,
+                'password_changed' => $passwordChanged,
+                'total_changes' => count($changes) + ($passwordChanged ? 1 : 0),
+            ])
+            ->event('updated_email')
+            ->log("Konfigurasi email telah dikemaskini (" . (count($changes) + ($passwordChanged ? 1 : 0)) . " medan diubah)");
 
         return redirect()->route('pengurusan.integrasi', ['tab' => 'email'])
             ->with('success', 'Konfigurasi email berjaya dikemaskini.');

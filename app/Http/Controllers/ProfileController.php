@@ -26,13 +26,44 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        
+        // Store old values for logging
+        $oldName = $user->name;
+        $oldEmail = $user->email;
+        
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Track if email changed
+        $emailChanged = false;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+            $emailChanged = true;
         }
 
-        $request->user()->save();
+        $user->save();
+
+        // Prepare changes
+        $changes = [];
+        if ($oldName != $user->name) {
+            $changes['name'] = ['old' => $oldName, 'new' => $user->name];
+        }
+        if ($oldEmail != $user->email) {
+            $changes['email'] = ['old' => $oldEmail, 'new' => $user->email];
+        }
+
+        // Log activity
+        activity()
+            ->performedOn($user)
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'changes' => $changes,
+                'email_verification_reset' => $emailChanged,
+            ])
+            ->event('updated_profile')
+            ->log("Profile '{$user->name}' telah dikemaskini");
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -47,6 +78,27 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Store data for logging before deletion
+        $userId = $user->id;
+        $userName = $user->name;
+        $userEmail = $user->email;
+        $userJenisOrganisasi = $user->jenis_organisasi;
+
+        // Log activity before logout
+        activity()
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'user_id' => $userId,
+                'user_name' => $userName,
+                'user_email' => $userEmail,
+                'jenis_organisasi' => $userJenisOrganisasi,
+                'self_deleted' => true,
+            ])
+            ->event('deleted_account')
+            ->log("Akaun '{$userName}' ({$userEmail}) telah dipadam oleh pengguna sendiri");
 
         Auth::logout();
 

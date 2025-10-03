@@ -251,7 +251,7 @@ class PenggunaController extends Controller
         }
 
         // Create user
-        User::create([
+        $user = User::create([
             'name' => $staf->nama_penuh,
             'email' => $staf->email,
             'password' => $request->password,
@@ -261,6 +261,24 @@ class PenggunaController extends Controller
             'stesen_akses_ids' => $stesenAksesIds,
             'status' => $request->status_akaun,
         ]);
+
+        // Log activity
+        activity()
+            ->performedOn($user)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'user_name' => $user->name,
+                'user_email' => $user->email,
+                'jenis_organisasi' => $jenisOrganisasi,
+                'organisasi_id' => $organisasiId,
+                'kumpulan_id' => $request->kumpulan_id,
+                'status' => $request->status_akaun,
+                'staf_id' => $request->staf_id,
+            ])
+            ->event('created')
+            ->log("Pengguna '{$user->name}' ({$user->email}) telah ditambah");
 
         return redirect()->route('pengurusan.senarai-pengguna')
             ->with('success', 'Pengguna berjaya ditambah!');
@@ -356,6 +374,14 @@ class PenggunaController extends Controller
             $organisasiId = $request->bahagian_akses_id;
         }
 
+        // Store old values for logging
+        $oldName = $pengguna->name;
+        $oldEmail = $pengguna->email;
+        $oldStatus = $pengguna->status;
+        $oldJenisOrganisasi = $pengguna->jenis_organisasi;
+        $oldOrganisasiId = $pengguna->organisasi_id;
+        $oldKumpulanId = $pengguna->kumpulan_id;
+
         // Update user data
         $updateData = [
             'name' => $request->name,
@@ -367,12 +393,52 @@ class PenggunaController extends Controller
             'status' => $request->status,
         ];
 
+        // Track if password was changed
+        $passwordChanged = false;
         // Only update password if provided
         if ($request->filled('password')) {
             $updateData['password'] = $request->password;
+            $passwordChanged = true;
         }
 
         $pengguna->update($updateData);
+
+        // Prepare changes array
+        $changes = [];
+        if ($oldName != $pengguna->name) {
+            $changes['name'] = ['old' => $oldName, 'new' => $pengguna->name];
+        }
+        if ($oldEmail != $pengguna->email) {
+            $changes['email'] = ['old' => $oldEmail, 'new' => $pengguna->email];
+        }
+        if ($oldStatus != $pengguna->status) {
+            $changes['status'] = ['old' => $oldStatus, 'new' => $pengguna->status];
+        }
+        if ($oldJenisOrganisasi != $pengguna->jenis_organisasi) {
+            $changes['jenis_organisasi'] = ['old' => $oldJenisOrganisasi, 'new' => $pengguna->jenis_organisasi];
+        }
+        if ($oldOrganisasiId != $pengguna->organisasi_id) {
+            $changes['organisasi_id'] = ['old' => $oldOrganisasiId, 'new' => $pengguna->organisasi_id];
+        }
+        if ($oldKumpulanId != $pengguna->kumpulan_id) {
+            $changes['kumpulan_id'] = ['old' => $oldKumpulanId, 'new' => $pengguna->kumpulan_id];
+        }
+
+        // Log activity
+        activity()
+            ->performedOn($pengguna)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'user_name' => $pengguna->name,
+                'user_email' => $pengguna->email,
+                'changes' => $changes,
+                'password_changed' => $passwordChanged,
+                'total_fields_changed' => count($changes) + ($passwordChanged ? 1 : 0),
+            ])
+            ->event('updated')
+            ->log("Pengguna '{$pengguna->name}' telah dikemaskini (" . (count($changes) + ($passwordChanged ? 1 : 0)) . " medan diubah)");
 
         return redirect()->route('pengurusan.senarai-pengguna')
             ->with('success', 'Pengguna berjaya dikemaskini!');
@@ -426,8 +492,34 @@ class PenggunaController extends Controller
             }
         }
 
+        // Store data for logging before deletion
+        $userId = $pengguna->id;
+        $userName = $pengguna->name;
+        $userEmail = $pengguna->email;
+        $userStatus = $pengguna->status;
+        $userJenisOrganisasi = $pengguna->jenis_organisasi;
+        $userOrganisasiId = $pengguna->organisasi_id;
+        $transferredGroups = $createdGroups->count() > 0 ? $createdGroups->pluck('nama_kumpulan')->toArray() : [];
+
         // Now safe to delete the user
         $pengguna->delete();
+
+        // Log activity
+        activity()
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'user_id' => $userId,
+                'user_name' => $userName,
+                'user_email' => $userEmail,
+                'status' => $userStatus,
+                'jenis_organisasi' => $userJenisOrganisasi,
+                'organisasi_id' => $userOrganisasiId,
+                'transferred_groups' => $transferredGroups,
+            ])
+            ->event('deleted')
+            ->log("Pengguna '{$userName}' ({$userEmail}) telah dipadam");
 
         return redirect()->route('pengurusan.senarai-pengguna')
             ->with('success', 'Pengguna berjaya dipadam!');

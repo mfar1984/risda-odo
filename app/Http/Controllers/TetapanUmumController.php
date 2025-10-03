@@ -48,10 +48,53 @@ class TetapanUmumController extends Controller
         $user = auth()->user();
         $tetapan = TetapanUmum::getForCurrentUser();
 
+        // Store old values for logging
+        $oldValues = $tetapan->only([
+            'nama_sistem',
+            'alamat_1',
+            'alamat_2',
+            'poskod',
+            'bandar',
+            'negeri',
+            'negara',
+            'maksimum_percubaan_login',
+            'masa_tamat_sesi_minit',
+            'map_provider',
+            'map_api_key',
+            'map_default_lat',
+            'map_default_long',
+        ]);
+
         $data = $request->except(['versi_sistem']); // Exclude version from update
         $data['dikemaskini_oleh'] = $user->id;
 
         $tetapan->update($data);
+
+        // Get changed values
+        $changes = [];
+        foreach ($oldValues as $key => $oldValue) {
+            $newValue = $tetapan->$key;
+            if ($oldValue != $newValue) {
+                $changes[$key] = [
+                    'old' => $oldValue,
+                    'new' => $newValue,
+                ];
+            }
+        }
+
+        // Log activity
+        activity()
+            ->performedOn($tetapan)
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'changes' => $changes,
+                'total_fields_changed' => count($changes),
+                'system_name' => $tetapan->nama_sistem,
+            ])
+            ->event('updated')
+            ->log("Tetapan umum sistem '{$tetapan->nama_sistem}' telah dikemaskini (" . count($changes) . " medan diubah)");
 
         return redirect()->route('pengurusan.tetapan-umum')
             ->with('success', 'Tetapan umum berjaya dikemaskini.');

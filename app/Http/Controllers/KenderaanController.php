@@ -117,6 +117,7 @@ class KenderaanController extends Controller
         }
 
         // Handle file uploads
+        $uploadedDocuments = [];
         if ($request->hasFile('dokumen_kenderaan')) {
             $dokumenPaths = [];
             foreach ($request->file('dokumen_kenderaan') as $file) {
@@ -127,11 +128,30 @@ class KenderaanController extends Controller
                     'size' => $file->getSize(),
                     'uploaded_at' => now()->toDateTimeString(),
                 ];
+                $uploadedDocuments[] = $file->getClientOriginalName();
             }
             $data['dokumen_kenderaan'] = $dokumenPaths;
         }
 
-        Kenderaan::create($data);
+        $kenderaan = Kenderaan::create($data);
+
+        // Log activity
+        activity()
+            ->performedOn($kenderaan)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'no_plat' => $kenderaan->no_plat,
+                'jenama' => $kenderaan->jenama,
+                'model' => $kenderaan->model,
+                'tahun' => $kenderaan->tahun,
+                'jenis_bahan_api' => $kenderaan->jenis_bahan_api,
+                'status' => $kenderaan->status,
+                'documents_uploaded' => $uploadedDocuments,
+            ])
+            ->event('created')
+            ->log("Kenderaan '{$kenderaan->no_plat}' ({$kenderaan->jenama} {$kenderaan->model}) telah didaftarkan");
 
         return redirect()->route('pengurusan.senarai-kenderaan')
             ->with('success', 'Kenderaan berjaya didaftarkan.');
@@ -181,9 +201,15 @@ class KenderaanController extends Controller
                 ->withInput();
         }
 
+        // Store old values for logging
+        $oldNoPlat = $kenderaan->no_plat;
+        $oldStatus = $kenderaan->status;
+        $oldCukaiTamatTempoh = $kenderaan->cukai_tamat_tempoh;
+
         $data = $request->all();
 
         // Handle file uploads
+        $newDocuments = [];
         if ($request->hasFile('dokumen_kenderaan')) {
             $dokumenPaths = $kenderaan->dokumen_kenderaan ?? [];
 
@@ -195,11 +221,39 @@ class KenderaanController extends Controller
                     'size' => $file->getSize(),
                     'uploaded_at' => now()->toDateTimeString(),
                 ];
+                $newDocuments[] = $file->getClientOriginalName();
             }
             $data['dokumen_kenderaan'] = $dokumenPaths;
         }
 
         $kenderaan->update($data);
+
+        // Prepare changes array
+        $changes = [];
+        if ($oldNoPlat != $kenderaan->no_plat) {
+            $changes['no_plat'] = ['old' => $oldNoPlat, 'new' => $kenderaan->no_plat];
+        }
+        if ($oldStatus != $kenderaan->status) {
+            $changes['status'] = ['old' => $oldStatus, 'new' => $kenderaan->status];
+        }
+        if ($oldCukaiTamatTempoh != $kenderaan->cukai_tamat_tempoh) {
+            $changes['cukai_tamat_tempoh'] = ['old' => $oldCukaiTamatTempoh, 'new' => $kenderaan->cukai_tamat_tempoh];
+        }
+
+        // Log activity
+        activity()
+            ->performedOn($kenderaan)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'no_plat' => $kenderaan->no_plat,
+                'changes' => $changes,
+                'new_documents' => $newDocuments,
+                'total_changes' => count($changes) + (count($newDocuments) > 0 ? 1 : 0),
+            ])
+            ->event('updated')
+            ->log("Kenderaan '{$kenderaan->no_plat}' telah dikemaskini (" . (count($changes) + (count($newDocuments) > 0 ? 1 : 0)) . " medan diubah)");
 
         return redirect()->route('pengurusan.senarai-kenderaan')
             ->with('success', 'Kenderaan berjaya dikemaskini.');
@@ -210,6 +264,14 @@ class KenderaanController extends Controller
      */
     public function destroy(Kenderaan $kenderaan)
     {
+        // Store data for logging before deletion
+        $kenderaanId = $kenderaan->id;
+        $noPlat = $kenderaan->no_plat;
+        $jenama = $kenderaan->jenama;
+        $model = $kenderaan->model;
+        $status = $kenderaan->status;
+        $documentsCount = count($kenderaan->dokumen_kenderaan ?? []);
+
         // Delete associated files
         if ($kenderaan->dokumen_kenderaan) {
             foreach ($kenderaan->dokumen_kenderaan as $dokumen) {
@@ -220,6 +282,22 @@ class KenderaanController extends Controller
         }
 
         $kenderaan->delete();
+
+        // Log activity
+        activity()
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'kenderaan_id' => $kenderaanId,
+                'no_plat' => $noPlat,
+                'jenama' => $jenama,
+                'model' => $model,
+                'status' => $status,
+                'documents_deleted' => $documentsCount,
+            ])
+            ->event('deleted')
+            ->log("Kenderaan '{$noPlat}' ({$jenama} {$model}) telah dipadam");
 
         return redirect()->route('pengurusan.senarai-kenderaan')
             ->with('success', 'Kenderaan berjaya dipadam.');

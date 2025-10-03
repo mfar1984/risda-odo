@@ -93,7 +93,22 @@ class UserGroupController extends Controller
         $data = $request->all();
         $data['dicipta_oleh'] = auth()->id();
 
-        UserGroup::create($data);
+        $userGroup = UserGroup::create($data);
+
+        // Log activity
+        activity()
+            ->performedOn($userGroup)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'group_name' => $userGroup->nama_kumpulan,
+                'status' => $userGroup->status,
+                'description' => $userGroup->keterangan,
+                'permissions_count' => count($userGroup->kebenaran_matrix ?? []),
+            ])
+            ->event('created')
+            ->log("Kumpulan pengguna '{$userGroup->nama_kumpulan}' telah dicipta");
 
         return redirect()->route('pengurusan.senarai-kumpulan')
             ->with('success', 'Kumpulan pengguna berjaya dicipta.');
@@ -159,7 +174,48 @@ class UserGroupController extends Controller
                 ->withInput();
         }
 
+        // Store old values for comparison
+        $oldName = $userGroup->nama_kumpulan;
+        $oldStatus = $userGroup->status;
+        $oldMatrix = $userGroup->kebenaran_matrix;
+
         $userGroup->update($request->all());
+
+        // Detect permission changes
+        $permissionChanges = [];
+        $oldPermissions = $oldMatrix ?? [];
+        $newPermissions = $userGroup->kebenaran_matrix ?? [];
+        
+        foreach ($newPermissions as $module => $actions) {
+            foreach ($actions as $action => $granted) {
+                $oldValue = $oldPermissions[$module][$action] ?? false;
+                if ($oldValue != $granted) {
+                    $permissionChanges[] = [
+                        'module' => $module,
+                        'action' => $action,
+                        'old' => $oldValue,
+                        'new' => $granted,
+                    ];
+                }
+            }
+        }
+
+        // Log activity
+        activity()
+            ->performedOn($userGroup)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'group_name' => $userGroup->nama_kumpulan,
+                'old_name' => $oldName,
+                'old_status' => $oldStatus,
+                'new_status' => $userGroup->status,
+                'permission_changes' => $permissionChanges,
+                'total_permission_changes' => count($permissionChanges),
+            ])
+            ->event('updated')
+            ->log("Kumpulan pengguna '{$userGroup->nama_kumpulan}' telah dikemaskini (" . count($permissionChanges) . " kebenaran diubah)");
 
         return redirect()->route('pengurusan.senarai-kumpulan')
             ->with('success', 'Kumpulan pengguna berjaya dikemaskini.');
@@ -176,7 +232,25 @@ class UserGroupController extends Controller
                 ->with('error', 'Tidak boleh padam kumpulan yang mempunyai pengguna.');
         }
 
+        // Store data for logging before deletion
+        $groupId = $userGroup->id;
+        $groupName = $userGroup->nama_kumpulan;
+        $groupStatus = $userGroup->status;
+
         $userGroup->delete();
+
+        // Log activity
+        activity()
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'group_id' => $groupId,
+                'group_name' => $groupName,
+                'status' => $groupStatus,
+            ])
+            ->event('deleted')
+            ->log("Kumpulan pengguna '{$groupName}' telah dipadam");
 
         return redirect()->route('pengurusan.senarai-kumpulan')
             ->with('success', 'Kumpulan pengguna berjaya dipadam.');

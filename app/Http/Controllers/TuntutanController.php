@@ -189,6 +189,24 @@ class TuntutanController extends Controller
                 ]
             );
 
+            // Log activity
+            activity()
+                ->performedOn($tuntutan)
+                ->causedBy(Auth::user())
+                ->withProperties([
+                    'ip' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'claim_id' => $tuntutan->id,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori_label,
+                    'driver_id' => $driverId,
+                    'driver_name' => $tuntutan->logPemandu->pemandu->risdaStaf->nama ?? 'N/A',
+                    'old_status' => 'pending',
+                    'new_status' => 'diluluskan',
+                ])
+                ->event('approved')
+                ->log("Tuntutan {$tuntutan->kategori_label} sebanyak RM {$tuntutan->jumlah} telah diluluskan");
+
             DB::commit();
 
             return response()->json([
@@ -275,6 +293,25 @@ class TuntutanController extends Controller
                     'reason' => $request->alasan_tolak,
                 ]
             );
+
+            // Log activity
+            activity()
+                ->performedOn($tuntutan)
+                ->causedBy(Auth::user())
+                ->withProperties([
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'claim_id' => $tuntutan->id,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori_label,
+                    'driver_id' => $driverId,
+                    'driver_name' => $tuntutan->logPemandu->pemandu->risdaStaf->nama ?? 'N/A',
+                    'old_status' => 'pending',
+                    'new_status' => 'ditolak',
+                    'rejection_reason' => $request->alasan_tolak,
+                ])
+                ->event('rejected')
+                ->log("Tuntutan {$tuntutan->kategori_label} sebanyak RM {$tuntutan->jumlah} telah ditolak");
 
             DB::commit();
 
@@ -363,6 +400,25 @@ class TuntutanController extends Controller
                 ]
             );
 
+            // Log activity
+            activity()
+                ->performedOn($tuntutan)
+                ->causedBy(Auth::user())
+                ->withProperties([
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'claim_id' => $tuntutan->id,
+                    'amount' => $tuntutan->jumlah,
+                    'category' => $tuntutan->kategori_label,
+                    'driver_id' => $driverId,
+                    'driver_name' => $tuntutan->logPemandu->pemandu->risdaStaf->nama ?? 'N/A',
+                    'old_status' => $tuntutan->getOriginal('status'),
+                    'new_status' => 'digantung',
+                    'cancellation_reason' => $request->alasan_gantung,
+                ])
+                ->event('cancelled')
+                ->log("Tuntutan {$tuntutan->kategori_label} sebanyak RM {$tuntutan->jumlah} telah digantung");
+
             DB::commit();
 
             return response()->json([
@@ -392,7 +448,31 @@ class TuntutanController extends Controller
         }
 
         try {
+            // Store data for logging before deletion
+            $claimId = $tuntutan->id;
+            $claimAmount = $tuntutan->jumlah;
+            $claimCategory = $tuntutan->kategori_label;
+            $claimStatus = $tuntutan->status;
+            $driverId = $tuntutan->logPemandu->pemandu_id ?? null;
+            $driverName = $tuntutan->logPemandu->pemandu->risdaStaf->nama ?? 'N/A';
+
             $tuntutan->delete(); // Soft delete
+
+            // Log activity
+            activity()
+                ->causedBy(Auth::user())
+                ->withProperties([
+                    'ip' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'claim_id' => $claimId,
+                    'amount' => $claimAmount,
+                    'category' => $claimCategory,
+                    'status' => $claimStatus,
+                    'driver_id' => $driverId,
+                    'driver_name' => $driverName,
+                ])
+                ->event('deleted')
+                ->log("Tuntutan {$claimCategory} sebanyak RM {$claimAmount} telah dipadam");
 
             return response()->json([
                 'success' => true,
@@ -444,6 +524,28 @@ class TuntutanController extends Controller
         $total_diluluskan = $tuntutan->where('status', 'diluluskan')->sum('jumlah');
         $total_pending = $tuntutan->where('status', 'pending')->sum('jumlah');
 
+        // Log activity
+        $filename = 'laporan-tuntutan-' . now()->format('Y-m-d') . '.pdf';
+        activity()
+            ->causedBy(Auth::user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'filename' => $filename,
+                'format' => 'pdf',
+                'total_records' => $tuntutan->count(),
+                'total_diluluskan' => $total_diluluskan,
+                'total_pending' => $total_pending,
+                'filters' => [
+                    'status' => $request->status ?? 'semua',
+                    'kategori' => $request->kategori ?? 'semua',
+                    'tarikh_dari' => $request->tarikh_dari ?? null,
+                    'tarikh_hingga' => $request->tarikh_hingga ?? null,
+                ],
+            ])
+            ->event('exported')
+            ->log("Laporan tuntutan telah dieksport ke PDF ({$tuntutan->count()} rekod)");
+
         $pdf = PDF::loadView('laporan.laporan-tuntutan-pdf', compact(
             'tuntutan',
             'total_diluluskan',
@@ -451,6 +553,6 @@ class TuntutanController extends Controller
             'request'
         ));
 
-        return $pdf->download('laporan-tuntutan-' . now()->format('Y-m-d') . '.pdf');
+        return $pdf->download($filename);
     }
 }

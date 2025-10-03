@@ -135,13 +135,35 @@ class SelenggaraKenderaanController extends Controller
         }
 
         // Handle file upload
+        $invoiceUploaded = false;
         if ($request->hasFile('fail_invois')) {
             $file = $request->file('fail_invois');
             $path = $file->store('selenggara-invois', 'public');
             $data['fail_invois'] = $path;
+            $invoiceUploaded = true;
         }
 
-        SelenggaraKenderaan::create($data);
+        $selenggara = SelenggaraKenderaan::create($data);
+
+        // Log activity
+        activity()
+            ->performedOn($selenggara)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'kenderaan_id' => $selenggara->kenderaan_id,
+                'kenderaan_no_plat' => $kenderaan->no_plat,
+                'kategori_kos' => $selenggara->kategoriKos->nama_kategori ?? 'N/A',
+                'jumlah_kos' => $selenggara->jumlah_kos,
+                'status' => $selenggara->status,
+                'tarikh_mula' => $selenggara->tarikh_mula,
+                'tarikh_selesai' => $selenggara->tarikh_selesai,
+                'tukar_minyak' => $selenggara->tukar_minyak,
+                'invoice_uploaded' => $invoiceUploaded,
+            ])
+            ->event('created')
+            ->log("Rekod penyelenggaraan untuk kenderaan '{$kenderaan->no_plat}' telah dicipta (RM {$selenggara->jumlah_kos})");
 
         return redirect()->route('pengurusan.senarai-selenggara')
             ->with('success', 'Rekod penyelenggaraan kenderaan berjaya disimpan.');
@@ -196,10 +218,16 @@ class SelenggaraKenderaanController extends Controller
                 ->withInput();
         }
 
+        // Store old values for logging
+        $oldStatus = $selenggara->status;
+        $oldJumlahKos = $selenggara->jumlah_kos;
+        $oldKategoriKosId = $selenggara->kategori_kos_id;
+
         $data = $request->all();
         $data['tukar_minyak'] = $request->has('tukar_minyak');
 
         // Handle file upload
+        $newInvoiceUploaded = false;
         if ($request->hasFile('fail_invois')) {
             // Delete old file if exists
             if ($selenggara->fail_invois) {
@@ -209,9 +237,37 @@ class SelenggaraKenderaanController extends Controller
             $file = $request->file('fail_invois');
             $path = $file->store('selenggara-invois', 'public');
             $data['fail_invois'] = $path;
+            $newInvoiceUploaded = true;
         }
 
         $selenggara->update($data);
+
+        // Detect changes
+        $changes = [];
+        if ($oldStatus != $selenggara->status) {
+            $changes['status'] = ['old' => $oldStatus, 'new' => $selenggara->status];
+        }
+        if ($oldJumlahKos != $selenggara->jumlah_kos) {
+            $changes['jumlah_kos'] = ['old' => $oldJumlahKos, 'new' => $selenggara->jumlah_kos];
+        }
+        if ($oldKategoriKosId != $selenggara->kategori_kos_id) {
+            $changes['kategori_kos_id'] = ['old' => $oldKategoriKosId, 'new' => $selenggara->kategori_kos_id];
+        }
+
+        // Log activity
+        activity()
+            ->performedOn($selenggara)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'kenderaan_no_plat' => $selenggara->kenderaan->no_plat ?? 'N/A',
+                'changes' => $changes,
+                'invoice_updated' => $newInvoiceUploaded,
+                'total_changes' => count($changes) + ($newInvoiceUploaded ? 1 : 0),
+            ])
+            ->event('updated')
+            ->log("Rekod penyelenggaraan untuk kenderaan '{$selenggara->kenderaan->no_plat}' telah dikemaskini (" . (count($changes) + ($newInvoiceUploaded ? 1 : 0)) . " medan diubah)");
 
         return redirect()->route('pengurusan.senarai-selenggara')
             ->with('success', 'Rekod penyelenggaraan kenderaan berjaya dikemaskini.');
@@ -224,12 +280,38 @@ class SelenggaraKenderaanController extends Controller
     {
         $this->ensureMaintenanceAccessible($selenggara);
 
+        // Store data for logging before deletion
+        $selenggaraId = $selenggara->id;
+        $kenderaanNoPlat = $selenggara->kenderaan->no_plat ?? 'N/A';
+        $kategoriKos = $selenggara->kategoriKos->nama_kategori ?? 'N/A';
+        $jumlahKos = $selenggara->jumlah_kos;
+        $status = $selenggara->status;
+        $tarikhMula = $selenggara->tarikh_mula;
+        $invoiceExists = !empty($selenggara->fail_invois);
+
         // Delete associated file if exists
         if ($selenggara->fail_invois) {
             Storage::disk('public')->delete($selenggara->fail_invois);
         }
 
         $selenggara->delete();
+
+        // Log activity
+        activity()
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'selenggara_id' => $selenggaraId,
+                'kenderaan_no_plat' => $kenderaanNoPlat,
+                'kategori_kos' => $kategoriKos,
+                'jumlah_kos' => $jumlahKos,
+                'status' => $status,
+                'tarikh_mula' => $tarikhMula,
+                'invoice_deleted' => $invoiceExists,
+            ])
+            ->event('deleted')
+            ->log("Rekod penyelenggaraan untuk kenderaan '{$kenderaanNoPlat}' telah dipadam (RM {$jumlahKos})");
 
         return redirect()->route('pengurusan.senarai-selenggara')
             ->with('success', 'Rekod penyelenggaraan kenderaan berjaya dipadam.');
