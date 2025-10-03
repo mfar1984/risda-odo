@@ -249,8 +249,10 @@
         </div>
     </x-ui.page-header>
 
-    {{-- Auto-refresh tab counts (like notification bell) --}}
+    {{-- Auto-refresh tab counts AND table data --}}
     <script>
+        let isRefreshing = false;
+
         // Auto-refresh tab counts every 5 seconds
         async function refreshTabCounts() {
             try {
@@ -276,8 +278,58 @@
             }
         }
 
-        // Refresh every 5 seconds
+        // Auto-refresh table data every 10 seconds (longer interval to avoid too much load)
+        async function refreshTableData() {
+            if (isRefreshing) return; // Prevent multiple simultaneous refreshes
+            
+            isRefreshing = true;
+            try {
+                // Get current URL with query params (tab, search, dates, page)
+                const currentUrl = window.location.href;
+                
+                // Fetch the same page content
+                const response = await fetch(currentUrl, {
+                    headers: {
+                        'Accept': 'text/html',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    }
+                });
+                
+                const html = await response.text();
+                
+                // Parse the response HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Extract table body from the new HTML
+                const newTableBody = doc.querySelector('table tbody');
+                const currentTableBody = document.querySelector('table tbody');
+                
+                if (newTableBody && currentTableBody) {
+                    // Replace table content
+                    currentTableBody.innerHTML = newTableBody.innerHTML;
+                }
+                
+                // Also update pagination if exists
+                const newPagination = doc.querySelector('.mt-6');
+                const currentPagination = document.querySelector('.mt-6');
+                
+                if (newPagination && currentPagination) {
+                    currentPagination.innerHTML = newPagination.innerHTML;
+                }
+                
+            } catch (error) {
+                console.error('Error refreshing table data:', error);
+            } finally {
+                isRefreshing = false;
+            }
+        }
+
+        // Refresh tab counts every 5 seconds
         setInterval(refreshTabCounts, 5000);
+        
+        // Refresh table data every 10 seconds
+        setInterval(refreshTableData, 10000);
         
         // Initial load
         refreshTabCounts();

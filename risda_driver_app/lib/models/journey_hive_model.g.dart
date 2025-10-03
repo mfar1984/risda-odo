@@ -33,30 +33,34 @@ class JourneyHiveAdapter extends TypeAdapter<JourneyHive> {
       kosMinyak: fields[13] as double?,
       stesenMinyak: fields[14] as String?,
       resitMinyak: fields[15] as String?,
-      status: fields[16] as String,
-      organisasiId: fields[17] as String?,
-      diciptaOleh: fields[18] as int,
-      dikemaskiniOleh: fields[19] as int?,
-      lokasiCheckinLat: fields[20] as double?,
-      lokasiCheckinLong: fields[21] as double?,
-      lokasiCheckoutLat: fields[22] as double?,
-      lokasiCheckoutLong: fields[23] as double?,
-      createdAt: fields[24] as DateTime?,
-      updatedAt: fields[25] as DateTime?,
-      localId: fields[26] as String,
-      isSynced: fields[27] as bool,
-      lastSyncAttempt: fields[28] as DateTime?,
-      syncRetries: fields[29] as int,
-      syncError: fields[30] as String?,
-      odometerPhotoLocal: fields[31] as String?,
-      resitMinyakLocal: fields[32] as String?,
+      fotoOdometerKeluar: fields[16] as String?,
+      fotoOdometerMasuk: fields[17] as String?,
+      status: fields[18] as String,
+      jenisOrganisasi: fields[19] as String?,
+      organisasiId: fields[20] as String?,
+      diciptaOleh: fields[21] as int,
+      dikemaskiniOleh: fields[22] as int?,
+      lokasiCheckinLat: fields[23] as double?,
+      lokasiCheckinLong: fields[24] as double?,
+      lokasiCheckoutLat: fields[25] as double?,
+      lokasiCheckoutLong: fields[26] as double?,
+      createdAt: fields[27] as DateTime?,
+      updatedAt: fields[28] as DateTime?,
+      localId: fields[29] as String,
+      isSynced: fields[30] as bool,
+      lastSyncAttempt: fields[31] as DateTime?,
+      syncRetries: fields[32] as int,
+      syncError: fields[33] as String?,
+      fotoOdometerKeluarLocal: fields[34] as String?,
+      fotoOdometerMasukLocal: fields[35] as String?,
+      resitMinyakLocal: fields[36] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, JourneyHive obj) {
     writer
-      ..writeByte(33)
+      ..writeByte(37)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -90,38 +94,46 @@ class JourneyHiveAdapter extends TypeAdapter<JourneyHive> {
       ..writeByte(15)
       ..write(obj.resitMinyak)
       ..writeByte(16)
-      ..write(obj.status)
+      ..write(obj.fotoOdometerKeluar)
       ..writeByte(17)
-      ..write(obj.organisasiId)
+      ..write(obj.fotoOdometerMasuk)
       ..writeByte(18)
-      ..write(obj.diciptaOleh)
+      ..write(obj.status)
       ..writeByte(19)
-      ..write(obj.dikemaskiniOleh)
+      ..write(obj.jenisOrganisasi)
       ..writeByte(20)
-      ..write(obj.lokasiCheckinLat)
+      ..write(obj.organisasiId)
       ..writeByte(21)
-      ..write(obj.lokasiCheckinLong)
+      ..write(obj.diciptaOleh)
       ..writeByte(22)
-      ..write(obj.lokasiCheckoutLat)
+      ..write(obj.dikemaskiniOleh)
       ..writeByte(23)
-      ..write(obj.lokasiCheckoutLong)
+      ..write(obj.lokasiCheckinLat)
       ..writeByte(24)
-      ..write(obj.createdAt)
+      ..write(obj.lokasiCheckinLong)
       ..writeByte(25)
-      ..write(obj.updatedAt)
+      ..write(obj.lokasiCheckoutLat)
       ..writeByte(26)
-      ..write(obj.localId)
+      ..write(obj.lokasiCheckoutLong)
       ..writeByte(27)
-      ..write(obj.isSynced)
+      ..write(obj.createdAt)
       ..writeByte(28)
-      ..write(obj.lastSyncAttempt)
+      ..write(obj.updatedAt)
       ..writeByte(29)
-      ..write(obj.syncRetries)
+      ..write(obj.localId)
       ..writeByte(30)
-      ..write(obj.syncError)
+      ..write(obj.isSynced)
       ..writeByte(31)
-      ..write(obj.odometerPhotoLocal)
+      ..write(obj.lastSyncAttempt)
       ..writeByte(32)
+      ..write(obj.syncRetries)
+      ..writeByte(33)
+      ..write(obj.syncError)
+      ..writeByte(34)
+      ..write(obj.fotoOdometerKeluarLocal)
+      ..writeByte(35)
+      ..write(obj.fotoOdometerMasukLocal)
+      ..writeByte(36)
       ..write(obj.resitMinyakLocal);
   }
 

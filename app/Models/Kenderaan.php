@@ -86,7 +86,7 @@ class Kenderaan extends Model
         $latestLog = $this->logPemandu()
             ->where('status', 'selesai')
             ->whereNotNull('odometer_masuk')
-            ->orderBy('masa_masuk', 'desc')
+            ->orderBy('id', 'desc') // Use ID instead of masa_masuk for more reliable sorting
             ->first();
             
         return $latestLog?->odometer_masuk;

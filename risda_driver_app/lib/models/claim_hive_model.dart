@@ -23,34 +23,49 @@ class ClaimHive extends HiveObject {
   String? catatan; // Notes
   
   @HiveField(6)
-  String status; // 'pending', 'approved', 'rejected'
+  String status; // 'pending', 'diluluskan', 'ditolak', 'dibatalkan'
   
   @HiveField(7)
   int diciptaOleh;
   
   @HiveField(8)
-  DateTime? createdAt;
+  int? dikemaskiniOleh; // Who last updated
   
   @HiveField(9)
+  int? diprosesOleh; // Who approved/rejected/cancelled
+  
+  @HiveField(10)
+  DateTime? tarikhDiproses; // When processed
+  
+  @HiveField(11)
+  String? alasanTolak; // Reason if rejected
+  
+  @HiveField(12)
+  String? alasanGantung; // Reason if cancelled (dibatalkan)
+  
+  @HiveField(13)
+  DateTime? createdAt;
+  
+  @HiveField(14)
   DateTime? updatedAt;
   
   // Offline fields
-  @HiveField(10)
+  @HiveField(15)
   String localId;
   
-  @HiveField(11)
+  @HiveField(16)
   bool isSynced;
   
-  @HiveField(12)
+  @HiveField(17)
   String? resitLocal; // Local photo path
   
-  @HiveField(13)
+  @HiveField(18)
   int syncRetries;
   
-  @HiveField(14)
+  @HiveField(19)
   String? syncError;
   
-  @HiveField(15)
+  @HiveField(20)
   DateTime? lastSyncAttempt;
 
   ClaimHive({
@@ -62,6 +77,11 @@ class ClaimHive extends HiveObject {
     this.catatan,
     this.status = 'pending',
     required this.diciptaOleh,
+    this.dikemaskiniOleh,
+    this.diprosesOleh,
+    this.tarikhDiproses,
+    this.alasanTolak,
+    this.alasanGantung,
     this.createdAt,
     this.updatedAt,
     required this.localId,
@@ -79,9 +99,14 @@ class ClaimHive extends HiveObject {
       'kategori': kategori,
       'jumlah': jumlah,
       'resit': resit,
-      'catatan': catatan,
+      'keterangan': catatan, // MySQL uses 'keterangan', not 'catatan'
       'status': status,
       'dicipta_oleh': diciptaOleh,
+      'dikemaskini_oleh': dikemaskiniOleh,
+      'diproses_oleh': diprosesOleh,
+      'tarikh_diproses': tarikhDiproses?.toIso8601String(),
+      'alasan_tolak': alasanTolak,
+      'alasan_gantung': alasanGantung,
     };
   }
 
@@ -92,9 +117,14 @@ class ClaimHive extends HiveObject {
       kategori: json['kategori'],
       jumlah: (json['jumlah'] as num).toDouble(),
       resit: json['resit'],
-      catatan: json['catatan'],
+      catatan: json['keterangan'], // MySQL uses 'keterangan'
       status: json['status'] ?? 'pending',
       diciptaOleh: json['dicipta_oleh'],
+      dikemaskiniOleh: json['dikemaskini_oleh'],
+      diprosesOleh: json['diproses_oleh'],
+      tarikhDiproses: json['tarikh_diproses'] != null ? DateTime.parse(json['tarikh_diproses']) : null,
+      alasanTolak: json['alasan_tolak'],
+      alasanGantung: json['alasan_gantung'],
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
       updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
       localId: localId,

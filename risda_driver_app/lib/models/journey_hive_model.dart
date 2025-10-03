@@ -54,55 +54,67 @@ class JourneyHive extends HiveObject {
   String? resitMinyak; // resit_minyak (file path or URL)
   
   @HiveField(16)
-  String status; // status: 'dalam_perjalanan', 'selesai', 'tertunda'
+  String? fotoOdometerKeluar; // foto_odometer_keluar (Start Journey photo)
   
   @HiveField(17)
-  String? organisasiId; // organisasi_id
+  String? fotoOdometerMasuk; // foto_odometer_masuk (End Journey photo)
   
   @HiveField(18)
-  int diciptaOleh; // dicipta_oleh
+  String status; // status: 'dalam_perjalanan', 'selesai', 'tertunda'
   
   @HiveField(19)
-  int? dikemaskiniOleh; // dikemaskini_oleh
+  String? jenisOrganisasi; // jenis_organisasi ('semua', 'bahagian', 'stesen')
   
   @HiveField(20)
-  double? lokasiCheckinLat; // lokasi_checkin_lat
+  String? organisasiId; // organisasi_id
   
   @HiveField(21)
-  double? lokasiCheckinLong; // lokasi_checkin_long
+  int diciptaOleh; // dicipta_oleh
   
   @HiveField(22)
-  double? lokasiCheckoutLat; // lokasi_checkout_lat
+  int? dikemaskiniOleh; // dikemaskini_oleh
   
   @HiveField(23)
-  double? lokasiCheckoutLong; // lokasi_checkout_long
+  double? lokasiCheckinLat; // lokasi_checkin_lat
   
   @HiveField(24)
-  DateTime? createdAt; // created_at
+  double? lokasiCheckinLong; // lokasi_checkin_long
   
   @HiveField(25)
+  double? lokasiCheckoutLat; // lokasi_checkout_lat
+  
+  @HiveField(26)
+  double? lokasiCheckoutLong; // lokasi_checkout_long
+  
+  @HiveField(27)
+  DateTime? createdAt; // created_at
+  
+  @HiveField(28)
   DateTime? updatedAt; // updated_at
   
   // ===== OFFLINE-SPECIFIC FIELDS =====
-  @HiveField(26)
+  @HiveField(29)
   String localId; // UUID for local identification
   
-  @HiveField(27)
+  @HiveField(30)
   bool isSynced; // Sync status
   
-  @HiveField(28)
+  @HiveField(31)
   DateTime? lastSyncAttempt; // Last sync try
   
-  @HiveField(29)
+  @HiveField(32)
   int syncRetries; // Retry count
   
-  @HiveField(30)
+  @HiveField(33)
   String? syncError; // Error message if sync failed
   
-  @HiveField(31)
-  String? odometerPhotoLocal; // Local photo path (before upload)
+  @HiveField(34)
+  String? fotoOdometerKeluarLocal; // Local Start Journey photo path (before upload)
   
-  @HiveField(32)
+  @HiveField(35)
+  String? fotoOdometerMasukLocal; // Local End Journey photo path (before upload)
+  
+  @HiveField(36)
   String? resitMinyakLocal; // Local receipt path (before upload)
 
   JourneyHive({
@@ -122,7 +134,10 @@ class JourneyHive extends HiveObject {
     this.kosMinyak,
     this.stesenMinyak,
     this.resitMinyak,
+    this.fotoOdometerKeluar,
+    this.fotoOdometerMasuk,
     required this.status,
+    this.jenisOrganisasi,
     this.organisasiId,
     required this.diciptaOleh,
     this.dikemaskiniOleh,
@@ -137,7 +152,8 @@ class JourneyHive extends HiveObject {
     this.lastSyncAttempt,
     this.syncRetries = 0,
     this.syncError,
-    this.odometerPhotoLocal,
+    this.fotoOdometerKeluarLocal,
+    this.fotoOdometerMasukLocal,
     this.resitMinyakLocal,
   });
 
@@ -160,7 +176,10 @@ class JourneyHive extends HiveObject {
       'kos_minyak': kosMinyak,
       'stesen_minyak': stesenMinyak,
       'resit_minyak': resitMinyak,
+      'foto_odometer_keluar': fotoOdometerKeluar,
+      'foto_odometer_masuk': fotoOdometerMasuk,
       'status': status,
+      'jenis_organisasi': jenisOrganisasi,
       'organisasi_id': organisasiId,
       'dicipta_oleh': diciptaOleh,
       'dikemaskini_oleh': dikemaskiniOleh,
@@ -190,7 +209,10 @@ class JourneyHive extends HiveObject {
       kosMinyak: json['kos_minyak']?.toDouble(),
       stesenMinyak: json['stesen_minyak'],
       resitMinyak: json['resit_minyak'],
+      fotoOdometerKeluar: json['foto_odometer_keluar'],
+      fotoOdometerMasuk: json['foto_odometer_masuk'],
       status: json['status'],
+      jenisOrganisasi: json['jenis_organisasi'],
       organisasiId: json['organisasi_id'],
       diciptaOleh: json['dicipta_oleh'],
       dikemaskiniOleh: json['dikemaskini_oleh'],
