@@ -690,7 +690,8 @@ GET /api/programs?status=past       // Programs selesai</code></pre>
         "no_plat": "QKS 1234 K",
         "jenama": "Toyota",
         "model": "Hilux",
-        "status": "tersedia"
+        "status": "tersedia",
+        "latest_odometer": 10900
       },
       "logs": {
         "total": 3,
@@ -777,7 +778,8 @@ GET /api/programs/8</code></pre>
       "no_plat": "QKS 1234 K",
       "jenama": "Toyota",
       "model": "Hilux",
-      "status": "tersedia"
+      "status": "tersedia",
+      "latest_odometer": 10900
     },
     "logs": {
       "total": 3,
@@ -801,12 +803,22 @@ GET /api/programs/8</code></pre>
                         </div>
 
                         <h4 class="font-semibold text-gray-900 mb-3">📅 Date Fields Explanation:</h4>
-                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
                             <ul class="text-sm text-blue-700 space-y-2">
                                 <li><strong>tarikh_kelulusan:</strong> Tarikh & masa program diluluskan oleh admin</li>
                                 <li><strong>tarikh_mula_aktif:</strong> Tarikh & masa program jadi aktif (bila driver mula journey pertama)</li>
                                 <li><strong>tarikh_sebenar_selesai:</strong> Tarikh & masa program sebenarnya selesai (tarikh end journey terakhir atau auto-close)</li>
                                 <li><strong>Note:</strong> Fields ini boleh jadi <code>null</code> jika program belum sampai stage tersebut</li>
+                            </ul>
+                        </div>
+
+                        <h4 class="font-semibold text-gray-900 mb-3">🚗 Vehicle Latest Odometer:</h4>
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                            <ul class="text-sm text-green-700 space-y-2">
+                                <li><strong>latest_odometer:</strong> Bacaan odometer terkini dari perjalanan yang telah selesai</li>
+                                <li>Dikira dari <code>odometer_masuk</code> journey paling baharu (berdasarkan ID, bukan timestamp)</li>
+                                <li>Guna untuk display "Current Vehicle Odometer" di Start Journey screen</li>
+                                <li>Boleh jadi <code>null</code> jika kenderaan belum ada journey selesai</li>
                             </ul>
                         </div>
                     </div>

@@ -336,6 +336,49 @@ class NotaKeluaranSeeder extends Seeder
                     'notification_screen.dart: Add color & icon mapping untuk new notification types dengan PastelColors theme.'
                 ],
                 'urutan' => 172,
+                'is_latest' => false,
+            ],
+            [
+                'versi' => '1.7.3',
+                'nama_versi' => 'Real-Time Auto-Refresh & Offline Database Structure',
+                'jenis_keluaran' => 'blue',
+                'tarikh_keluaran' => Carbon::create(2025, 10, 3),
+                'penerangan' => 'Sistem real-time auto-refresh untuk Log Pemandu dan struktur Hive database untuk offline support.',
+                'ciri_baharu' => [
+                    'Auto-Refresh Table Data: Table log pemandu auto-refresh setiap 10 saat tanpa reload page.',
+                    'Real-Time Status Updates: Status badge & timestamp update automatically bila ada perubahan.',
+                    'Hive Database Structure: JourneyHive & ClaimHive models siap untuk offline functionality.',
+                    'Enhanced JourneyHive: Tambah fields foto_odometer_keluar, foto_odometer_masuk, jenis_organisasi.',
+                    'Enhanced ClaimHive: Tambah fields dikemaskini_oleh, diproses_oleh, tarikh_diproses, alasan_tolak, alasan_gantung.',
+                    'Smart Polling: Tab counts (5s), table data (10s), bell notification (5s) dengan different intervals.'
+                ],
+                'penambahbaikan' => [
+                    'Current Vehicle Odometer: Fix untuk display latest odometer dengan tepat (orderBy ID instead of timestamp).',
+                    'Table Content Preservation: Pagination, search, filters maintained during auto-refresh.',
+                    'Concurrent Refresh Prevention: isRefreshing flag untuk elak multiple simultaneous updates.',
+                    'Seamless Updates: No page flicker atau interrupt bila auto-refresh berjalan.',
+                    'Hive Models 100% Match MySQL: Semua fields sama dengan backend database untuk perfect sync.',
+                    'Local Storage Fields: fotoOdometerKeluarLocal, fotoOdometerMasukLocal, resitMinyakLocal untuk offline photo storage.'
+                ],
+                'pembetulan_pepijat' => [
+                    'Current Vehicle Odometer showing outdated value (10800 km instead of 10900 km).',
+                    'Log Pemandu table not updating when journey status changes (Start/End Journey).',
+                    'Tab counts updating but table content remains static until manual refresh.',
+                    'getLatestOdometerAttribute() using unreliable masa_masuk sorting causing wrong odometer display.',
+                    'Hive models missing critical fields causing sync issues (foto_odometer, diproses_oleh, etc.).'
+                ],
+                'perubahan_teknikal' => [
+                    'resources/views/log-pemandu/index.blade.php: Add refreshTableData() JavaScript function (10s interval).',
+                    'DOMParser API: Parse HTML response tanpa full page reload untuk seamless table update.',
+                    'app/Models/Kenderaan.php: Change orderBy(masa_masuk, desc) to orderBy(id, desc) di getLatestOdometerAttribute().',
+                    'risda_driver_app/lib/models/journey_hive_model.dart: Add @HiveField(16-20) untuk new fields.',
+                    'risda_driver_app/lib/models/claim_hive_model.dart: Add @HiveField(8-12) untuk approval workflow fields.',
+                    'flutter pub run build_runner: Regenerate Hive adapters (.g.dart files) untuk new TypeAdapters.',
+                    'JourneyHive.toJson(): Map catatan to keterangan untuk match MySQL column naming.',
+                    'isRefreshing lock mechanism: Prevent race conditions during concurrent refresh attempts.',
+                    'Preserve current URL params: Maintain tab, search, tarikh_dari, tarikh_hingga, page during auto-refresh.'
+                ],
+                'urutan' => 173,
                 'is_latest' => true,
             ],
         ];
@@ -361,6 +404,6 @@ class NotaKeluaranSeeder extends Seeder
             );
         }
 
-        NotaKeluaran::where('versi', '!=', '1.7.2')->update(['is_latest' => false]);
+        NotaKeluaran::where('versi', '!=', '1.7.3')->update(['is_latest' => false]);
     }
 }
