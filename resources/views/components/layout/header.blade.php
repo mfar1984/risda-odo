@@ -100,11 +100,11 @@
                     },
                     init() {
                         this.fetchNotifications();
-                        // Auto-refresh every 5 seconds for near real-time
-                        setInterval(() => this.fetchNotifications(), 5000);
+                        // Auto-refresh every 30 seconds (optimized for performance)
+                        setInterval(() => this.fetchNotifications(), 30000);
                     }
                 }" @click.away="open = false">
-                    <button @click="open = !open; if(open) fetchNotifications()" class="topbar-notification-btn">
+                    <button @click="open = !open" class="topbar-notification-btn">
                         <span class="material-symbols-outlined">notifications</span>
                         <!-- Notification Badge -->
                         <span x-show="unreadCount > 0" x-text="unreadCount" class="notification-badge"></span>
@@ -357,9 +357,12 @@
     <!-- Breadcrumb Bar -->
     <div class="breadcrumb-bar">
         <div class="breadcrumb-container">
-            <!-- Mobile menu button -->
-            <button @click="sidebarOpen = !sidebarOpen" class="mobile-menu-btn md:hidden">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- NEW FRESH Mobile Menu Button -->
+            <button type="button" 
+                    @click="$dispatch('toggle-mobile-menu')" 
+                    class="flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-risda-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-risda-primary md:hidden"
+                    style="min-width: 40px; min-height: 40px;">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
             </button>

@@ -22,20 +22,27 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased bg-gray-50" x-data="{ sidebarOpen: false, sidebarCollapsed: false }" @sidebar-toggled.window="sidebarCollapsed = $event.detail.collapsed">
+    <body class="font-sans antialiased bg-gray-50" 
+          x-data="{ sidebarCollapsed: false }" 
+          @sidebar-toggled.window="sidebarCollapsed = $event.detail.collapsed">
         <div class="min-h-screen flex flex-col">
             <!-- Sidebar -->
             <x-layout.sidebar />
             
-            <!-- Mobile sidebar overlay -->
-            <div x-show="sidebarOpen" @click="sidebarOpen = false" 
+            <!-- Mobile sidebar overlay - Event based -->
+            <div x-data="{ showOverlay: false }"
+                 x-show="showOverlay" 
+                 @toggle-mobile-menu.window="showOverlay = !showOverlay"
+                 @close-mobile-menu.window="showOverlay = false"
+                 @click="$dispatch('close-mobile-menu')" 
                  class="sidebar-overlay md:hidden" 
                  x-transition:enter="transition-opacity ease-linear duration-300"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
                  x-transition:leave="transition-opacity ease-linear duration-300"
                  x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0">
+                 x-transition:leave-end="opacity-0"
+                 style="pointer-events: auto;">
             </div>
 
             <!-- Main content -->

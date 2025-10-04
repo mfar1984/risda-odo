@@ -226,3 +226,178 @@
         color: #1d4ed8 !important; /* blue-700 color */
     }
 }
+
+/* ========================================
+   MOBILE VIEW CSS (max-width: 768px)
+   Desktop CSS di atas TIDAK terjejas!
+   ======================================== */
+@media (max-width: 768px) {
+    /* TOPBAR - Hide Welcome Text & Separator */
+    .welcome-text {
+        display: none !important;
+    }
+    
+    .topbar-separator {
+        display: none !important;
+    }
+    
+    /* Topbar container - reduce padding untuk mobile */
+    .topbar-container {
+        padding-left: 0.75rem !important; /* 12px */
+        padding-right: 0.75rem !important; /* 12px */
+    }
+    
+    /* Topbar left - remove extra spacing */
+    .topbar-left {
+        margin-right: auto;
+    }
+    
+    /* Current date - smaller font */
+    .current-date {
+        font-size: 10px !important;
+    }
+    
+    /* Topbar right - reduce spacing antara icons */
+    .topbar-right {
+        gap: 0.25rem !important; /* 4px spacing instead of 12px */
+    }
+    
+    /* Icon buttons - reduce padding */
+    .topbar-notification-btn,
+    .topbar-grid-btn,
+    .topbar-help-btn {
+        padding: 0.25rem !important; /* 4px */
+    }
+    
+    /* User button - hide email, show avatar only */
+    .topbar-user-btn {
+        padding: 0.25rem !important;
+    }
+    
+    .topbar-user-btn .user-email {
+        display: none !important;
+    }
+    
+    .topbar-user-btn svg:last-child {
+        display: none !important; /* Hide dropdown arrow */
+    }
+    
+    /* Notification Dropdown - CENTER untuk mobile */
+    .topbar-notification-btn + div,
+    button.topbar-notification-btn ~ div[x-show] {
+        position: fixed !important;
+        right: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        top: 3.5rem !important;
+        width: calc(100vw - 1rem) !important;
+        max-width: 360px !important;
+        margin: 0 !important;
+        z-index: 9999 !important;
+    }
+    
+    /* Apps Grid Dropdown - CENTER untuk mobile */
+    .topbar-grid-btn + div,
+    button.topbar-grid-btn ~ div[x-show] {
+        position: fixed !important;
+        right: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        top: 3.5rem !important;
+        width: calc(100vw - 1rem) !important;
+        max-width: 360px !important;
+        margin: 0 !important;
+        z-index: 9999 !important;
+    }
+    
+    /* Help Dropdown - CENTER untuk mobile */
+    .topbar-help-btn + div,
+    .topbar-help-dropdown {
+        position: fixed !important;
+        right: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        top: 3.5rem !important;
+        width: calc(100vw - 1rem) !important;
+        max-width: 280px !important;
+        margin: 0 !important;
+        z-index: 9999 !important;
+    }
+    
+    /* User Dropdown - adjust untuk mobile */
+    .topbar-user-btn + div,
+    .topbar-dropdown {
+        position: fixed !important;
+        right: 0.5rem !important;
+        left: auto !important;
+        top: 3.5rem !important;
+        width: 180px !important;
+        margin: 0 !important;
+        z-index: 9999 !important;
+    }
+    
+    /* Breadcrumb - reduce padding & ensure flex layout */
+    .breadcrumb-container {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+    
+    /* Breadcrumb nav - allow it to grow but not overflow */
+    .breadcrumb-nav {
+        flex: 1 1 auto !important;
+        min-width: 0 !important; /* Allow text truncate if needed */
+        margin-right: 0.5rem !important;
+    }
+    
+    /* Weather widget - show on mobile but compact */
+    .breadcrumb-container > div:last-child {
+        flex-shrink: 0 !important; /* Don't shrink weather widget */
+        margin-left: auto !important;
+    }
+    
+    /* Weather button - more compact for mobile */
+    .breadcrumb-container > div:last-child > div {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        padding-top: 0.25rem !important;
+        padding-bottom: 0.25rem !important;
+        gap: 0.25rem !important;
+    }
+    
+    /* Weather icon - smaller */
+    .breadcrumb-container > div:last-child > div > span:first-child {
+        font-size: 16px !important;
+    }
+    
+    /* Weather temperature - smaller font */
+    .breadcrumb-container > div:last-child > div > span:nth-child(2) {
+        font-size: 10px !important;
+    }
+    
+    /* Weather description - smaller font */
+    .breadcrumb-container > div:last-child > div > span:last-child {
+        font-size: 10px !important;
+    }
+    
+    /* Hide weather separator on mobile to save space */
+    .breadcrumb-container > div:last-child > div > span:nth-child(3) {
+        display: none !important;
+    }
+    
+    /* Weather dropdown - adjust position untuk mobile */
+    .breadcrumb-container > div:last-child > div:last-child {
+        right: 0 !important;
+        width: calc(100vw - 1.5rem) !important;
+        max-width: 320px !important;
+    }
+    
+    /* Extra small screens - hide weather description, show temp only */
+    @media (max-width: 480px) {
+        .breadcrumb-container > div:last-child > div > span:last-child {
+            display: none !important; /* Hide "Cerah" text on very small screens */
+        }
+    }
+}

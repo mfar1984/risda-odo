@@ -244,6 +244,174 @@
             @endforelse
         </x-ui.data-table>
 
+        {{-- Mobile Card View --}}
+        <div class="mobile-table-card">
+            @forelse($logs as $log)
+                @php
+                    $user = auth()->user();
+                    $statusModule = match($log->status) {
+                        'dalam_perjalanan' => 'log_pemandu_aktif',
+                        'selesai' => 'log_pemandu_selesai',
+                        'tertunda' => 'log_pemandu_tertunda',
+                        default => null,
+                    };
+
+                    $canView = $user && (
+                        $user->adaKebenaran('log_pemandu_semua', 'lihat') ||
+                        ($statusModule && $user->adaKebenaran($statusModule, 'lihat')) ||
+                        $user->adaKebenaran('log_pemandu', 'lihat') ||
+                        $user->adaKebenaran('log_pemandu', 'lihat_butiran')
+                    );
+
+                    $canEdit = $user && (
+                        $user->adaKebenaran('log_pemandu_semua', 'kemaskini') ||
+                        ($statusModule && $user->adaKebenaran($statusModule, 'kemaskini')) ||
+                        $user->adaKebenaran('log_pemandu', 'kemaskini') ||
+                        $user->adaKebenaran('log_pemandu', 'kemaskini_status')
+                    );
+
+                    $canDelete = $user && (
+                        $user->adaKebenaran('log_pemandu_semua', 'padam') ||
+                        ($statusModule && $user->adaKebenaran($statusModule, 'padam')) ||
+                        $user->adaKebenaran('log_pemandu', 'padam')
+                    );
+                @endphp
+
+                <div class="mobile-card">
+                    {{-- Card Header: Date & Status --}}
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">
+                            <div style="font-weight: 600; font-size: 12px;">{{ optional($log->tarikh_perjalanan)->translatedFormat('d M Y') ?? '-' }}</div>
+                            <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">
+                                <span class="material-symbols-outlined" style="font-size: 12px; vertical-align: middle;">schedule</span>
+                                {{ $log->masa_keluar ? \Carbon\Carbon::parse($log->masa_keluar)->format('H:i') : '-' }}
+                                @if($log->masa_masuk)
+                                    → {{ \Carbon\Carbon::parse($log->masa_masuk)->format('H:i') }}
+                                @endif
+                            </div>
+                        </div>
+                        <x-ui.status-badge
+                            :status="$log->status"
+                            :status-map="[
+                                'dalam_perjalanan' => ['label' => 'Berjalan', 'class' => 'bg-blue-100 text-blue-800'],
+                                'selesai' => ['label' => 'Selesai', 'class' => 'bg-green-100 text-green-800'],
+                                'tertunda' => ['label' => 'Tertunda', 'class' => 'bg-orange-100 text-orange-800'],
+                            ]"
+                        />
+                    </div>
+
+                    {{-- Card Body --}}
+                    <div class="mobile-card-body">
+                        {{-- Driver --}}
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">
+                                <span class="material-symbols-outlined" style="font-size: 16px; color: #6b7280;">person</span>
+                            </span>
+                            <span class="mobile-card-value">
+                                <strong style="color: #111827;">{{ $log->pemandu->risdaStaf->nama_penuh ?? 'Tidak Dinyatakan' }}</strong>
+                            </span>
+                        </div>
+
+                        {{-- Destination --}}
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">
+                                <span class="material-symbols-outlined" style="font-size: 16px; color: #6b7280;">location_on</span>
+                            </span>
+                            <span class="mobile-card-value">
+                                {{ $log->destinasi ?? '-' }}
+                            </span>
+                        </div>
+
+                        {{-- Vehicle --}}
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">
+                                <span class="material-symbols-outlined" style="font-size: 16px; color: #6b7280;">directions_car</span>
+                            </span>
+                            <span class="mobile-card-value">
+                                <strong>{{ $log->kenderaan->no_plat ?? 'N/A' }}</strong>
+                                @if(trim(($log->kenderaan->jenama ?? '') . ' ' . ($log->kenderaan->model ?? '')))
+                                    <div class="mobile-card-value-secondary">{{ trim(($log->kenderaan->jenama ?? '') . ' ' . ($log->kenderaan->model ?? '')) }}</div>
+                                @endif
+                            </span>
+                        </div>
+
+                        {{-- Odometer --}}
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">
+                                <span class="material-symbols-outlined" style="font-size: 16px; color: #6b7280;">speed</span>
+                            </span>
+                            <span class="mobile-card-value">
+                                <div>Keluar: <strong>{{ number_format($log->odometer_keluar ?? 0) }}</strong> km</div>
+                                <div>Masuk: <strong>{{ $log->odometer_masuk ? number_format($log->odometer_masuk) : '-' }}</strong> {{ $log->odometer_masuk ? 'km' : '' }}</div>
+                                @if($log->jarak)
+                                    <div class="mobile-card-value-secondary">Jarak: {{ number_format($log->jarak) }} km</div>
+                                @endif
+                            </span>
+                        </div>
+
+                        {{-- Fuel --}}
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">
+                                <span class="material-symbols-outlined" style="font-size: 16px; color: #6b7280;">local_gas_station</span>
+                            </span>
+                            <span class="mobile-card-value">
+                                <div>{{ $log->liter_minyak ? number_format($log->liter_minyak, 2) . ' L' : '-' }}</div>
+                                @if($log->kos_minyak)
+                                    <div class="mobile-card-value-secondary">RM {{ number_format($log->kos_minyak, 2) }}</div>
+                                @endif
+                            </span>
+                        </div>
+
+                        {{-- Last Updated --}}
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">
+                                <span class="material-symbols-outlined" style="font-size: 16px; color: #6b7280;">schedule</span>
+                            </span>
+                            <span class="mobile-card-value-secondary">
+                                {{ optional($log->updated_at)->diffForHumans() }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {{-- Card Footer: Actions --}}
+                    @if($canView || $canEdit || $canDelete)
+                        <div class="mobile-card-footer">
+                            @if($canView)
+                                <a href="{{ route('log-pemandu.show', $log) }}" class="mobile-card-action mobile-action-view">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                                    Lihat
+                                </a>
+                            @endif
+
+                            @if($canEdit)
+                                <a href="{{ route('log-pemandu.edit', $log) }}" class="mobile-card-action mobile-action-edit">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                                    Edit
+                                </a>
+                            @endif
+
+                            @if($canDelete)
+                                <form action="{{ route('log-pemandu.destroy', $log) }}" method="POST" class="inline" onsubmit="return confirm('Padam log pemandu pada {{ optional($log->tarikh_perjalanan)->format('d/m/Y') }}?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="mobile-card-action mobile-action-delete">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                                        Padam
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="mobile-empty-state">
+                    <span class="material-symbols-outlined" style="font-size: 48px; color: #d1d5db;">folder_open</span>
+                    <p>Tiada log ditemui</p>
+                    <p style="font-size: 10px; color: #9ca3af;">Sila cuba ubah penapis atau semak status lain.</p>
+                </div>
+            @endforelse
+        </div>
+
         <div class="mt-6">
             <x-ui.pagination :paginator="$logs" record-label="log" />
         </div>

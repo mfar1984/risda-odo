@@ -17,18 +17,31 @@ class NotificationController extends Controller
         try {
             $user = Auth::user();
             
-            // Get notifications for this specific user (driver gets FCM notifications)
-            // But we also show backend notifications if admin created them
-            $query = Notification::where('user_id', $user->id)
-                ->orderBy('created_at', 'desc');
+            // Simple query - user's notifications OR global notifications
+            $query = Notification::where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereNull('user_id');
+            });
 
-            // Filter by read status
+            // Filter by read status BEFORE pagination
             if ($request->has('unread_only') && $request->unread_only) {
                 $query->whereNull('read_at');
             }
 
-            $notifications = $query->paginate(20);
-            $unreadCount = Notification::where('user_id', $user->id)->whereNull('read_at')->count();
+            // Get paginated results
+            $notifications = $query->orderBy('created_at', 'desc')->paginate(20);
+            
+            // Count unread efficiently
+            if ($request->has('unread_only') && $request->unread_only) {
+                $unreadCount = $notifications->total();
+            } else {
+                $unreadCount = Notification::where(function($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhereNull('user_id');
+                })
+                ->whereNull('read_at')
+                ->count();
+            }
 
             return response()->json([
                 'success' => true,

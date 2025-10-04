@@ -43,18 +43,82 @@
         margin: 0 4px;
     }
     
-    /* Responsive adjustments */
+    /* ========================================
+       MOBILE FOOTER CSS (max-width: 768px)
+       Desktop CSS di atas TIDAK terjejas!
+       ======================================== */
     @media (max-width: 768px) {
-        .footer-content {
-            @apply flex-col items-start space-y-2 py-4;
+        /* Footer container - reduce padding */
+        .footer-container {
+            padding-left: 0.75rem !important; /* 12px */
+            padding-right: 0.75rem !important; /* 12px */
         }
         
+        /* Footer content - stack vertically & center */
+        .footer-content {
+            @apply flex-col items-center space-y-3 py-4;
+            text-align: center;
+            min-height: auto;
+        }
+        
+        /* Footer left - full width & centered */
+        .footer-left {
+            @apply w-full;
+            text-align: center;
+        }
+        
+        /* Copyright text - smaller font */
+        .footer-copyright {
+            font-size: 10px !important;
+            line-height: 1.5 !important;
+            display: block;
+        }
+        
+        /* Footer right - full width & centered */
         .footer-right {
             @apply w-full;
+            justify-content: center;
         }
         
+        /* Footer links - wrap & center */
         .footer-links {
-            @apply flex-wrap;
+            @apply flex-wrap justify-center;
+            gap: 0.25rem; /* 4px gap */
+        }
+        
+        /* Footer link - smaller font & better touch target */
+        .footer-link {
+            font-size: 10px !important;
+            padding: 0.25rem 0.5rem; /* Touch-friendly */
+            display: inline-block;
+        }
+        
+        /* Separator - smaller */
+        .footer-separator {
+            font-size: 10px !important;
+            margin: 0 2px !important;
+        }
+        
+        /* Extra small screens - even more compact */
+        @media (max-width: 480px) {
+            .footer-content {
+                padding-top: 0.75rem !important; /* 12px */
+                padding-bottom: 0.75rem !important; /* 12px */
+                space-y: 0.5rem !important; /* 8px gap */
+            }
+            
+            .footer-copyright {
+                font-size: 9px !important;
+            }
+            
+            .footer-link {
+                font-size: 9px !important;
+                padding: 0.125rem 0.25rem; /* Smaller padding */
+            }
+            
+            .footer-separator {
+                font-size: 9px !important;
+            }
         }
     }
 }

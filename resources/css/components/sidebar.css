@@ -253,23 +253,158 @@
         @apply ml-16;
     }
     
-    /* Mobile responsive */
+    /* ========================================
+       MOBILE MENU CSS (max-width: 768px)
+       Desktop CSS di atas TIDAK terjejas!
+       ======================================== */
     @media (max-width: 768px) {
+        /* Sidebar - Hidden by default, slide in from left */
         .sidebar {
             @apply transform -translate-x-full;
+            width: 280px !important; /* Full width for mobile */
+            z-index: 9001 !important; /* Above overlay (8999) and content */
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            height: 100vh !important;
         }
         
+        /* Sidebar open state - slide in */
         .sidebar.sidebar-mobile-open {
             @apply translate-x-0;
+            transform: translateX(0) !important;
         }
         
+        /* Force expanded width on mobile (no collapsed state) */
+        .sidebar-expanded,
+        .sidebar-collapsed {
+            width: 280px !important;
+        }
+        
+        /* Hide toggle button on mobile */
+        .sidebar-toggle {
+            display: none !important;
+        }
+        
+        /* Main content - NO margin on mobile */
         .main-content-expanded,
         .main-content-collapsed {
             @apply ml-0;
         }
         
+        /* Overlay backdrop when menu is open */
         .sidebar-overlay {
-            @apply fixed inset-0 bg-gray-600 bg-opacity-75 z-20;
+            @apply fixed inset-0 bg-gray-600 bg-opacity-75;
+            z-index: 9000 !important; /* Just below sidebar (9001) */
+        }
+        
+        /* Sidebar header - simple header for mobile */
+        .sidebar-header {
+            @apply px-4 py-4;
+            height: auto !important;
+        }
+        
+        /* Menu items - larger touch targets */
+        .sidebar-nav-item {
+            padding: 0.875rem 1rem !important; /* 14px vertical, 16px horizontal */
+            font-size: 13px !important;
+            min-height: 44px !important; /* iOS recommended touch target */
+        }
+        
+        /* Icons - slightly larger for visibility */
+        .sidebar-nav-icon {
+            width: 22px !important;
+            height: 22px !important;
+            margin-right: 0.875rem !important;
+        }
+        
+        /* Submenu container - show vertical line */
+        .submenu-container {
+            margin-left: 2rem !important; /* 32px indent */
+            margin-top: 0 !important;
+        }
+        
+        .submenu-container::before {
+            left: -1rem !important; /* Adjust line position */
+        }
+        
+        /* Submenu items - touch-friendly */
+        .submenu-item {
+            padding: 0.75rem 1rem !important; /* 12px vertical */
+            padding-left: 1.5rem !important; /* 24px indent */
+            font-size: 12px !important;
+            min-height: 42px !important;
+        }
+        
+        .submenu-item::before {
+            left: -1rem !important; /* Horizontal line */
+            width: 16px !important;
+        }
+        
+        .submenu-item::after {
+            left: 2px !important; /* Bullet position */
+        }
+        
+        /* Hide floating dropdown styles on mobile */
+        .sidebar-collapsed .submenu-dropdown {
+            position: relative !important;
+            left: 0 !important;
+            top: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            min-width: auto !important;
+            max-height: none !important;
+            overflow-y: visible !important;
+            z-index: auto !important;
+        }
+        
+        /* Force show submenus inline on mobile (no floating) */
+        .sidebar-collapsed .submenu-dropdown .submenu-item {
+            padding: 0.75rem 1rem !important;
+            padding-left: 1.5rem !important;
+        }
+        
+        /* Ensure submenu arrows/icons are visible */
+        .sidebar-nav-item svg {
+            flex-shrink: 0;
+        }
+        
+        /* Separator - keep visible */
+        .sidebar-separator {
+            margin-top: 0.75rem !important;
+            margin-bottom: 0.75rem !important;
+        }
+        
+        /* Scrollable menu area */
+        .sidebar-nav {
+            overflow-y: auto !important;
+            max-height: calc(100vh - 82px) !important; /* Full height minus header */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+        
+        /* Active state - more prominent on mobile */
+        .sidebar-nav-item-active {
+            background-color: #dbeafe !important;
+            border-left: 4px solid #3b82f6 !important;
+            padding-left: calc(1rem - 4px) !important;
+        }
+        
+        .sidebar-nav-item-active::after {
+            display: none !important; /* Use left border instead */
+        }
+        
+        /* Hover states - optimize for touch */
+        .sidebar-nav-item-inactive:hover::after,
+        .sidebar-nav-item-parent-active:hover::after {
+            display: none !important; /* No hover effects on touch devices */
+        }
+        
+        /* Parent menu when submenu is open */
+        .sidebar-nav-item-parent-active {
+            background-color: #f9fafb !important;
         }
     }
 

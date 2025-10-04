@@ -1,0 +1,507 @@
+/* ========================================
+   MOBILE FORMS DESIGN
+   Beautiful & touch-friendly forms for mobile
+   ======================================== */
+
+@layer components {
+    /* Desktop - keep default form styles */
+    @media (min-width: 769px) {
+        /* All desktop styles remain unchanged */
+    }
+
+    /* ========================================
+       MOBILE VIEW (max-width: 768px)
+       ======================================== */
+    @media (max-width: 768px) {
+        /* Container adjustments */
+        .space-y-6 {
+            gap: 1rem !important;
+        }
+
+        /* Section headers */
+        h3,
+        form h3,
+        .space-y-6 h3,
+        div > h3 {
+            font-size: 14px !important;
+            margin-bottom: 0.75rem !important;
+            margin-top: 0 !important;
+            width: 100% !important;
+            display: block !important;
+        }
+        
+        /* Section separators */
+        .my-6,
+        .mt-6 {
+            margin-top: 1.5rem !important;
+            margin-bottom: 1.5rem !important;
+        }
+        
+        .border-t {
+            margin-bottom: 1rem !important;
+        }
+
+        /* FORCE VERTICAL STACKING - Target row containers with gap: 20px */
+        /* Target: <div class="mt-4 space-y-6"> <div style="display: flex; gap: 20px;"> */
+        div.mt-4.space-y-6 > div[style*="display: flex; gap: 20px;"],
+        div.space-y-6 > div[style*="display: flex; gap: 20px;"] {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 1rem !important;
+            width: 100% !important;
+        }
+
+        /* Force direct children with flex: 1 to full width */
+        div.mt-4.space-y-6 > div[style*="display: flex; gap: 20px;"] > div[style*="flex: 1"],
+        div.space-y-6 > div[style*="display: flex; gap: 20px;"] > div[style*="flex: 1"] {
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: 0 0 100% !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Input labels */
+        form label {
+            font-size: 12px !important;
+            margin-bottom: 0.375rem !important;
+        }
+
+        /* Text inputs */
+        form input[type="text"],
+        form input[type="number"],
+        form input[type="email"],
+        form input[type="password"],
+        form input[type="tel"],
+        form input[type="url"],
+        form input[type="date"],
+        form input[type="datetime-local"] {
+            width: 100% !important;
+            height: 44px !important;
+            font-size: 13px !important;
+            padding: 0.625rem 0.875rem !important;
+        }
+
+        /* Textareas */
+        form textarea {
+            width: 100% !important;
+            font-size: 13px !important;
+            padding: 0.625rem 0.875rem !important;
+            min-height: 100px !important;
+        }
+
+        /* Select dropdowns */
+        form select,
+        form .form-select {
+            width: 100% !important;
+            height: 44px !important;
+            font-size: 13px !important;
+            padding: 0.625rem 0.875rem !important;
+        }
+
+        /* Help text */
+        form p.text-sm {
+            font-size: 11px !important;
+            margin-top: 0.25rem !important;
+        }
+
+        /* Error messages */
+        form .text-red-600,
+        form .text-danger {
+            font-size: 11px !important;
+        }
+
+        /* Datetime inputs */
+        form input[type="datetime-local"] {
+            height: 44px !important;
+        }
+
+        /* Map component */
+        form .leaflet-container {
+            height: 250px !important;
+            margin-top: 0.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* Form sections with borders */
+        form .space-y-4.pt-6.border-t {
+            padding-top: 1rem !important;
+            margin-top: 1rem !important;
+        }
+
+        /* Submit button container */
+        form .flex.items-center.justify-end {
+            display: block !important;
+            margin-top: 1.5rem !important;
+        }
+
+        /* Submit button */
+        form .flex.items-center.justify-end button {
+            width: 100% !important;
+            height: 48px !important;
+            font-size: 14px !important;
+            justify-content: center !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        form .flex.items-center.justify-end button span.material-symbols-outlined {
+            font-size: 20px !important;
+        }
+
+        /* Input groups */
+        .input-group {
+            display: block !important;
+        }
+
+        .input-group > * {
+            width: 100% !important;
+            margin-bottom: 0.75rem !important;
+        }
+
+        /* Radio & Checkbox groups */
+        form .flex.items-center.space-x-2,
+        form .flex.items-center.gap-2 {
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* File inputs */
+        form input[type="file"] {
+            width: 100% !important;
+            padding: 0.625rem !important;
+            font-size: 12px !important;
+        }
+
+        /* Form spacing */
+        form .space-y-4 > * {
+            margin-bottom: 1rem !important;
+        }
+
+        form .space-y-6 > * {
+            margin-bottom: 1.25rem !important;
+        }
+
+        /* Hidden on mobile (if needed) */
+        .hide-on-mobile {
+            display: none !important;
+        }
+
+        /* Container padding adjustment */
+        section {
+            padding: 0 !important;
+        }
+
+        section header h2 {
+            font-size: 16px !important;
+        }
+
+        section header p {
+            font-size: 12px !important;
+            margin-top: 0.25rem !important;
+        }
+
+        /* Back button (if exists) */
+        a[href*="program"] button {
+            width: 100% !important;
+            margin-bottom: 1rem !important;
+        }
+
+        /* ========================================
+           DETAIL/SHOW PAGE SPECIFIC
+           ======================================== */
+        
+        /* Export button in header */
+        .flex.justify-between.items-center.mb-6 {
+            display: block !important;
+        }
+
+        .flex.justify-between.items-center.mb-6 button {
+            width: 100% !important;
+            height: 44px !important;
+            font-size: 13px !important;
+            justify-content: center !important;
+            display: flex !important;
+            align-items: center !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .flex.justify-between.items-center.mb-6 button span.material-symbols-outlined {
+            font-size: 18px !important;
+        }
+        
+        /* Readonly inputs styling */
+        input[readonly],
+        textarea[readonly] {
+            background-color: #f9fafb !important;
+            cursor: default !important;
+        }
+
+        /* Status badges */
+        .inline-flex.items-center.px-3.py-1.rounded-full {
+            font-size: 11px !important;
+            padding: 0.375rem 0.75rem !important;
+        }
+
+        /* Section headers / Separators */
+        .my-6 h3,
+        .border-t + h3 {
+            font-size: 14px !important;
+            margin-top: 1rem !important;
+        }
+
+        /* Map on detail page */
+        div[id*="map"] {
+            height: 250px !important;
+            margin-top: 0.5rem !important;
+        }
+
+        /* ========================================
+           TABLES TO KEY-VALUE CARDS (MOBILE)
+           ======================================== */
+        
+        /* Make table block and remove overflow - STRENGTHEN with body prefix */
+        body .overflow-x-auto {
+            overflow: visible !important;
+        }
+
+        /* Transform table to card */
+        body .overflow-x-auto table,
+        body .overflow-x-auto table.min-w-full {
+            display: block !important;
+            border: none !important;
+            width: 100% !important;
+        }
+
+        /* Hide thead on mobile */
+        body .overflow-x-auto thead {
+            display: none !important;
+        }
+
+        /* Transform tbody to card container */
+        body .overflow-x-auto tbody {
+            display: block !important;
+        }
+
+        /* Each row becomes a card */
+        body .overflow-x-auto tbody tr {
+            display: block !important;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Each cell becomes a key-value pair */
+        body .overflow-x-auto tbody td {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            padding: 0.5rem 0 !important;
+            border: none !important;
+            border-bottom: 1px solid #f3f4f6 !important;
+            white-space: normal !important;
+            text-align: left !important;
+        }
+
+        body .overflow-x-auto tbody td:last-child {
+            border-bottom: none !important;
+        }
+
+        /* Add label before content using ::before */
+        body .overflow-x-auto tbody td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #4b5563;
+            font-family: Poppins, sans-serif !important;
+            font-size: 11px !important;
+            width: 110px;
+            flex-shrink: 0;
+            padding-right: 0.75rem;
+            display: inline-block;
+        }
+
+        /* Content styling */
+        body .overflow-x-auto tbody td {
+            font-family: Poppins, sans-serif !important;
+            font-size: 12px !important;
+            color: #111827;
+        }
+
+        /* Allow tables to scroll if needed as fallback */
+        .overflow-x-auto.mobile-scroll {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .overflow-x-auto.mobile-scroll table {
+            display: table !important;
+            min-width: 600px;
+        }
+
+        .overflow-x-auto.mobile-scroll thead {
+            display: table-header-group !important;
+        }
+
+        .overflow-x-auto.mobile-scroll tbody {
+            display: table-row-group !important;
+        }
+
+        .overflow-x-auto.mobile-scroll tbody tr {
+            display: table-row !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .overflow-x-auto.mobile-scroll tbody td {
+            display: table-cell !important;
+            padding: 0.75rem !important;
+            border: 1px solid #e5e7eb !important;
+        }
+
+        .overflow-x-auto.mobile-scroll tbody td::before {
+            display: none !important;
+        }
+
+        /* ========================================
+           ACTION BUTTONS (BOTTOM OF DETAIL PAGE)
+           ======================================== */
+        
+        /* Action buttons container */
+        .detail-action-buttons,
+        .flex.items-center.justify-between.mt-6 {
+            display: block !important;
+        }
+
+        /* All action buttons */
+        .detail-action-buttons a,
+        .detail-action-buttons form,
+        .detail-action-buttons form.inline,
+        .flex.items-center.justify-between.mt-6 a,
+        .flex.items-center.justify-between.mt-6 form,
+        .flex.items-center.justify-between.mt-6 form.inline {
+            display: block !important;
+            width: 100% !important;
+            margin-bottom: 0.75rem !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        /* Ensure buttons are properly centered */
+        .detail-action-buttons button,
+        .flex.items-center.justify-between.mt-6 button {
+            width: 100% !important;
+            height: 44px !important;
+            font-size: 13px !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+
+        /* Fix button inside link */
+        .detail-action-buttons a button,
+        .flex.items-center.justify-between.mt-6 a button {
+            width: 100% !important;
+        }
+
+        /* Icon spacing */
+        .detail-action-buttons button span.material-symbols-outlined,
+        .flex.items-center.justify-between.mt-6 button span.material-symbols-outlined {
+            font-size: 18px !important;
+            margin-right: 0.5rem !important;
+            margin-left: 0 !important;
+        }
+
+        /* Button group spacing */
+        .detail-action-buttons .flex.space-x-3,
+        .flex.items-center.justify-between.mt-6 .flex.space-x-3 {
+            display: block !important;
+            width: 100% !important;
+        }
+
+        .flex.items-center.justify-between.mt-6 .flex.space-x-3 form {
+            margin-bottom: 0.75rem !important;
+        }
+
+        .flex.items-center.justify-between.mt-6 .flex.space-x-3 form:last-child {
+            margin-bottom: 0 !important;
+        }
+
+        /* Fix inline flex rows in detail pages - stack to 1 column */
+        .mt-6.space-y-6 > div[style*="display: flex; gap: 20px"],
+        div.mt-4.space-y-6 > div[style*="display: flex; gap: 20px"] {
+            flex-direction: column !important;
+            gap: 1rem !important;
+        }
+        
+        .mt-6.space-y-6 > div[style*="display: flex; gap: 20px"] > div[style*="flex: 1"],
+        div.mt-4.space-y-6 > div[style*="display: flex; gap: 20px"] > div[style*="flex: 1"] {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        /* Hide empty flex spacers (like in Status row) */
+        .mt-6.space-y-6 > div[style*="display: flex; gap: 20px"] > div[style*="flex: 1"]:empty,
+        div.mt-4.space-y-6 > div[style*="display: flex; gap: 20px"] > div[style*="flex: 1"]:empty {
+            display: none !important;
+        }
+
+        /* Penerangan field container - force vertical stack */
+        .mt-6.space-y-6 > div:not([style*="display: flex"]),
+        .mt-4.space-y-6 > div:not([style*="display: flex"]) {
+            display: block !important;
+            flex-direction: column !important;
+            width: 100% !important;
+        }
+
+        /* Ensure labels are ABOVE inputs/textarea - MOBILE ONLY */
+        label.form-label {
+            display: block !important;
+            width: 100% !important;
+            margin-bottom: 0.5rem !important;
+            text-align: left !important;
+            float: none !important;
+            position: relative !important;
+        }
+        
+        textarea.form-input {
+            display: block !important;
+            width: 100% !important;
+            margin-top: 0.25rem !important;
+            clear: both !important;
+        }
+    }
+
+    /* Extra small screens */
+    @media (max-width: 480px) {
+        form input[type="text"],
+        form input[type="number"],
+        form input[type="email"],
+        form input[type="password"],
+        form input[type="tel"],
+        form input[type="url"],
+        form input[type="date"],
+        form input[type="datetime-local"],
+        form select,
+        form textarea {
+            font-size: 12px !important;
+        }
+
+        form .leaflet-container {
+            height: 200px !important;
+        }
+
+        form .flex.items-center.justify-end button {
+            height: 44px !important;
+            font-size: 13px !important;
+        }
+    }
+}
+
+

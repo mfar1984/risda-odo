@@ -1,0 +1,543 @@
+/* ========================================
+   MOBILE TABLE DESIGN
+   Convert desktop tables to beautiful cards
+   ======================================== */
+
+@layer components {
+    /* Desktop - keep default table styles */
+    @media (min-width: 769px) {
+        .mobile-table-card {
+            display: none !important;
+        }
+    }
+
+    /* ========================================
+       MOBILE VIEW (max-width: 768px)
+       ======================================== */
+    @media (max-width: 768px) {
+        /* Hide desktop table on mobile */
+        .data-table-container table,
+        .overflow-hidden.shadow.ring-1 {
+            display: none !important;
+        }
+
+        /* Show mobile card layout */
+        .mobile-table-card {
+            display: block !important;
+        }
+
+        /* Card container */
+        .mobile-card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 2px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Card header */
+        .mobile-card-header {
+            background-color: #f9fafb;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mobile-card-title {
+            font-weight: 600;
+            color: #111827;
+            font-family: Poppins, sans-serif !important;
+            font-size: 13px !important;
+            line-height: 1.4;
+            flex: 1;
+            margin-right: 0.5rem;
+        }
+
+        .mobile-card-badge {
+            flex-shrink: 0;
+        }
+
+        /* Card body */
+        .mobile-card-body {
+            padding: 0.5rem 1rem;
+        }
+
+        /* Card row */
+        .mobile-card-row {
+            display: flex;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            align-items: flex-start;
+        }
+
+        .mobile-card-row:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-card-label {
+            font-weight: 500;
+            color: #6b7280;
+            font-family: Poppins, sans-serif !important;
+            font-size: 10px !important;
+            width: 32px;
+            flex-shrink: 0;
+            padding-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-card-value {
+            color: #111827;
+            font-family: Poppins, sans-serif !important;
+            font-size: 11px !important;
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        .mobile-card-value-secondary {
+            color: #6b7280;
+            font-family: Poppins, sans-serif !important;
+            font-size: 10px !important;
+            margin-top: 0.125rem;
+        }
+
+        /* Card footer (actions) */
+        .mobile-card-footer {
+            background-color: #f9fafb;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .mobile-card-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.375rem 0.75rem;
+            min-width: 60px;
+        }
+
+        .mobile-card-action-icon {
+            font-size: 20px !important;
+            margin-bottom: 0.125rem;
+        }
+
+        .mobile-card-action-label {
+            font-family: Poppins, sans-serif !important;
+            font-size: 9px !important;
+            line-height: 1;
+        }
+
+        /* Action colors */
+        .mobile-action-view {
+            color: #2563eb;
+        }
+
+        .mobile-action-view:active {
+            background-color: #eff6ff;
+        }
+
+        .mobile-action-approve {
+            color: #16a34a;
+        }
+
+        .mobile-action-approve:active {
+            background-color: #f0fdf4;
+        }
+
+        .mobile-action-reject {
+            color: #dc2626;
+        }
+
+        .mobile-action-reject:active {
+            background-color: #fef2f2;
+        }
+
+        .mobile-action-edit {
+            color: #ca8a04;
+        }
+
+        .mobile-action-edit:active {
+            background-color: #fefce8;
+        }
+
+        .mobile-action-delete {
+            color: #dc2626;
+        }
+
+        .mobile-action-delete:active {
+            background-color: #fef2f2;
+        }
+
+        /* Empty state */
+        .mobile-empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #6b7280;
+            font-family: Poppins, sans-serif !important;
+            font-size: 12px !important;
+        }
+
+        /* ========================================
+           SEARCH & FILTER BAR MOBILE
+           ======================================== */
+        
+        /* Convert horizontal flex to vertical stack */
+        form .flex.items-end {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.75rem;
+        }
+        
+        /* Search input - full width */
+        form .flex.items-end > div:first-child,
+        form .flex.items-end > div.flex-1 {
+            width: 100% !important;
+            flex: none !important;
+        }
+        
+        form .flex.items-end > div:first-child input,
+        form .flex.items-end > div.flex-1 input {
+            width: 100% !important;
+            height: 42px !important;
+            font-size: 12px !important;
+            padding: 0.5rem 0.75rem !important;
+        }
+        
+        /* Filters - stack vertically */
+        form .flex.items-end > div.w-48 {
+            width: 100% !important;
+        }
+        
+        form .flex.items-end > div.w-48 select,
+        form .flex.items-end > div.w-48 input {
+            width: 100% !important;
+            height: 42px !important;
+            font-size: 12px !important;
+            padding: 0.5rem 0.75rem !important;
+        }
+        
+        /* Action buttons container - STACK VERTICALLY untuk mobile! */
+        form .flex.items-end > div.flex.space-x-3,
+        form .space-x-3,
+        div.flex.space-x-3 {
+            display: flex !important;
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 8px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* ALL direct children - full width, NO MARGINS! */
+        form .flex.items-end > div.flex.space-x-3 > *,
+        form .space-x-3 > *,
+        div.flex.space-x-3 > * {
+            width: 100% !important;
+            max-width: 100% !important;
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* ALL buttons - EXACTLY 100% WIDTH, NO EXCEPTIONS! */
+        form .flex.items-end > div.flex.space-x-3 button,
+        form .flex.items-end > div.flex.space-x-3 a > button,
+        form .space-x-3 button,
+        form .space-x-3 a > button,
+        div.flex.space-x-3 button,
+        div.flex.space-x-3 a > button,
+        button.btn-danger,
+        button[class*="bg-blue"],
+        button[class*="inline-flex"] {
+            width: 100% !important;
+            max-width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 42px !important;
+            min-height: 42px !important;
+            max-height: 42px !important;
+            font-size: 12px !important;
+            padding: 0.5rem 0.75rem !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+            border: 1px solid transparent !important;
+            border-radius: 0.375rem !important;
+        }
+        
+        form .flex.items-end > div.flex.space-x-3 span.material-symbols-outlined,
+        form .space-x-3 span.material-symbols-outlined,
+        div.flex.space-x-3 span.material-symbols-outlined {
+            font-size: 16px !important;
+            margin-right: 0.25rem !important;
+        }
+
+        /* ========================================
+           HEADER ACTIONS (Add Button, etc)
+           ======================================== */
+        
+        /* Make header flex stack vertically */
+        .flex.justify-between.items-center.mb-6 {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 1rem;
+        }
+        
+        /* Full width action buttons */
+        .flex.justify-between.items-center.mb-6 a {
+            width: 100%;
+        }
+        
+        .flex.justify-between.items-center.mb-6 button {
+            width: 100%;
+            justify-content: center;
+            height: 44px !important;
+            font-size: 13px !important;
+        }
+        
+        .flex.justify-between.items-center.mb-6 span.material-symbols-outlined {
+            font-size: 18px !important;
+        }
+
+        /* Pagination mobile - FORCE CENTER! */
+        .mt-6.flex.flex-col,
+        .mt-6.flex,
+        div.mt-6,
+        .pagination-container {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.75rem !important;
+            text-align: center !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        
+        /* Override any conflicting flex-row on mobile */
+        .mt-6.flex.flex-row {
+            flex-direction: column !important;
+        }
+
+        /* Pagination text info - CENTER! */
+        .mt-6 .text-sm.text-gray-500,
+        .mt-6 .text-sm,
+        .pagination-info {
+            text-align: center !important;
+            font-size: 11px !important;
+            width: 100% !important;
+            display: block !important;
+            margin: 0 auto !important;
+        }
+
+        /* Pagination links wrapper - CENTER! */
+        .mt-6 .flex.justify-center,
+        .mt-6 .flex,
+        .mt-6 > div,
+        .pagination-links {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            width: 100% !important;
+            margin: 0 auto !important;
+        }
+
+        /* Pagination numbers styling - CENTER! */
+        .mt-6 nav,
+        .mt-6 nav > div,
+        .mt-6 nav > div > div {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            width: 100% !important;
+            margin: 0 auto !important;
+        }
+
+        /* Individual page links */
+        .mt-6 nav a,
+        .mt-6 nav span,
+        .pagination-links a,
+        .pagination-links span {
+            padding: 0.5rem 0.75rem !important;
+            font-size: 12px !important;
+            min-width: 36px;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ========================================
+           LOG PEMANDU PAGE - Search Filter Form
+           ======================================== */
+        
+        /* Stack filter form vertically */
+        form[action*="log-pemandu"] .flex.items-end.gap-4 {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+            width: 100%;
+        }
+        
+        form[action*="log-pemandu"] .flex.items-end.gap-4 > div {
+            width: 100% !important;
+            flex: none !important;
+        }
+        
+        /* Search input full width */
+        form[action*="log-pemandu"] .flex-1 {
+            width: 100% !important;
+            flex: none !important;
+        }
+        
+        /* Date inputs full width */
+        form[action*="log-pemandu"] .w-48 {
+            width: 100% !important;
+        }
+        
+        /* Button container - STACK VERTICALLY! */
+        form[action*="log-pemandu"] .flex.space-x-3 {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* ALL children - full width, NO MARGINS! */
+        form[action*="log-pemandu"] .flex.space-x-3 > * {
+            width: 100% !important;
+            max-width: 100% !important;
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* ALL buttons - EXACTLY 100% WIDTH! */
+        form[action*="log-pemandu"] button,
+        form[action*="log-pemandu"] a > button,
+        form[action*="log-pemandu"] .flex.space-x-3 button,
+        form[action*="log-pemandu"] .flex.space-x-3 a > button {
+            width: 100% !important;
+            max-width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 12px !important;
+            height: 42px !important;
+            min-height: 42px !important;
+            max-height: 42px !important;
+            padding: 0.5rem 0.75rem !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+            border: 1px solid transparent !important;
+            border-radius: 0.375rem !important;
+        }
+        
+        form[action*="log-pemandu"] button .material-symbols-outlined {
+            font-size: 14px !important;
+            margin-right: 4px !important;
+        }
+
+        /* ========================================
+           STAT CARDS (Reports/Dashboard pages)
+           ======================================== */
+        
+        /* Stat cards grid - 2 per row on mobile instead of 6 or 7 */
+        .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6,
+        .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-7,
+        .grid-cols-6,
+        .grid-cols-7 {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 0.75rem !important;
+        }
+        
+        /* Stat card - compact for mobile */
+        .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6 > div,
+        .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-7 > div,
+        .grid-cols-6 > div,
+        .grid-cols-7 > div {
+            padding: 0.75rem !important;
+        }
+        
+        /* Stat card values - smaller font */
+        .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6 .text-2xl,
+        .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-7 .text-2xl,
+        .grid-cols-6 .text-2xl,
+        .grid-cols-7 .text-2xl {
+            font-size: 1.25rem !important;
+        }
+        
+        /* Stat card labels - smaller font */
+        .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6 .text-sm,
+        .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-7 .text-sm,
+        .grid-cols-6 .text-sm,
+        .grid-cols-7 .text-sm {
+            font-size: 0.7rem !important;
+        }
+        
+        /* Stat card icons - smaller */
+        .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-6 .material-symbols-outlined,
+        .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-7 .material-symbols-outlined,
+        .grid-cols-6 .material-symbols-outlined,
+        .grid-cols-7 .material-symbols-outlined {
+            font-size: 20px !important;
+        }
+
+        /* ========================================
+           TAB NAVIGATION (Log Pemandu & similar pages)
+           ======================================== */
+        
+        /* Tabs container spacing */
+        .mb-8 {
+            margin-bottom: 1rem !important;
+        }
+        
+        /* Tabs border container */
+        .border-b.border-gray-200 {
+            border-color: #e5e7eb;
+        }
+        
+        /* Make tabs scrollable horizontally */
+        nav[aria-label="Tabs"] {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+            padding-bottom: 2px;
+        }
+        
+        nav[aria-label="Tabs"]::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+        
+        /* Compact tab items */
+        nav[aria-label="Tabs"] a {
+            padding: 10px 12px !important;
+            font-size: 11px !important;
+            white-space: nowrap;
+            min-width: fit-content;
+            gap: 6px !important;
+        }
+        
+        nav[aria-label="Tabs"] a .material-symbols-outlined {
+            font-size: 14px !important;
+        }
+        
+        /* Tab badge (count) */
+        nav[aria-label="Tabs"] a span:last-child {
+            padding: 2px 6px !important;
+            font-size: 9px !important;
+            margin-left: 4px !important;
+        }
+    }
+}

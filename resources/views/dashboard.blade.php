@@ -5,7 +5,7 @@
     <!-- Dashboard Container -->
     <x-ui.page-header
         title="Papan Pemuka"
-        description="Selamat datang ke sistem pengurusan Jejak Aset & Rekod Automatif"
+        description="Selamat Datang ke sistem pengurusan Jejak Aset & Rekod Automatif"
     >
         <div class="dashboard-maintenance-content">
             <!-- Maintenance Icon -->

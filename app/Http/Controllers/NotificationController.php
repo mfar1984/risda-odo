@@ -15,22 +15,25 @@ class NotificationController extends Controller
         try {
             $user = auth()->user();
             
-            // Get notifications for this specific user OR global notifications (user_id = null)
-            $query = Notification::where(function($q) use ($user) {
+            // Simple query - user's notifications OR global notifications
+            $notifications = Notification::where(function($q) use ($user) {
                 $q->where('user_id', $user->id)
                   ->orWhereNull('user_id');
-            })->orderBy('created_at', 'desc');
-
-            // Filter by read status
-            if ($request->has('unread_only') && $request->unread_only) {
-                $query->unread();
-            }
-
-            $notifications = $query->limit(20)->get();
+            })
+            ->when($request->has('unread_only') && $request->unread_only, function($q) {
+                $q->whereNull('read_at');
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+            
+            // Count unread - same simple logic
             $unreadCount = Notification::where(function($q) use ($user) {
                 $q->where('user_id', $user->id)
                   ->orWhereNull('user_id');
-            })->unread()->count();
+            })
+            ->whereNull('read_at')
+            ->count();
 
             return response()->json([
                 'success' => true,

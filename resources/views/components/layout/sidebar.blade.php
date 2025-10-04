@@ -1,8 +1,17 @@
 @props(['collapsed' => false])
 
 <div class="sidebar sidebar-expanded" 
-     x-data="{ collapsed: false }"
-     x-bind:class="{ 'sidebar-collapsed': collapsed, 'sidebar-expanded': !collapsed }"
+     x-data="{ 
+         collapsed: false,
+         mobileOpen: false
+     }"
+     :class="{ 
+         'sidebar-collapsed': collapsed, 
+         'sidebar-expanded': !collapsed,
+         'sidebar-mobile-open': mobileOpen 
+     }"
+     @toggle-mobile-menu.window="mobileOpen = !mobileOpen"
+     @close-mobile-menu.window="mobileOpen = false"
      @toggle-sidebar.window="collapsed = !collapsed">
     <!-- Sidebar Header -->
     <div class="sidebar-header" style="position: relative; z-index: 5000;">
@@ -11,10 +20,12 @@
                 <x-application-logo class="h-8 w-8" />
                 <span x-show="!collapsed" x-transition:enter="transition ease-out duration-100" x-transition:leave="transition ease-in duration-100" class="ml-3 text-lg font-semibold text-gray-800">RISDA ODO</span>
             </div>
+            
+            <!-- Desktop Toggle Button ONLY (Hidden on Mobile) -->
             <button @click="collapsed = !collapsed; $dispatch('sidebar-toggled', { collapsed: collapsed })" 
-                    class="sidebar-toggle" 
+                    class="sidebar-toggle hidden md:flex" 
                     type="button"
-                    style="position: relative; z-index: 5000 !important; pointer-events: auto !important; display: flex !important; visibility: visible !important; opacity: 1 !important;">
+                    style="position: relative; z-index: 5000 !important; pointer-events: auto !important;">
                 <!-- Widgets icon when expanded (default state) -->
                 <span x-show="!collapsed" 
                       x-transition:enter="transition ease-out duration-150"

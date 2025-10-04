@@ -8,4 +8,69 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    build: {
+        // Optimize chunk splitting (increased limit for vendor bundles)
+        chunkSizeWarningLimit: 1500,
+        rollupOptions: {
+            output: {
+                manualChunks: (id) => {
+                    // Vendor chunks - separate large libraries
+                    if (id.includes('node_modules')) {
+                        // Alpine.js
+                        if (id.includes('alpinejs')) {
+                            return 'vendor-alpine';
+                        }
+                        // Axios
+                        if (id.includes('axios')) {
+                            return 'vendor-axios';
+                        }
+                        // jQuery
+                        if (id.includes('jquery')) {
+                            return 'vendor-jquery';
+                        }
+                        // Leaflet (map library)
+                        if (id.includes('leaflet')) {
+                            return 'vendor-leaflet';
+                        }
+                        // MapTiler SDK
+                        if (id.includes('@maptiler')) {
+                            return 'vendor-maptiler';
+                        }
+                        // Tagify (tags input)
+                        if (id.includes('tagify')) {
+                            return 'vendor-tagify';
+                        }
+                        // Chart.js
+                        if (id.includes('chart.js')) {
+                            return 'vendor-chart';
+                        }
+                        // Malaysia Postcodes
+                        if (id.includes('malaysia-postcodes')) {
+                            return 'vendor-postcodes';
+                        }
+                        // Tailwind & Forms
+                        if (id.includes('tailwindcss') || id.includes('@tailwindcss')) {
+                            return 'vendor-tailwind';
+                        }
+                        // Other vendors
+                        return 'vendor-common';
+                    }
+                },
+                // Optimize chunk names
+                chunkFileNames: 'assets/[name]-[hash].js',
+                entryFileNames: 'assets/[name]-[hash].js',
+                assetFileNames: 'assets/[name]-[hash].[ext]',
+            },
+        },
+        // Optimize minification (using esbuild - faster and included)
+        minify: 'esbuild',
+        target: 'es2015',
+        // Remove console logs in production
+        esbuild: {
+            drop: ['console', 'debugger'],
+        },
+        // CSS optimization
+        cssMinify: true,
+        cssCodeSplit: true,
+    },
 });

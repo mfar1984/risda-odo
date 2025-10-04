@@ -225,10 +225,10 @@
                             </thead>
                             <tbody class="bg-white">
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="Nama:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         {{ $program->pemohon->nama_penuh ?? 'N/A' }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="RISDA:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->pemohon && $program->pemohon->bahagian)
                                             {{ $program->pemohon->bahagian->nama_bahagian }}
                                             @if($program->pemohon->stesen)
@@ -240,13 +240,13 @@
                                             N/A
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="Jawatan:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         {{ $program->pemohon->jawatan ?? 'N/A' }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="Permohonan:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         {{ $program->created_at->format('d/m/Y') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="Kelulusan:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->tarikh_kelulusan)
                                             {{ $program->tarikh_kelulusan->format('d/m/Y H:i') }}
                                         @else
@@ -280,10 +280,10 @@
                             </thead>
                             <tbody class="bg-white">
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="Nama:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         {{ $program->pemandu->nama_penuh ?? 'N/A' }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="RISDA:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->pemandu && $program->pemandu->bahagian)
                                             {{ $program->pemandu->bahagian->nama_bahagian }}
                                             @if($program->pemandu->stesen)
@@ -295,17 +295,17 @@
                                             N/A
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="No Tel:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         {{ $program->pemandu->no_telefon ?? 'N/A' }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="Tarikh Aktif:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->tarikh_mula_aktif)
                                             {{ $program->tarikh_mula_aktif->format('d/m/Y H:i') }}
                                         @else
                                             -
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="Tarikh Selesai:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->tarikh_sebenar_selesai)
                                             {{ $program->tarikh_sebenar_selesai->format('d/m/Y H:i') }}
                                         @else
@@ -338,10 +338,10 @@
                             </thead>
                             <tbody class="bg-white">
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="No. Plat:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         {{ $program->kenderaan->no_plat ?? 'N/A' }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="Jenama & Model:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->kenderaan)
                                             {{ $program->kenderaan->jenama }} {{ $program->kenderaan->model }}
                                             <br><span class="text-gray-500">{{ $program->kenderaan->tahun }}</span>
@@ -349,14 +349,14 @@
                                             N/A
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="Kapasiti:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->kenderaan && $program->kenderaan->kapasiti_muatan)
                                             {{ $program->kenderaan->kapasiti_muatan }}
                                         @else
                                             N/A
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                    <td data-label="Cukai Tamat:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->kenderaan && $program->kenderaan->cukai_tamat_tempoh)
                                             {{ $program->kenderaan->cukai_tamat_tempoh->format('d/m/Y') }}
                                             @if($program->kenderaan->is_cukai_expired)

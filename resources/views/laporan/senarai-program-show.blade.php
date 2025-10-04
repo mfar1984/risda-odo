@@ -104,7 +104,9 @@
                     <div class="text-xs text-gray-500">Jumlah rekod: {{ number_format($logs->count()) }}</div>
                 </div>
 
-                <x-ui.data-table
+                <!-- Desktop Table -->
+                <div class="data-table-container">
+                    <x-ui.data-table
                     :headers="[
                         ['label' => 'Tarikh & Masa', 'align' => 'text-left'],
                         ['label' => 'Pemandu', 'align' => 'text-left'],
@@ -152,6 +154,86 @@
                         </tr>
                     @endforelse
                 </x-ui.data-table>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="mobile-table-card">
+                    @forelse($logs as $log)
+                        <div class="mobile-card">
+                            <!-- Card Header -->
+                            <div class="mobile-card-header">
+                                <div class="mobile-card-title">{{ $log->tarikh_perjalanan ? $log->tarikh_perjalanan->format('d/m/Y') : '-' }}</div>
+                                <div class="mobile-card-badge">
+                                    <x-ui.status-badge :status="$log->status" />
+                                </div>
+                            </div>
+
+                            <!-- Card Body -->
+                            <div class="mobile-card-body">
+                                <!-- Pemandu -->
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">person</span>
+                                    </span>
+                                    <span class="mobile-card-value">{{ $log->pemandu->name ?? '-' }}</span>
+                                </div>
+
+                                <!-- Destinasi -->
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">location_on</span>
+                                    </span>
+                                    <span class="mobile-card-value-secondary">{{ $log->destinasi ?? '-' }}</span>
+                                </div>
+
+                                <!-- Kenderaan -->
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">directions_car</span>
+                                    </span>
+                                    <span class="mobile-card-value">
+                                        {{ $log->kenderaan->no_plat ?? '-' }}
+                                        <span class="mobile-card-value-secondary">{{ trim(($log->kenderaan->jenama ?? '') . ' ' . ($log->kenderaan->model ?? '')) }}</span>
+                                    </span>
+                                </div>
+
+                                <!-- Check-in/out -->
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">swap_horiz</span>
+                                    </span>
+                                    <span class="mobile-card-value">
+                                        In: {{ $log->masa_keluar_label ?? '-' }}
+                                        <span class="mobile-card-value-secondary">Out: {{ $log->masa_masuk_label ?? '-' }}</span>
+                                    </span>
+                                </div>
+
+                                <!-- Odometer -->
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">speed</span>
+                                    </span>
+                                    <span class="mobile-card-value">
+                                        {{ $log->odometer_keluar ? number_format($log->odometer_keluar) : '-' }} → {{ $log->odometer_masuk ? number_format($log->odometer_masuk) : '-' }} km
+                                    </span>
+                                </div>
+
+                                <!-- Jarak -->
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">straighten</span>
+                                    </span>
+                                    <span class="mobile-card-value" style="font-weight: bold;">{{ $log->jarak ? number_format($log->jarak, 1) : '0.0' }} km</span>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="mobile-empty-state">
+                            <span class="material-symbols-outlined" style="font-size: 48px; color: #9ca3af;">inbox</span>
+                            <p>Tiada log direkod</p>
+                        </div>
+                    @endforelse
+                </div>
             </x-ui.card>
 
             <!-- Ringkasan Pemandu & Kenderaan -->
@@ -162,7 +244,9 @@
                         <h3 class="text-base font-semibold text-gray-900">Pemandu Terlibat</h3>
                     </div>
 
-                    <x-ui.data-table
+                    <!-- Desktop Table -->
+                    <div class="data-table-container">
+                        <x-ui.data-table
                         :headers="[
                             ['label' => 'Nama', 'align' => 'text-left'],
                             ['label' => 'Jumlah Log', 'align' => 'text-center'],
@@ -183,6 +267,40 @@
                             </tr>
                         @endforelse
                     </x-ui.data-table>
+                    </div>
+
+                    <!-- Mobile Card View - Pemandu -->
+                    <div class="mobile-table-card">
+                        @forelse($pemanduSummary as $row)
+                            <div class="mobile-card">
+                                <div class="mobile-card-body">
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">person</span>
+                                        </span>
+                                        <span class="mobile-card-value">{{ $row['nama'] }}</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">history</span>
+                                        </span>
+                                        <span class="mobile-card-value">{{ number_format($row['jumlah_log']) }} log</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">straighten</span>
+                                        </span>
+                                        <span class="mobile-card-value" style="font-weight: bold;">{{ number_format($row['jarak'], 1) }} km</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="mobile-empty-state">
+                                <span class="material-symbols-outlined" style="font-size: 48px; color: #9ca3af;">person_off</span>
+                                <p>Tiada pemandu terlibat</p>
+                            </div>
+                        @endforelse
+                    </div>
                 </x-ui.card>
 
                 <x-ui.card>
@@ -191,7 +309,9 @@
                         <h3 class="text-base font-semibold text-gray-900">Kenderaan Digunakan</h3>
                     </div>
 
-                    <x-ui.data-table
+                    <!-- Desktop Table -->
+                    <div class="data-table-container">
+                        <x-ui.data-table
                         :headers="[
                             ['label' => 'No. Plat', 'align' => 'text-left'],
                             ['label' => 'Keterangan', 'align' => 'text-left'],
@@ -214,6 +334,46 @@
                             </tr>
                         @endforelse
                     </x-ui.data-table>
+                    </div>
+
+                    <!-- Mobile Card View - Kenderaan -->
+                    <div class="mobile-table-card">
+                        @forelse($kenderaanSummary as $row)
+                            <div class="mobile-card">
+                                <div class="mobile-card-body">
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">directions_car</span>
+                                        </span>
+                                        <span class="mobile-card-value">{{ $row['no_plat'] }}</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">info</span>
+                                        </span>
+                                        <span class="mobile-card-value-secondary">{{ trim(($row['jenis'] ?? '') . ' ' . ($row['model'] ?? '')) }}</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">history</span>
+                                        </span>
+                                        <span class="mobile-card-value">{{ number_format($row['jumlah_log']) }} log</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label">
+                                            <span class="material-symbols-outlined" style="font-size: 16px;">straighten</span>
+                                        </span>
+                                        <span class="mobile-card-value" style="font-weight: bold;">{{ number_format($row['jarak'], 1) }} km</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="mobile-empty-state">
+                                <span class="material-symbols-outlined" style="font-size: 48px; color: #9ca3af;">no_crash</span>
+                                <p>Tiada kenderaan direkod</p>
+                            </div>
+                        @endforelse
+                    </div>
                 </x-ui.card>
             </div>
 
