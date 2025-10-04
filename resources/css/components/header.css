@@ -11,7 +11,7 @@
     }
 
     .topbar-container {
-        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+        @apply px-6;
         @apply flex items-center justify-between h-12;
     }
 
@@ -157,8 +157,8 @@
     }
 
     .breadcrumb-container {
-        /* Use EXACT same styling as topbar-container */
-        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+        /* Use EXACT same styling as topbar-container and main content */
+        @apply px-6;
         @apply flex items-center h-8;
     }
 

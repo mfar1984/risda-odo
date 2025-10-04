@@ -8,10 +8,57 @@
     
     .sidebar-expanded {
         @apply w-64;
+        z-index: 30;
     }
     
     .sidebar-collapsed {
         @apply w-16;
+        z-index: 5000 !important;
+    }
+    
+    /* Center icons when sidebar is collapsed */
+    .sidebar-collapsed .sidebar-nav-item {
+        @apply justify-center px-0;
+    }
+    
+    .sidebar-collapsed .sidebar-nav-icon {
+        @apply mx-auto;
+    }
+    
+    /* Hide blue line indicator when collapsed */
+    .sidebar-collapsed .sidebar-nav-item-active::after,
+    .sidebar-collapsed .sidebar-nav-item-inactive:hover::after,
+    .sidebar-collapsed .sidebar-nav-item-parent-active:hover::after {
+        display: none !important;
+    }
+    
+    /* Alpine.js x-show will handle hiding/showing of both submenu types */
+    
+    /* Floating submenu when collapsed - Let Alpine.js x-show handle display */
+    .sidebar-collapsed .submenu-dropdown {
+        @apply absolute left-16 top-0 bg-white border border-gray-200 shadow-lg rounded-sm;
+        min-width: 200px;
+        max-height: 80vh;
+        overflow-y: auto;
+        z-index: 4500 !important;
+        list-style: none !important;
+        /* NO display: none here! Let Alpine.js x-show control it fully */
+    }
+    
+    .sidebar-collapsed .submenu-dropdown .submenu-item {
+        @apply px-4 py-2 text-sm;
+        border-radius: 0 !important;
+        display: block !important;
+        list-style: none !important;
+    }
+    
+    /* Hide all bullets/dots in collapsed floating menu */
+    .sidebar-collapsed .submenu-dropdown::before,
+    .sidebar-collapsed .submenu-dropdown::after,
+    .sidebar-collapsed .submenu-dropdown .submenu-item::before,
+    .sidebar-collapsed .submenu-dropdown .submenu-item::after {
+        display: none !important;
+        content: none !important;
     }
     
     .sidebar-header {
@@ -127,6 +174,7 @@
         position: relative;
         margin-left: 24px;
         margin-top: 4px;
+        /* Alpine.js x-show will control display, this is just fallback */
     }
 
     .submenu-container::before {
@@ -137,6 +185,11 @@
         bottom: 0;
         width: 1px;
         background-color: #d1d5db;
+    }
+    
+    /* Ensure submenu-dropdown has proper default styling too */
+    .submenu-dropdown {
+        /* Alpine.js x-show will control display */
     }
 
     .submenu-item {

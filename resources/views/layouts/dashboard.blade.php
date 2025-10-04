@@ -22,10 +22,10 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased bg-gray-50" x-data="{ sidebarOpen: false, sidebarCollapsed: false }">
+    <body class="font-sans antialiased bg-gray-50" x-data="{ sidebarOpen: false, sidebarCollapsed: false }" @sidebar-toggled.window="sidebarCollapsed = $event.detail.collapsed">
         <div class="min-h-screen flex flex-col">
             <!-- Sidebar -->
-            <x-layout.sidebar :collapsed="false" />
+            <x-layout.sidebar />
             
             <!-- Mobile sidebar overlay -->
             <div x-show="sidebarOpen" @click="sidebarOpen = false" 
@@ -39,7 +39,9 @@
             </div>
 
             <!-- Main content -->
-            <div class="main-content main-content-expanded flex flex-col flex-1">
+            <div class="main-content flex flex-col flex-1" 
+                 x-bind:class="sidebarCollapsed ? 'main-content-collapsed' : 'main-content-expanded'"
+                 style="transition: margin-left 0.3s ease !important;">
                 <!-- Header -->
                 <x-layout.header
                     :title="$title ?? ''"

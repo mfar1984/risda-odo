@@ -302,8 +302,8 @@
                         </div>
                         <div>
                             <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">
-                                Authentication Overview
-                            </h3>
+                        Authentication Overview
+                    </h3>
                             <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">
                                 Sistem keselamatan berlapis untuk API RISDA Odometer
                             </p>
@@ -311,8 +311,8 @@
                     </div>
 
                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #475569; line-height: 1.7; margin-bottom: 20px;">
-                        RISDA Odometer API menggunakan sistem keselamatan berlapis untuk memastikan hanya aplikasi dan pengguna yang sah dapat mengakses data.
-                    </p>
+                                RISDA Odometer API menggunakan sistem keselamatan berlapis untuk memastikan hanya aplikasi dan pengguna yang sah dapat mengakses data.
+                            </p>
 
                     <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-sm">
                         <div class="flex gap-3">
@@ -323,9 +323,9 @@
                                     <code class="bg-yellow-200 px-2 py-0.5 rounded-sm text-yellow-900" style="font-family: 'Courier New', monospace; font-size: 10px;">Accept: application/json</code> 
                                     untuk memastikan response dalam format JSON.
                                 </p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
                     <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
                         Required Headers untuk Semua Requests:
@@ -333,26 +333,26 @@
 
                     <div class="bg-slate-900 rounded-sm p-4 font-mono">
                         <div class="space-y-2">
-                            <div class="flex gap-2">
+                                <div class="flex gap-2">
                                 <span style="color: #60a5fa;">Content-Type:</span>
                                 <span style="color: #34d399;">application/json</span>
-                            </div>
-                            <div class="flex gap-2">
+                                </div>
+                                <div class="flex gap-2">
                                 <span style="color: #60a5fa;">Accept:</span>
                                 <span style="color: #34d399;">application/json</span>
-                            </div>
-                            <div class="flex gap-2">
+                                </div>
+                                <div class="flex gap-2">
                                 <span style="color: #60a5fa;">X-API-Key:</span>
                                 <span style="color: #a78bfa;">YOUR_GLOBAL_API_KEY</span>
-                            </div>
-                            <div class="flex gap-2">
+                                </div>
+                                <div class="flex gap-2">
                                 <span style="color: #60a5fa;">Authorization:</span>
                                 <span style="color: #34d399;">Bearer YOUR_USER_TOKEN</span>
                                 <span style="font-family: Poppins, sans-serif; font-size: 10px; color: #94a3b8;">(selepas login)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
                     {{-- Security Content --}}
                     <div id="content-security" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
@@ -362,8 +362,8 @@
                             </div>
                             <div>
                                 <h3 style="font-family: Poppins, sans-serif; font-size: 18px; font-weight: 700; color: #1e293b;">
-                                    3-Layer Security System
-                                </h3>
+                            3-Layer Security System
+                        </h3>
                                 <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">
                                     Triple-layer authentication untuk keselamatan maksimum
                                 </p>
@@ -382,9 +382,9 @@
                                         </h4>
                                         <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #1e40af; line-height: 1.6;">
                                             Header: <code class="bg-blue-200 px-2 py-0.5 rounded-sm text-blue-900" style="font-family: 'Courier New', monospace; font-size: 10px;">X-API-Key</code><br>
-                                            Verify bahawa request datang dari aplikasi mobile RISDA yang sah. API Key ini global dan sama untuk semua users.
-                                        </p>
-                                    </div>
+                                    Verify bahawa request datang dari aplikasi mobile RISDA yang sah. API Key ini global dan sama untuk semua users.
+                                </p>
+                            </div>
                                 </div>
                             </div>
 
@@ -399,9 +399,9 @@
                                         </h4>
                                         <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #047857; line-height: 1.6;">
                                             Endpoint: <code class="bg-green-200 px-2 py-0.5 rounded-sm text-green-900" style="font-family: 'Courier New', monospace; font-size: 10px;">POST /auth/login</code><br>
-                                            User login dengan email & password menggunakan custom Argon2id + Email Salt untuk maximum security.
-                                        </p>
-                                    </div>
+                                    User login dengan email & password menggunakan custom Argon2id + Email Salt untuk maximum security.
+                                </p>
+                            </div>
                                 </div>
                             </div>
 
@@ -416,9 +416,9 @@
                                         </h4>
                                         <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #6b21a8; line-height: 1.6;">
                                             Header: <code class="bg-purple-200 px-2 py-0.5 rounded-sm text-purple-900" style="font-family: 'Courier New', monospace; font-size: 10px;">Authorization: Bearer TOKEN</code><br>
-                                            Setiap request selepas login memerlukan Bearer token yang unique untuk setiap device/session.
-                                        </p>
-                                    </div>
+                                    Setiap request selepas login memerlukan Bearer token yang unique untuk setiap device/session.
+                                </p>
+                            </div>
                                 </div>
                             </div>
 
@@ -445,7 +445,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-green-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-green-600" style="font-size: 24px;">monitor_heart</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">GET</span>
@@ -509,7 +509,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-green-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-green-600" style="font-size: 24px;">login</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">POST</span>
@@ -593,17 +593,17 @@
                             <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
                                 Error Responses:
                             </h4>
-                            <div class="space-y-2">
+                        <div class="space-y-2">
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">401 Unauthorized</span> - API Key tidak sah
                                     </p>
-                                </div>
+                            </div>
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">422 Validation Error</span> - Email atau password salah
                                     </p>
-                                </div>
+                            </div>
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">403 Forbidden</span> - Akaun tidak aktif
@@ -620,7 +620,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-blue-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-blue-600" style="font-size: 24px;">account_circle</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">GET</span>
@@ -714,7 +714,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-red-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-red-600" style="font-size: 24px;">logout</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-red-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">POST</span>
@@ -768,7 +768,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-red-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-red-600" style="font-size: 24px;">devices_off</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-red-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">POST</span>
@@ -832,7 +832,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-amber-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-amber-600" style="font-size: 24px;">lock_reset</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-yellow-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">PUT</span>
@@ -898,12 +898,12 @@
                             <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
                                 Error Responses:
                             </h4>
-                            <div class="space-y-2">
+                        <div class="space-y-2">
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">422 Validation Error</span> - Kata laluan semasa tidak sah
                                     </p>
-                                </div>
+                            </div>
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">401 Unauthorized</span> - Token tidak sah
@@ -920,7 +920,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-blue-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-blue-600" style="font-size: 24px;">photo_camera</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">POST</span>
@@ -988,12 +988,12 @@
                             <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
                                 Error Responses:
                             </h4>
-                            <div class="space-y-2">
+                        <div class="space-y-2">
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">422 Validation Error</span> - File type tidak sah atau saiz melebihi 2MB
                                     </p>
-                                </div>
+                            </div>
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">401 Unauthorized</span> - Token tidak sah
@@ -1010,7 +1010,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-red-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-red-600" style="font-size: 24px;">delete</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-red-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">DELETE</span>
@@ -1061,12 +1061,12 @@
                             <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
                                 Error Responses:
                             </h4>
-                            <div class="space-y-2">
+                        <div class="space-y-2">
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">404 Not Found</span> - Tiada gambar profil untuk dipadam
                                     </p>
-                                </div>
+                            </div>
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">401 Unauthorized</span> - Token tidak sah
@@ -1083,7 +1083,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-purple-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-purple-600" style="font-size: 24px;">event_note</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">GET</span>
@@ -1216,7 +1216,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-purple-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-purple-600" style="font-size: 24px;">description</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">GET</span>
@@ -1302,7 +1302,7 @@
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">404 Not Found</span> - Program tidak dijumpai atau tidak diberikan akses
                                     </p>
-                                </div>
+                            </div>
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">401 Unauthorized</span> - Token tidak sah
@@ -1323,7 +1323,7 @@
                                         <li><strong>tarikh_kelulusan:</strong> Tarikh program diluluskan oleh admin</li>
                                         <li><strong>tarikh_mula_aktif:</strong> Bila driver mula journey pertama</li>
                                         <li><strong>tarikh_sebenar_selesai:</strong> Bila program sebenarnya selesai</li>
-                                    </ul>
+                            </ul>
                                 </div>
                             </div>
                         </div>
@@ -1338,8 +1338,8 @@
                                     </h5>
                                     <ul style="font-family: Poppins, sans-serif; font-size: 11px; color: #047857; line-height: 1.8; list-style: disc; margin-left: 16px;">
                                         <li><strong>latest_odometer:</strong> Bacaan odometer terkini dari perjalanan selesai</li>
-                                        <li>Guna untuk display "Current Vehicle Odometer" di Start Journey screen</li>
-                                    </ul>
+                                <li>Guna untuk display "Current Vehicle Odometer" di Start Journey screen</li>
+                            </ul>
                                 </div>
                             </div>
                         </div>
@@ -1352,7 +1352,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-orange-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-orange-600" style="font-size: 24px;">location_searching</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">GET</span>
@@ -1442,7 +1442,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-teal-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-teal-600" style="font-size: 24px;">history</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">GET</span>
@@ -1518,7 +1518,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-orange-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-orange-600" style="font-size: 24px;">directions_car</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">POST</span>
@@ -1606,7 +1606,7 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-teal-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-teal-600" style="font-size: 24px;">where_to_vote</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-yellow-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">PUT</span>
@@ -1841,7 +1841,7 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-amber-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-amber-600" style="font-size: 24px;">receipt_long</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">GET</span>
@@ -1943,7 +1943,7 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-amber-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-amber-600" style="font-size: 24px;">description</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">GET</span>
@@ -2037,7 +2037,7 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-amber-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-amber-600" style="font-size: 24px;">receipt_long</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">POST</span>
@@ -2111,12 +2111,12 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
                             <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
                                 Error Responses:
                             </h4>
-                            <div class="space-y-2">
+                        <div class="space-y-2">
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">422 Validation Error</span> - Data tidak sah atau log_pemandu_id tidak wujud
                                     </p>
-                                </div>
+                            </div>
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">403 Forbidden</span> - Anda tidak mempunyai akses ke log perjalanan ini
@@ -2133,7 +2133,7 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-sm bg-amber-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-amber-600" style="font-size: 24px;">edit_note</span>
-                                </div>
+                        </div>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 bg-yellow-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">PUT</span>
@@ -2216,17 +2216,17 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
                             <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
                                 Error Responses:
                             </h4>
-                            <div class="space-y-2">
+                        <div class="space-y-2">
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">404 Not Found</span> - Tuntutan tidak dijumpai atau anda tidak mempunyai akses
                                     </p>
-                                </div>
+                            </div>
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">400 Bad Request</span> - Hanya tuntutan dengan status "ditolak" boleh dikemaskini
                                     </p>
-                                </div>
+                            </div>
                                 <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
                                     <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
                                         <span style="font-weight: 600;">422 Validation Error</span> - Data tidak sah
@@ -2327,9 +2327,9 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
         <span style="color: #60a5fa;">"kos_minyak"</span>: <span style="color: #fb923c;">120.50</span>,
         <span style="color: #60a5fa;">"liter_minyak"</span>: <span style="color: #fb923c;">45.50</span>,
         <span style="color: #60a5fa;">"stesen_minyak"</span>: <span style="color: #fbbf24;">"Petronas Sibu"</span>
-      }
-    }
-  ]
+            }
+        }
+    ]
 }</code></pre>
                             </div>
                         </div>
@@ -2512,16 +2512,16 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
           <span style="color: #60a5fa;">"jarak"</span>: <span style="color: #fb923c;">100</span>,
           <span style="color: #60a5fa;">"kenderaan"</span>: <span style="color: #fbbf24;">"QSR43"</span>,
           <span style="color: #60a5fa;">"kos_minyak"</span>: <span style="color: #fb923c;">120.50</span>
+                }
+            ]
         }
-      ]
-    }
-  ],
+    ],
   <span style="color: #60a5fa;">"summary"</span>: {
     <span style="color: #60a5fa;">"total_programs"</span>: <span style="color: #fb923c;">1</span>,
     <span style="color: #60a5fa;">"total_trips"</span>: <span style="color: #fb923c;">11</span>,
     <span style="color: #60a5fa;">"total_distance"</span>: <span style="color: #fb923c;">943</span>,
     <span style="color: #60a5fa;">"total_fuel_cost"</span>: <span style="color: #fb923c;">520.50</span>
-  }
+    }
 }</code></pre>
                             </div>
                         </div>
@@ -2598,7 +2598,7 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
     <span style="color: #60a5fa;">"parking_cost"</span>: <span style="color: #fb923c;">0.00</span>,
     <span style="color: #60a5fa;">"current_month"</span>: <span style="color: #fbbf24;">"October 2025"</span>,
     <span style="color: #60a5fa;">"last_month"</span>: <span style="color: #fbbf24;">"September 2025"</span>
-  }
+    }
 }</code></pre>
                             </div>
                         </div>
@@ -2610,12 +2610,12 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
                             </h4>
                             <div class="bg-gray-50 rounded-sm p-4 border border-gray-200">
                                 <ul style="font-family: Poppins, sans-serif; font-size: 11px; color: #475569; line-height: 1.8; list-style: disc; margin-left: 16px;">
-                                    <li><strong>total_trips:</strong> Total completed trips in current month</li>
+                                <li><strong>total_trips:</strong> Total completed trips in current month</li>
                                     <li><strong>total_trips_change:</strong> Percentage change from last month</li>
                                     <li><strong>fuel_cost:</strong> Total fuel cost in RM (Journey + Claims)</li>
                                     <li><strong>maintenance_cost:</strong> Total maintenance claims (pending + approved)</li>
-                                    <li><strong>current_month:</strong> Current month name (e.g., "October 2025")</li>
-                                </ul>
+                                <li><strong>current_month:</strong> Current month name (e.g., "October 2025")</li>
+                            </ul>
                             </div>
                         </div>
 

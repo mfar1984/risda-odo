@@ -1,15 +1,40 @@
 @props(['collapsed' => false])
 
-<div class="sidebar {{ $collapsed ? 'sidebar-collapsed' : 'sidebar-expanded' }}" x-data="{ collapsed: {{ $collapsed ? 'true' : 'false' }} }">
+<div class="sidebar sidebar-expanded" 
+     x-data="{ collapsed: false }"
+     x-bind:class="{ 'sidebar-collapsed': collapsed, 'sidebar-expanded': !collapsed }"
+     @toggle-sidebar.window="collapsed = !collapsed">
     <!-- Sidebar Header -->
-    <div class="sidebar-header">
-        <div class="flex items-center justify-between">
+    <div class="sidebar-header" style="position: relative; z-index: 5000;">
+        <div class="flex items-center justify-between" style="position: relative; z-index: 5000;">
             <div class="flex items-center">
                 <x-application-logo class="h-8 w-8" />
-                <span x-show="!collapsed" class="ml-3 text-lg font-semibold text-gray-800">RISDA ODO</span>
+                <span x-show="!collapsed" x-transition:enter="transition ease-out duration-100" x-transition:leave="transition ease-in duration-100" class="ml-3 text-lg font-semibold text-gray-800">RISDA ODO</span>
             </div>
-            <button @click="collapsed = !collapsed" class="sidebar-toggle">
-                <span class="material-icons-outlined" style="font-size: 20px;">widgets</span>
+            <button @click="collapsed = !collapsed; $dispatch('sidebar-toggled', { collapsed: collapsed })" 
+                    class="sidebar-toggle" 
+                    type="button"
+                    style="position: relative; z-index: 5000 !important; pointer-events: auto !important; display: flex !important; visibility: visible !important; opacity: 1 !important;">
+                <!-- Widgets icon when expanded (default state) -->
+                <span x-show="!collapsed" 
+                      x-transition:enter="transition ease-out duration-150"
+                      x-transition:enter-start="opacity-0 scale-75"
+                      x-transition:enter-end="opacity-100 scale-100"
+                      x-transition:leave="transition ease-in duration-100"
+                      x-transition:leave-start="opacity-100 scale-100"
+                      x-transition:leave-end="opacity-0 scale-75"
+                      class="material-icons-outlined" 
+                      style="font-size: 20px; position: relative; z-index: 5001;">widgets</span>
+                <!-- Arrow Circle Right when collapsed (click to expand) -->
+                <span x-show="collapsed" 
+                      x-transition:enter="transition ease-out duration-150"
+                      x-transition:enter-start="opacity-0 scale-75"
+                      x-transition:enter-end="opacity-100 scale-100"
+                      x-transition:leave="transition ease-in duration-100"
+                      x-transition:leave-start="opacity-100 scale-100"
+                      x-transition:leave-end="opacity-0 scale-75"
+                      class="material-symbols-outlined" 
+                      style="font-size: 24px !important; position: relative !important; z-index: 4000 !important; color: #374151 !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24 !important;">arrow_circle_right</span>
             </button>
         </div>
     </div>
@@ -51,8 +76,22 @@
             @endif
 
             <!-- Laporan -->
-            <div x-data="{ open: {{ request()->routeIs('laporan.*') ? 'true' : 'false' }} }">
-                <button @click="open = !open" class="sidebar-nav-item {{ request()->routeIs('laporan.*') ? 'sidebar-nav-item-parent-active' : 'sidebar-nav-item-inactive' }} w-full text-left">
+            <div x-data="{ 
+                    open: {{ request()->routeIs('laporan.*') ? 'true' : 'false' }}, 
+                    hovered: false,
+                    init() {
+                        this.$watch('collapsed', value => {
+                            if(value) {
+                                this.hovered = false;
+                                this.open = false;
+                            }
+                        })
+                    }
+                 }" 
+                 class="relative"
+                 @mouseenter="hovered = collapsed" 
+                 @mouseleave="hovered = false">
+                <button @click="if(!collapsed) open = !open" class="sidebar-nav-item {{ request()->routeIs('laporan.*') ? 'sidebar-nav-item-parent-active' : 'sidebar-nav-item-inactive' }} w-full text-left">
                     <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
@@ -65,7 +104,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
                     </svg>
                 </button>
-                <div x-show="open && !collapsed" x-transition class="submenu-container space-y-1">
+                
+                <!-- Submenu: Expanded inline OR Collapsed floating -->
+                <div x-show="(collapsed && hovered) || (!collapsed && open)" 
+                     x-transition
+                     :class="collapsed ? 'submenu-dropdown' : 'submenu-container space-y-1'">
                     @if($currentUser && $currentUser->adaKebenaran('laporan_senarai_program', 'lihat'))
                     <a href="{{ route('laporan.senarai-program') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('laporan.senarai-program') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Senarai Program</a>
                     @endif
@@ -93,13 +136,27 @@
             </div>
 
             <!-- Separator Line -->
-            <div class="sidebar-separator" x-show="!collapsed">
+            <div class="sidebar-separator">
                 <hr class="sidebar-separator-line">
             </div>
 
             <!-- Pengurusan -->
-            <div x-data="{ open: {{ request()->routeIs('pengurusan.*') ? 'true' : 'false' }} }">
-                <button @click="open = !open" class="sidebar-nav-item {{ request()->routeIs('pengurusan.*') ? 'sidebar-nav-item-parent-active' : 'sidebar-nav-item-inactive' }} w-full text-left">
+            <div x-data="{ 
+                    open: {{ request()->routeIs('pengurusan.*') ? 'true' : 'false' }}, 
+                    hovered: false,
+                    init() {
+                        this.$watch('collapsed', value => {
+                            if(value) {
+                                this.hovered = false;
+                                this.open = false;
+                            }
+                        })
+                    }
+                 }" 
+                 class="relative"
+                 @mouseenter="hovered = collapsed" 
+                 @mouseleave="hovered = false">
+                <button @click="if(!collapsed) open = !open" class="sidebar-nav-item {{ request()->routeIs('pengurusan.*') ? 'sidebar-nav-item-parent-active' : 'sidebar-nav-item-inactive' }} w-full text-left">
                     <svg class="sidebar-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -113,7 +170,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
                     </svg>
                 </button>
-                <div x-show="open && !collapsed" x-transition class="submenu-container space-y-1">
+                
+                <!-- Submenu: Expanded inline OR Collapsed floating -->
+                <div x-show="(collapsed && hovered) || (!collapsed && open)" 
+                     x-transition
+                     :class="collapsed ? 'submenu-dropdown' : 'submenu-container space-y-1'">
                     @php
                         $currentUser = auth()->user();
                         $isAdministrator = $currentUser && $currentUser->jenis_organisasi === 'semua';
