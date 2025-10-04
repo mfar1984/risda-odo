@@ -3,460 +3,815 @@
         title="Panduan Pengguna" 
         description="Panduan lengkap penggunaan Sistem Pengurusan Jejak Aset & Rekod Automatif (JARA)"
     >
-        <!-- User Guide Content -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            
-            <!-- Table of Contents -->
-            <div class="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-8">
-                <h2 class="text-base font-semibold text-gray-900 mb-4">Kandungan</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <a href="#sistem-web" class="text-blue-600 hover:text-blue-800 hover:underline">1. Sistem Web (Pentadbir & Pengurus)</a>
-                    <a href="#aplikasi-mobile" class="text-blue-600 hover:text-blue-800 hover:underline">2. Aplikasi Mobile (Pemandu)</a>
-                    <a href="#login" class="text-blue-600 hover:text-blue-800 hover:underline">3. Log Masuk</a>
-                    <a href="#program" class="text-blue-600 hover:text-blue-800 hover:underline">4. Pengurusan Program</a>
-                    <a href="#perjalanan" class="text-blue-600 hover:text-blue-800 hover:underline">5. Rekod Perjalanan</a>
-                    <a href="#tuntutan" class="text-blue-600 hover:text-blue-800 hover:underline">6. Pengurusan Tuntutan</a>
-                    <a href="#laporan" class="text-blue-600 hover:text-blue-800 hover:underline">7. Laporan</a>
-                    <a href="#tetapan" class="text-blue-600 hover:text-blue-800 hover:underline">8. Tetapan Sistem</a>
-                </div>
-            </div>
-
-            <!-- Section 1: Sistem Web -->
-            <div id="sistem-web" class="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="flex items-center mb-4">
-                    <span class="material-symbols-outlined text-blue-600 text-2xl mr-3">computer</span>
-                    <h2 class="text-base font-semibold text-gray-900">1. Sistem Web (Pentadbir & Pengurus)</h2>
-                </div>
-                <p class="text-sm text-gray-700 mb-4">Sistem web digunakan oleh pentadbir dan pengurus untuk menguruskan program, kenderaan, staf, dan memproses tuntutan.</p>
-                
-                <div class="space-y-4">
-                    <div class="bg-gray-50 rounded border border-gray-200 p-4">
-                        <h3 class="text-sm font-semibold text-gray-800 mb-2">Fungsi Utama:</h3>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            <li>Pengurusan Pengguna & Kumpulan</li>
-                            <li>Pengurusan Kenderaan & Penyelenggaraan</li>
-                            <li>Pengurusan Program & Tugasan Pemandu</li>
-                            <li>Pemprosesan Tuntutan (Lulus/Tolak)</li>
-                            <li>Penjanaan Laporan & Analisis</li>
-                            <li>Tetapan Sistem & Integrasi</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 2: Aplikasi Mobile -->
-            <div id="aplikasi-mobile" class="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="flex items-center mb-4">
-                    <span class="material-symbols-outlined text-green-600 text-2xl mr-3">phone_android</span>
-                    <h2 class="text-base font-semibold text-gray-900">2. Aplikasi Mobile (Pemandu)</h2>
-                </div>
-                <p class="text-sm text-gray-700 mb-4">Aplikasi Android untuk pemandu merekod perjalanan, menghantar tuntutan, dan melihat jadual program.</p>
-                
-                <div class="space-y-4">
-                    <div class="bg-gray-50 rounded border border-gray-200 p-4">
-                        <h3 class="text-sm font-semibold text-gray-800 mb-2">Fungsi Utama:</h3>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            <li>Mula & Tamat Perjalanan (Check-Out/Check-In)</li>
-                            <li>Rekod Bacaan Odometer & Kos Minyak</li>
-                            <li>Hantar Tuntutan dengan Resit</li>
-                            <li>Lihat Jadual Program</li>
-                            <li>Dashboard & Laporan Peribadi</li>
-                            <li>Notifikasi Automatik</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-blue-50 border border-blue-200 rounded p-4">
-                        <div class="flex items-start">
-                            <span class="material-symbols-outlined text-blue-600 text-xl mr-2">info</span>
-                            <div>
-                                <p class="text-sm font-semibold text-blue-900 mb-1">Muat Turun Aplikasi</p>
-                                <p class="text-sm text-blue-800">Aplikasi boleh dimuat turun dari pentadbir sistem atau melalui pautan yang diberikan.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 3: Log Masuk -->
-            <div id="login" class="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="flex items-center mb-4">
-                    <span class="material-symbols-outlined text-purple-600 text-2xl mr-3">login</span>
-                    <h2 class="text-base font-semibold text-gray-900">3. Log Masuk</h2>
-                </div>
-                
-                <div class="space-y-4">
-                    <!-- Web Login -->
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Log Masuk Sistem Web:</h3>
-                        <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
-                            <li>Buka pelayar web (Chrome/Firefox/Edge)</li>
-                            <li>Masukkan alamat sistem (contoh: http://jara.risda.gov.my)</li>
-                            <li>Masukkan <strong>Email</strong> dan <strong>Kata Laluan</strong> anda</li>
-                            <li>Klik butang <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Log Masuk</span></li>
-                            <li>Anda akan dibawa ke Paparan Utama (Dashboard)</li>
-                        </ol>
-                    </div>
-
-                    <!-- Mobile Login -->
-                    <div class="bg-gray-50 rounded border border-gray-200 p-4 mt-4">
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Log Masuk Aplikasi Mobile:</h3>
-                        <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
-                            <li>Buka aplikasi RISDA Driver di telefon Android</li>
-                            <li>Masukkan <strong>Email</strong> dan <strong>Kata Laluan</strong> yang sama dengan sistem web</li>
-                            <li>Tandakan "Ingat Saya" untuk kekal log masuk</li>
-                            <li>Tekan butang <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Log Masuk</span></li>
-                            <li>Izinkan notifikasi apabila diminta</li>
-                        </ol>
-                    </div>
-
-                    <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
-                        <div class="flex items-start">
-                            <span class="material-symbols-outlined text-yellow-600 text-xl mr-2">warning</span>
-                            <div>
-                                <p class="text-sm font-semibold text-yellow-900 mb-1">Lupa Kata Laluan?</p>
-                                <p class="text-sm text-yellow-800">Hubungi pentadbir sistem untuk menetapkan semula kata laluan anda.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 4: Pengurusan Program -->
-            <div id="program" class="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="flex items-center mb-4">
-                    <span class="material-symbols-outlined text-indigo-600 text-2xl mr-3">event</span>
-                    <h2 class="text-base font-semibold text-gray-900">4. Pengurusan Program</h2>
-                </div>
-                
-                <div class="space-y-4">
-                    <!-- Tambah Program -->
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Tambah Program Baru (Sistem Web):</h3>
-                        <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
-                            <li>Pergi ke menu <strong>Program → Senarai Program</strong></li>
-                            <li>Klik butang <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-600 text-white">+ Tambah Program</span></li>
-                            <li>Isi maklumat program:
-                                <ul class="list-disc list-inside ml-6 mt-1 space-y-1">
-                                    <li><strong>Nama Program:</strong> Contoh "Gotong Royong Kampung"</li>
-                                    <li><strong>Tarikh Mula & Selesai:</strong> Pilih tarikh dari kalendar</li>
-                                    <li><strong>Lokasi:</strong> Masukkan alamat destinasi</li>
-                                    <li><strong>Pemandu:</strong> Pilih staf yang ditugaskan</li>
-                                    <li><strong>Kenderaan:</strong> Pilih kenderaan untuk program</li>
-                                    <li><strong>Jarak Anggaran:</strong> Masukkan jarak dalam KM</li>
-                                </ul>
-                            </li>
-                            <li>Klik <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">Simpan</span></li>
-                            <li>Program akan disimpan dengan status <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">Draf</span></li>
-                        </ol>
-                    </div>
-
-                    <!-- Lulus Program -->
-                    <div class="bg-gray-50 rounded border border-gray-200 p-4 mt-4">
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Luluskan Program (Pengurus/Admin):</h3>
-                        <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
-                            <li>Pergi ke <strong>Program → Senarai Program</strong></li>
-                            <li>Klik pada program yang berstatus <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">Draf</span></li>
-                            <li>Semak maklumat program dengan teliti</li>
-                            <li>Klik <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">Lulus Program</span></li>
-                            <li>Status berubah kepada <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-600 text-white">Lulus</span></li>
-                            <li>Pemandu akan menerima notifikasi</li>
-                        </ol>
-                    </div>
-
-                    <div class="bg-blue-50 border border-blue-200 rounded p-4">
-                        <p class="text-sm font-semibold text-blue-900 mb-2">Status Program:</p>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                            <div class="flex items-center"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800 mr-2">Draf</span> Baru dicipta</div>
-                            <div class="flex items-center"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-600 text-white mr-2">Lulus</span> Diluluskan</div>
-                            <div class="flex items-center"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white mr-2">Aktif</span> Sedang berjalan</div>
-                            <div class="flex items-center"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-600 text-white mr-2">Selesai</span> Tamat</div>
-                            <div class="flex items-center"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white mr-2">Tolak</span> Tidak diluluskan</div>
-                            <div class="flex items-center"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-600 text-white mr-2">Tertunda</span> Lewat dimulakan</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 5: Rekod Perjalanan -->
-            <div id="perjalanan" class="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="flex items-center mb-4">
-                    <span class="material-symbols-outlined text-green-600 text-2xl mr-3">directions_car</span>
-                    <h2 class="text-base font-semibold text-gray-900">5. Rekod Perjalanan (Aplikasi Mobile)</h2>
-                </div>
-                
-                <div class="space-y-4">
-                    <!-- Check-Out (Mula Perjalanan) -->
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Check-Out (Mula Perjalanan):</h3>
-                        <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
-                            <li>Buka aplikasi mobile dan log masuk</li>
-                            <li>Pergi ke tab <strong>Do</strong> di bahagian bawah</li>
-                            <li>Pilih program dari senarai yang ditugaskan</li>
-                            <li>Tekan <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">Start Journey</span></li>
-                            <li>Isi maklumat:
-                                <ul class="list-disc list-inside ml-6 mt-1 space-y-1">
-                                    <li><strong>Bacaan Odometer:</strong> Masukkan bacaan semasa (contoh: 125000 KM)</li>
-                                    <li><strong>Foto Odometer:</strong> Ambil gambar odometer (optional)</li>
-                                    <li><strong>Lokasi:</strong> GPS akan auto-capture</li>
-                                    <li><strong>Catatan:</strong> Nota tambahan (optional)</li>
-                                </ul>
-                            </li>
-                            <li>Tekan <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-600 text-white">Confirm</span></li>
-                            <li>Perjalanan bermula! Status: <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-600 text-white">Dalam Perjalanan</span></li>
-                        </ol>
-                    </div>
-
-                    <!-- Check-In (Tamat Perjalanan) -->
-                    <div class="bg-gray-50 rounded border border-gray-200 p-4 mt-4">
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Check-In (Tamat Perjalanan):</h3>
-                        <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
-                            <li>Setelah sampai ke destinasi, buka aplikasi</li>
-                            <li>Pergi ke tab <strong>Do</strong></li>
-                            <li>Anda akan lihat perjalanan aktif</li>
-                            <li>Tekan <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white">End Journey</span></li>
-                            <li>Isi maklumat:
-                                <ul class="list-disc list-inside ml-6 mt-1 space-y-1">
-                                    <li><strong>Bacaan Odometer:</strong> Bacaan semasa (contoh: 125045 KM)</li>
-                                    <li><strong>Foto Odometer:</strong> Ambil gambar (optional)</li>
-                                    <li><strong>Kos Minyak:</strong> Jika isi minyak, masukkan RM & liter</li>
-                                    <li><strong>Resit Minyak:</strong> Ambil gambar resit (optional)</li>
-                                    <li><strong>Stesen Minyak:</strong> Nama stesen (contoh: Petronas Bangi)</li>
-                                </ul>
-                            </li>
-                            <li>Tekan <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">Confirm</span></li>
-                            <li>Jarak akan dikira automatik: 125045 - 125000 = <strong>45 KM</strong></li>
-                            <li>Status berubah kepada <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">Selesai</span></li>
-                        </ol>
-                    </div>
-
-                    <div class="bg-green-50 border border-green-200 rounded p-4">
-                        <div class="flex items-start">
-                            <span class="material-symbols-outlined text-green-600 text-xl mr-2">tips_and_updates</span>
-                            <div>
-                                <p class="text-sm font-semibold text-green-900 mb-1">Tips:</p>
-                                <ul class="list-disc list-inside text-sm text-green-800 space-y-1">
-                                    <li>Pastikan GPS telefon dibuka untuk lokasi tepat</li>
-                                    <li>Ambil foto odometer yang jelas</li>
-                                    <li>Simpan resit minyak untuk tuntutan</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 6: Tuntutan -->
-            <div id="tuntutan" class="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="flex items-center mb-4">
-                    <span class="material-symbols-outlined text-orange-600 text-2xl mr-3">receipt_long</span>
-                    <h2 class="text-base font-semibold text-gray-900">6. Pengurusan Tuntutan</h2>
-                </div>
-                
-                <div class="space-y-4">
-                    <!-- Hantar Tuntutan (Mobile) -->
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Hantar Tuntutan (Aplikasi Mobile):</h3>
-                        <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
-                            <li>Buka aplikasi dan pergi ke tab <strong>Claim</strong></li>
-                            <li>Tekan <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-600 text-white">+ New Claim</span></li>
-                            <li>Pilih perjalanan yang ingin dituntut</li>
-                            <li>Pilih kategori tuntutan:
-                                <ul class="list-disc list-inside ml-6 mt-1 space-y-1">
-                                    <li><strong>Tol</strong> - Bayaran tol</li>
-                                    <li><strong>Parking</strong> - Bayaran parkir</li>
-                                    <li><strong>Makanan & Minuman (F&B)</strong></li>
-                                    <li><strong>Penginapan</strong> - Jika bermalam</li>
-                                    <li><strong>Minyak</strong> - Kos minyak tambahan</li>
-                                    <li><strong>Penyelenggaraan</strong> - Baiki kenderaan</li>
-                                    <li><strong>Lain-lain</strong> - Perbelanjaan lain</li>
-                                </ul>
-                            </li>
-                            <li>Masukkan <strong>Jumlah</strong> dalam RM (contoh: 10.00)</li>
-                            <li>Tambah <strong>Keterangan</strong> (contoh: "Parking di tempat program")</li>
-                            <li>Ambil gambar <strong>Resit</strong></li>
-                            <li>Tekan <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">Submit</span></li>
-                            <li>Tuntutan dihantar! Status: <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-600 text-white">Pending</span></li>
-                        </ol>
-                    </div>
-
-                    <!-- Proses Tuntutan (Web) -->
-                    <div class="bg-gray-50 rounded border border-gray-200 p-4 mt-4">
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Proses Tuntutan (Sistem Web - Pengurus):</h3>
-                        <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
-                            <li>Pergi ke <strong>Laporan → Laporan Tuntutan</strong></li>
-                            <li>Cari tuntutan dengan status <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-600 text-white">Pending</span></li>
-                            <li>Klik pada tuntutan untuk melihat detail</li>
-                            <li>Semak resit, jumlah, dan keterangan</li>
-                            <li>Untuk <strong>meluluskan</strong>:
-                                <ul class="list-disc list-inside ml-6 mt-1">
-                                    <li>Klik <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">Lulus</span></li>
-                                    <li>Status berubah → <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">Diluluskan</span></li>
-                                    <li>Pemandu terima notifikasi</li>
-                                </ul>
-                            </li>
-                            <li>Untuk <strong>menolak</strong>:
-                                <ul class="list-disc list-inside ml-6 mt-1">
-                                    <li>Klik <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white">Tolak</span></li>
-                                    <li>Masukkan <strong>Alasan Penolakan</strong></li>
-                                    <li>Status → <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white">Ditolak</span></li>
-                                    <li>Pemandu boleh edit & hantar semula</li>
-                                </ul>
-                            </li>
-                        </ol>
-                    </div>
-
-                    <div class="bg-blue-50 border border-blue-200 rounded p-4">
-                        <p class="text-sm font-semibold text-blue-900 mb-2">Status Tuntutan:</p>
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-600 text-white mr-2">Pending</span> Menunggu kelulusan</div>
-                            <div><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white mr-2">Diluluskan</span> Sudah diluluskan</div>
-                            <div><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white mr-2">Ditolak</span> Ditolak, boleh edit</div>
-                            <div><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-600 text-white mr-2">Digantung</span> Dibatalkan</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 7: Laporan -->
-            <div id="laporan" class="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="flex items-center mb-4">
-                    <span class="material-symbols-outlined text-teal-600 text-2xl mr-3">bar_chart</span>
-                    <h2 class="text-base font-semibold text-gray-900">7. Laporan & Analisis</h2>
-                </div>
-                
-                <div class="space-y-4">
-                    <!-- Laporan Web -->
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Laporan Sistem Web:</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div class="border border-gray-200 rounded p-3">
-                                <p class="text-sm font-semibold text-gray-800 mb-1">Laporan Senarai Program</p>
-                                <p class="text-xs text-gray-600">Senarai semua program dengan status dan butiran</p>
-                            </div>
-                            <div class="border border-gray-200 rounded p-3">
-                                <p class="text-sm font-semibold text-gray-800 mb-1">Laporan Kenderaan</p>
-                                <p class="text-xs text-gray-600">Penggunaan kenderaan mengikut jarak & kos</p>
-                            </div>
-                            <div class="border border-gray-200 rounded p-3">
-                                <p class="text-sm font-semibold text-gray-800 mb-1">Laporan Kilometer</p>
-                                <p class="text-xs text-gray-600">Jumlah jarak perjalanan mengikut program</p>
-                            </div>
-                            <div class="border border-gray-200 rounded p-3">
-                                <p class="text-sm font-semibold text-gray-800 mb-1">Laporan Kos</p>
-                                <p class="text-xs text-gray-600">Kos minyak & penyelenggaraan</p>
-                            </div>
-                            <div class="border border-gray-200 rounded p-3">
-                                <p class="text-sm font-semibold text-gray-800 mb-1">Laporan Pemandu</p>
-                                <p class="text-xs text-gray-600">Prestasi pemandu mengikut jarak & masa</p>
-                            </div>
-                            <div class="border border-gray-200 rounded p-3">
-                                <p class="text-sm font-semibold text-gray-800 mb-1">Laporan Tuntutan</p>
-                                <p class="text-xs text-gray-600">Ringkasan tuntutan & status kelulusan</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Laporan Mobile -->
-                    <div class="bg-gray-50 rounded border border-gray-200 p-4 mt-4">
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Laporan Aplikasi Mobile:</h3>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            <li><strong>Dashboard:</strong> Statistik bulan semasa vs bulan lepas</li>
-                            <li><strong>Report Tab:</strong> Carta prestasi 6 bulan (kos minyak, tuntutan, aktiviti)</li>
-                            <li><strong>History:</strong> Sejarah perjalanan lengkap dengan gambar</li>
-                            <li><strong>Claims:</strong> Status semua tuntutan</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-gray-50 rounded border border-gray-200 p-4">
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Eksport Laporan:</h3>
-                        <ol class="list-decimal list-inside text-sm text-gray-700 space-y-1 ml-4">
-                            <li>Buka mana-mana laporan di sistem web</li>
-                            <li>Pilih tarikh mula & tarikh akhir (jika ada)</li>
-                            <li>Klik <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white">Eksport PDF</span></li>
-                            <li>Fail PDF akan dimuat turun</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 8: Tetapan -->
-            <div id="tetapan" class="bg-white rounded-md shadow-sm border border-gray-200 p-6 mb-6">
-                <div class="flex items-center mb-4">
-                    <span class="material-symbols-outlined text-gray-600 text-2xl mr-3">settings</span>
-                    <h2 class="text-base font-semibold text-gray-900">8. Tetapan Sistem (Administrator)</h2>
-                </div>
-                
-                <div class="space-y-4">
-                    <div class="bg-gray-50 rounded border border-gray-200 p-4">
-                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Tetapan Utama:</h3>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-2">
-                            <li><strong>Tetapan Umum:</strong> Nama sistem, alamat, logo, maklumat hubungan</li>
-                            <li><strong>Pengurusan Pengguna:</strong> Tambah/edit/padam pengguna</li>
-                            <li><strong>Kumpulan & Kebenaran:</strong> Tetapkan kebenaran akses</li>
-                            <li><strong>Integrasi:</strong> API Token, CORS, cuaca, email</li>
-                            <li><strong>Notifikasi:</strong> Tetapan Firebase Cloud Messaging</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
-                        <div class="flex items-start">
-                            <span class="material-symbols-outlined text-yellow-600 text-xl mr-2">lock</span>
-                            <div>
-                                <p class="text-sm font-semibold text-yellow-900 mb-1">Akses Administrator</p>
-                                <p class="text-sm text-yellow-800">Hanya pengguna dengan jenis organisasi "Semua" (Administrator) boleh mengakses tetapan sistem.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Additional Help Section -->
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-md border border-blue-200 p-6">
-                <div class="flex items-start">
-                    <span class="material-symbols-outlined text-blue-600 text-3xl mr-4">help</span>
-                    <div>
-                        <h3 class="text-base font-semibold text-gray-900 mb-2">Perlukan Bantuan Lanjut?</h3>
-                        <p class="text-sm text-gray-700 mb-3">Jika anda menghadapi sebarang masalah atau memerlukan bantuan tambahan, sila hubungi:</p>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex items-center">
-                                <span class="material-symbols-outlined text-gray-600 text-lg mr-2">mail</span>
-                                <span class="text-gray-700">Email: support@risda.gov.my</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="material-symbols-outlined text-gray-600 text-lg mr-2">phone</span>
-                                <span class="text-gray-700">Tel: 03-XXXX XXXX</span>
-                            </div>
-                        </div>
-                        <div class="mt-4 flex flex-wrap gap-2">
-                            <a href="{{ route('help.faq') }}" class="inline-flex items-center px-3 py-1.5 bg-white border border-blue-300 rounded text-xs font-medium text-blue-700 hover:bg-blue-50">
-                                <span class="material-symbols-outlined text-sm mr-1">quiz</span>
-                                Soalan Lazim (FAQ)
-                            </a>
-                            <a href="{{ route('help.hubungi-sokongan') }}" class="inline-flex items-center px-3 py-1.5 bg-white border border-blue-300 rounded text-xs font-medium text-blue-700 hover:bg-blue-50">
-                                <span class="material-symbols-outlined text-sm mr-1">support_agent</span>
-                                Hubungi Sokongan
-                            </a>
-                            <a href="{{ route('help.nota-keluaran') }}" class="inline-flex items-center px-3 py-1.5 bg-white border border-blue-300 rounded text-xs font-medium text-blue-700 hover:bg-blue-50">
-                                <span class="material-symbols-outlined text-sm mr-1">new_releases</span>
-                                Nota Keluaran
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </x-ui.page-header>
-
-    <style>
-        /* Smooth scroll for anchor links */
-        html {
-            scroll-behavior: smooth;
-        }
         
-        /* Adjust spacing */
-        #sistem-web, #aplikasi-mobile, #login, #program, #perjalanan, #tuntutan, #laporan, #tetapan {
-            scroll-margin-top: 2rem;
-        }
-    </style>
+        {{-- Hero Section --}}
+        <div class="guide-hero">
+            <div class="guide-hero-content">
+                <div class="guide-hero-icon">
+                    <span class="material-symbols-outlined text-white text-[40px]">menu_book</span>
+                </div>
+                <h1 class="text-white font-bold mb-2" style="font-family: Poppins, sans-serif !important; font-size: 24px !important;">
+                    Panduan Pengguna JARA
+                </h1>
+                <p class="text-white/90 max-w-2xl mx-auto" style="font-family: Poppins, sans-serif !important; font-size: 13px !important;">
+                    Sistem Pengurusan Jejak Aset & Rekod Automatif untuk RISDA
+                </p>
+                <p class="text-white/70 mt-2" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
+                    Ikuti panduan ini langkah demi langkah untuk menggunakan sistem dengan berkesan
+                </p>
+            </div>
+        </div>
+
+        {{-- Table of Contents Cards --}}
+        <div class="guide-toc-grid">
+            <a href="#sistem-web" class="guide-toc-card guide-toc-blue">
+                <div class="guide-toc-number">1</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-blue-600 text-[18px]">computer</span>
+                    <h3 class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Sistem Web</h3>
+                </div>
+                <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Pentadbir & Pengurus</p>
+            </a>
+
+            <a href="#aplikasi-mobile" class="guide-toc-card guide-toc-green">
+                <div class="guide-toc-number">2</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-green-600 text-[18px]">phone_android</span>
+                    <h3 class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Aplikasi Mobile</h3>
+                </div>
+                <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Android untuk Pemandu</p>
+            </a>
+
+            <a href="#login" class="guide-toc-card guide-toc-purple">
+                <div class="guide-toc-number">3</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-purple-600 text-[18px]">login</span>
+                    <h3 class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Log Masuk</h3>
+                </div>
+                <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Web & Mobile</p>
+            </a>
+
+            <a href="#program" class="guide-toc-card guide-toc-indigo">
+                <div class="guide-toc-number">4</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-indigo-600 text-[18px]">event</span>
+                    <h3 class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Pengurusan Program</h3>
+                </div>
+                <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Cipta & Urus Program</p>
+            </a>
+
+            <a href="#perjalanan" class="guide-toc-card guide-toc-orange">
+                <div class="guide-toc-number">5</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-orange-600 text-[18px]">directions_car</span>
+                    <h3 class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Rekod Perjalanan</h3>
+                </div>
+                <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Check-Out & Check-In</p>
+            </a>
+
+            <a href="#tuntutan" class="guide-toc-card guide-toc-teal">
+                <div class="guide-toc-number">6</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-teal-600 text-[18px]">receipt_long</span>
+                    <h3 class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Pengurusan Tuntutan</h3>
+                </div>
+                <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Hantar & Proses</p>
+            </a>
+
+            <a href="#laporan" class="guide-toc-card guide-toc-pink">
+                <div class="guide-toc-number">7</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-pink-600 text-[18px]">assessment</span>
+                    <h3 class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Laporan</h3>
+                </div>
+                <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Jana & Eksport</p>
+            </a>
+
+            <a href="#tetapan" class="guide-toc-card guide-toc-cyan">
+                <div class="guide-toc-number">8</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-cyan-600 text-[18px]">settings</span>
+                    <h3 class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Tetapan Sistem</h3>
+                </div>
+                <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Konfigurasi & Integrasi</p>
+            </a>
+        </div>
+
+        {{-- Section 1: Sistem Web --}}
+        <div id="sistem-web" class="guide-section">
+            <div class="guide-section-header">
+                <div class="guide-section-icon bg-blue-100 text-blue-700">
+                    <span class="material-symbols-outlined text-[24px]">computer</span>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">1. Sistem Web</h2>
+                    <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Pentadbir & Pengurus</p>
+                </div>
+            </div>
+
+            <p class="text-gray-700 mb-4" style="font-family: Poppins, sans-serif !important; font-size: 12px !important; line-height: 1.6;">
+                Sistem web digunakan oleh pentadbir dan pengurus untuk menguruskan program, kenderaan, staf, dan memproses tuntutan.
+            </p>
+
+            <div class="guide-subsection">
+                <div class="guide-subsection-title">
+                    <span class="material-symbols-outlined text-blue-600 text-[16px]">check_circle</span>
+                    Fungsi Utama
+                </div>
+                <div class="guide-feature-list">
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-blue-600">group</span>
+                        <span>Pengurusan Pengguna & Kumpulan</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-blue-600">directions_car</span>
+                        <span>Pengurusan Kenderaan & Penyelenggaraan</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-blue-600">event</span>
+                        <span>Pengurusan Program & Tugasan Pemandu</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-blue-600">receipt_long</span>
+                        <span>Pemprosesan Tuntutan (Lulus/Tolak)</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-blue-600">assessment</span>
+                        <span>Penjanaan Laporan & Analisis</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-blue-600">settings</span>
+                        <span>Tetapan Sistem & Integrasi</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-info-box info">
+                <span class="material-symbols-outlined text-[20px]">info</span>
+                <div>
+                    <p class="font-semibold text-blue-900 mb-1" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Akses Sistem</p>
+                    <p class="text-blue-800" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Gunakan pelayar web moden seperti Chrome, Firefox, atau Edge untuk pengalaman terbaik.</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 2: Aplikasi Mobile --}}
+        <div id="aplikasi-mobile" class="guide-section">
+            <div class="guide-section-header">
+                <div class="guide-section-icon bg-green-100 text-green-700">
+                    <span class="material-symbols-outlined text-[24px]">phone_android</span>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">2. Aplikasi Mobile</h2>
+                    <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Android untuk Pemandu</p>
+                </div>
+            </div>
+
+            <p class="text-gray-700 mb-4" style="font-family: Poppins, sans-serif !important; font-size: 12px !important; line-height: 1.6;">
+                Aplikasi Android untuk pemandu merekod perjalanan, menghantar tuntutan, dan melihat jadual program.
+            </p>
+
+            <div class="guide-subsection">
+                <div class="guide-subsection-title">
+                    <span class="material-symbols-outlined text-green-600 text-[16px]">smartphone</span>
+                    Fungsi Utama
+                </div>
+                <div class="guide-feature-list">
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-green-600">play_arrow</span>
+                        <span>Mula & Tamat Perjalanan (Check-Out/Check-In)</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-green-600">speed</span>
+                        <span>Rekod Bacaan Odometer & Kos Minyak</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-green-600">receipt</span>
+                        <span>Hantar Tuntutan dengan Resit</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-green-600">calendar_month</span>
+                        <span>Lihat Jadual Program</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-green-600">dashboard</span>
+                        <span>Dashboard & Laporan Peribadi</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-green-600">notifications</span>
+                        <span>Notifikasi Automatik</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-info-box success">
+                <span class="material-symbols-outlined text-[20px]">download</span>
+                <div>
+                    <p class="font-semibold text-green-900 mb-1" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Muat Turun Aplikasi</p>
+                    <p class="text-green-800" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Aplikasi boleh dimuat turun dari pentadbir sistem atau melalui pautan yang diberikan. Pastikan tetapan "Install from Unknown Sources" diaktifkan.</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 3: Log Masuk --}}
+        <div id="login" class="guide-section">
+            <div class="guide-section-header">
+                <div class="guide-section-icon bg-purple-100 text-purple-700">
+                    <span class="material-symbols-outlined text-[24px]">login</span>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">3. Log Masuk</h2>
+                    <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Web & Mobile</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {{-- Web Login --}}
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2" style="font-family: Poppins, sans-serif !important; font-size: 13px !important;">
+                        <span class="material-symbols-outlined text-purple-600 text-[18px]">computer</span>
+                        Log Masuk Sistem Web
+                    </h3>
+                    <div class="guide-steps">
+                        <div class="guide-step guide-step-purple">
+                            <div class="guide-step-number">1</div>
+                            <div class="guide-step-content">
+                                <h4>Buka Pelayar Web</h4>
+                                <p>Gunakan Chrome, Firefox, atau Edge</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-purple">
+                            <div class="guide-step-number">2</div>
+                            <div class="guide-step-content">
+                                <h4>Masukkan Alamat</h4>
+                                <p>Taip URL sistem JARA yang diberikan</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-purple">
+                            <div class="guide-step-number">3</div>
+                            <div class="guide-step-content">
+                                <h4>Masukkan Kredensial</h4>
+                                <p>Isikan Email dan Kata Laluan anda</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-purple">
+                            <div class="guide-step-number">4</div>
+                            <div class="guide-step-content">
+                                <h4>Klik Log Masuk</h4>
+                                <p>Tekan butang biru untuk masuk</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Mobile Login --}}
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2" style="font-family: Poppins, sans-serif !important; font-size: 13px !important;">
+                        <span class="material-symbols-outlined text-green-600 text-[18px]">phone_android</span>
+                        Log Masuk Aplikasi Mobile
+                    </h3>
+                    <div class="guide-steps">
+                        <div class="guide-step guide-step-green">
+                            <div class="guide-step-number">1</div>
+                            <div class="guide-step-content">
+                                <h4>Buka Aplikasi</h4>
+                                <p>Tap ikon JARA di skrin telefon</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-green">
+                            <div class="guide-step-number">2</div>
+                            <div class="guide-step-content">
+                                <h4>Masukkan Email</h4>
+                                <p>Taip alamat email anda</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-green">
+                            <div class="guide-step-number">3</div>
+                            <div class="guide-step-content">
+                                <h4>Masukkan Kata Laluan</h4>
+                                <p>Isikan password yang diberikan</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-green">
+                            <div class="guide-step-number">4</div>
+                            <div class="guide-step-content">
+                                <h4>Tap Log Masuk</h4>
+                                <p>Tunggu proses pengesahan</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-info-box warning mt-4">
+                <span class="material-symbols-outlined text-[20px]">lock</span>
+                <div>
+                    <p class="font-semibold text-yellow-900 mb-1" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Keselamatan</p>
+                    <p class="text-yellow-800" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Jangan kongsikan kata laluan anda dengan sesiapa. Selepas 5 cubaan gagal, akaun akan dikunci untuk keselamatan.</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 4: Pengurusan Program --}}
+        <div id="program" class="guide-section">
+            <div class="guide-section-header">
+                <div class="guide-section-icon bg-indigo-100 text-indigo-700">
+                    <span class="material-symbols-outlined text-[24px]">event</span>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">4. Pengurusan Program</h2>
+                    <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Cipta & Urus Program</p>
+                </div>
+            </div>
+
+            <div class="guide-subsection mb-4">
+                <div class="guide-subsection-title">
+                    <span class="material-symbols-outlined text-indigo-600 text-[16px]">add_circle</span>
+                    Cara Membuat Program Baharu
+                </div>
+                <div class="guide-steps">
+                    <div class="guide-step guide-step-indigo">
+                        <div class="guide-step-number">1</div>
+                        <div class="guide-step-content">
+                            <h4>Pergi ke Menu Program</h4>
+                            <p>Klik menu "Program" di sidebar</p>
+                        </div>
+                    </div>
+                    <div class="guide-step guide-step-indigo">
+                        <div class="guide-step-number">2</div>
+                        <div class="guide-step-content">
+                            <h4>Klik Tambah Program</h4>
+                            <p>Tekan butang "+ Tambah Program"</p>
+                        </div>
+                    </div>
+                    <div class="guide-step guide-step-indigo">
+                        <div class="guide-step-number">3</div>
+                        <div class="guide-step-content">
+                            <h4>Isikan Maklumat</h4>
+                            <p>Nama, tarikh, lokasi, dan butiran program</p>
+                        </div>
+                    </div>
+                    <div class="guide-step guide-step-indigo">
+                        <div class="guide-step-number">4</div>
+                        <div class="guide-step-content">
+                            <h4>Pilih Pemandu</h4>
+                            <p>Tugaskan pemandu untuk program ini</p>
+                        </div>
+                    </div>
+                    <div class="guide-step guide-step-indigo">
+                        <div class="guide-step-number">5</div>
+                        <div class="guide-step-content">
+                            <h4>Simpan Program</h4>
+                            <p>Klik "Simpan" untuk cipta program</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-subsection">
+                <div class="guide-subsection-title">
+                    <span class="material-symbols-outlined text-indigo-600 text-[16px]">label</span>
+                    Status Program
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="flex items-start gap-2">
+                        <span class="material-symbols-outlined text-gray-600 text-[14px] mt-0.5">fiber_manual_record</span>
+                        <div>
+                            <p class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Draf</p>
+                            <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Program baru dicipta, belum aktif</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="material-symbols-outlined text-blue-600 text-[14px] mt-0.5">fiber_manual_record</span>
+                        <div>
+                            <p class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Aktif</p>
+                            <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Program sedang berjalan</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="material-symbols-outlined text-green-600 text-[14px] mt-0.5">fiber_manual_record</span>
+                        <div>
+                            <p class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Selesai</p>
+                            <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Program telah tamat</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="material-symbols-outlined text-red-600 text-[14px] mt-0.5">fiber_manual_record</span>
+                        <div>
+                            <p class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Dibatalkan</p>
+                            <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Program dibatalkan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 5: Rekod Perjalanan --}}
+        <div id="perjalanan" class="guide-section">
+            <div class="guide-section-header">
+                <div class="guide-section-icon bg-orange-100 text-orange-700">
+                    <span class="material-symbols-outlined text-[24px]">directions_car</span>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">5. Rekod Perjalanan</h2>
+                    <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Check-Out & Check-In</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {{-- Check-Out --}}
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2" style="font-family: Poppins, sans-serif !important; font-size: 13px !important;">
+                        <span class="material-symbols-outlined text-green-600 text-[18px]">logout</span>
+                        Check-Out (Mula Perjalanan)
+                    </h3>
+                    <div class="guide-steps">
+                        <div class="guide-step guide-step-green">
+                            <div class="guide-step-number">1</div>
+                            <div class="guide-step-content">
+                                <h4>Buka Aplikasi Mobile</h4>
+                                <p>Tap ikon JARA di telefon</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-green">
+                            <div class="guide-step-number">2</div>
+                            <div class="guide-step-content">
+                                <h4>Pilih Program</h4>
+                                <p>Tap program yang aktif dari senarai</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-green">
+                            <div class="guide-step-number">3</div>
+                            <div class="guide-step-content">
+                                <h4>Klik Check-Out</h4>
+                                <p>Tekan butang "Mula Perjalanan"</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-green">
+                            <div class="guide-step-number">4</div>
+                            <div class="guide-step-content">
+                                <h4>Rekod Odometer</h4>
+                                <p>Masukkan bacaan odometer mula</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-green">
+                            <div class="guide-step-number">5</div>
+                            <div class="guide-step-content">
+                                <h4>Ambil Gambar (Opsional)</h4>
+                                <p>Foto kenderaan atau odometer</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Check-In --}}
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2" style="font-family: Poppins, sans-serif !important; font-size: 13px !important;">
+                        <span class="material-symbols-outlined text-orange-600 text-[18px]">login</span>
+                        Check-In (Tamat Perjalanan)
+                    </h3>
+                    <div class="guide-steps">
+                        <div class="guide-step guide-step-orange">
+                            <div class="guide-step-number">1</div>
+                            <div class="guide-step-content">
+                                <h4>Klik Check-In</h4>
+                                <p>Tekan butang "Tamat Perjalanan"</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-orange">
+                            <div class="guide-step-number">2</div>
+                            <div class="guide-step-content">
+                                <h4>Rekod Odometer Akhir</h4>
+                                <p>Masukkan bacaan odometer tamat</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-orange">
+                            <div class="guide-step-number">3</div>
+                            <div class="guide-step-content">
+                                <h4>Masukkan Kos Minyak</h4>
+                                <p>Isikan jumlah kos minyak (jika ada)</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-orange">
+                            <div class="guide-step-number">4</div>
+                            <div class="guide-step-content">
+                                <h4>Tambah Nota</h4>
+                                <p>Tulis nota perjalanan (opsional)</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-orange">
+                            <div class="guide-step-number">5</div>
+                            <div class="guide-step-content">
+                                <h4>Simpan</h4>
+                                <p>Tekan "Simpan" untuk rekod</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-info-box tip mt-4">
+                <span class="material-symbols-outlined text-[20px]">lightbulb</span>
+                <div>
+                    <p class="font-semibold text-purple-900 mb-1" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Tips</p>
+                    <p class="text-purple-800" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">GPS akan automatik merekod lokasi anda. Pastikan GPS telefon diaktifkan untuk ketepatan data.</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 6: Pengurusan Tuntutan --}}
+        <div id="tuntutan" class="guide-section">
+            <div class="guide-section-header">
+                <div class="guide-section-icon bg-teal-100 text-teal-700">
+                    <span class="material-symbols-outlined text-[24px]">receipt_long</span>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">6. Pengurusan Tuntutan</h2>
+                    <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Hantar & Proses</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {{-- Hantar Tuntutan (Mobile) --}}
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2" style="font-family: Poppins, sans-serif !important; font-size: 13px !important;">
+                        <span class="material-symbols-outlined text-teal-600 text-[18px]">upload</span>
+                        Hantar Tuntutan (Mobile)
+                    </h3>
+                    <div class="guide-steps">
+                        <div class="guide-step guide-step-teal">
+                            <div class="guide-step-number">1</div>
+                            <div class="guide-step-content">
+                                <h4>Pergi ke Tab Tuntutan</h4>
+                                <p>Tap tab "Tuntutan" di bottom bar</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-teal">
+                            <div class="guide-step-number">2</div>
+                            <div class="guide-step-content">
+                                <h4>Klik Buat Tuntutan</h4>
+                                <p>Tekan butang "+ Buat Tuntutan"</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-teal">
+                            <div class="guide-step-number">3</div>
+                            <div class="guide-step-content">
+                                <h4>Pilih Jenis</h4>
+                                <p>Minyak, Tol, Parking, atau Lain-lain</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-teal">
+                            <div class="guide-step-number">4</div>
+                            <div class="guide-step-content">
+                                <h4>Muat Naik Resit</h4>
+                                <p>Ambil gambar atau pilih dari galeri</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-teal">
+                            <div class="guide-step-number">5</div>
+                            <div class="guide-step-content">
+                                <h4>Isikan Jumlah</h4>
+                                <p>Masukkan jumlah tuntutan (RM)</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-teal">
+                            <div class="guide-step-number">6</div>
+                            <div class="guide-step-content">
+                                <h4>Hantar</h4>
+                                <p>Tekan "Hantar" untuk proses</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Proses Tuntutan (Web) --}}
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2" style="font-family: Poppins, sans-serif !important; font-size: 13px !important;">
+                        <span class="material-symbols-outlined text-indigo-600 text-[18px]">task_alt</span>
+                        Proses Tuntutan (Web)
+                    </h3>
+                    <div class="guide-steps">
+                        <div class="guide-step guide-step-indigo">
+                            <div class="guide-step-number">1</div>
+                            <div class="guide-step-content">
+                                <h4>Pergi ke Laporan Tuntutan</h4>
+                                <p>Menu "Laporan" → "Laporan Tuntutan"</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-indigo">
+                            <div class="guide-step-number">2</div>
+                            <div class="guide-step-content">
+                                <h4>Pilih Tuntutan</h4>
+                                <p>Klik ikon "Mata" untuk lihat butiran</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-indigo">
+                            <div class="guide-step-number">3</div>
+                            <div class="guide-step-content">
+                                <h4>Semak Resit & Butiran</h4>
+                                <p>Verify jumlah dengan resit yang dimuat naik</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-indigo">
+                            <div class="guide-step-number">4</div>
+                            <div class="guide-step-content">
+                                <h4>Buat Keputusan</h4>
+                                <p>Klik "Lulus" atau "Tolak" dengan nota</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-subsection mt-4">
+                <div class="guide-subsection-title">
+                    <span class="material-symbols-outlined text-teal-600 text-[16px]">category</span>
+                    Jenis Tuntutan
+                </div>
+                <div class="guide-feature-list">
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-teal-600">local_gas_station</span>
+                        <span><strong>Minyak</strong> - Tuntutan kos minyak kenderaan</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-teal-600">toll</span>
+                        <span><strong>Tol</strong> - Tuntutan bayaran tol</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-teal-600">local_parking</span>
+                        <span><strong>Parking</strong> - Tuntutan bayaran parking</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-teal-600">more_horiz</span>
+                        <span><strong>Lain-lain</strong> - Perbelanjaan berkaitan program</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 7: Laporan --}}
+        <div id="laporan" class="guide-section">
+            <div class="guide-section-header">
+                <div class="guide-section-icon bg-pink-100 text-pink-700">
+                    <span class="material-symbols-outlined text-[24px]">assessment</span>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">7. Laporan</h2>
+                    <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Jana & Eksport</p>
+                </div>
+            </div>
+
+            <p class="text-gray-700 mb-4" style="font-family: Poppins, sans-serif !important; font-size: 12px !important; line-height: 1.6;">
+                Sistem menyediakan pelbagai laporan untuk analisis dan audit.
+            </p>
+
+            <div class="guide-subsection">
+                <div class="guide-subsection-title">
+                    <span class="material-symbols-outlined text-pink-600 text-[16px]">description</span>
+                    Jenis Laporan Tersedia
+                </div>
+                <div class="guide-feature-list">
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-pink-600">receipt_long</span>
+                        <span><strong>Laporan Tuntutan</strong> - Senarai semua tuntutan dengan status</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-pink-600">directions_car</span>
+                        <span><strong>Laporan Perjalanan</strong> - Rekod perjalanan mengikut pemandu</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-pink-600">event</span>
+                        <span><strong>Laporan Program</strong> - Status dan analisis program</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-pink-600">build</span>
+                        <span><strong>Laporan Penyelenggaraan</strong> - Kos dan jadual servis</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-subsection">
+                <div class="guide-subsection-title">
+                    <span class="material-symbols-outlined text-pink-600 text-[16px]">download</span>
+                    Cara Eksport Laporan
+                </div>
+                <div class="guide-steps">
+                    <div class="guide-step guide-step-pink">
+                        <div class="guide-step-number">1</div>
+                        <div class="guide-step-content">
+                            <h4>Pilih Laporan</h4>
+                            <p>Menu "Laporan" → pilih jenis laporan</p>
+                        </div>
+                    </div>
+                    <div class="guide-step guide-step-pink">
+                        <div class="guide-step-number">2</div>
+                        <div class="guide-step-content">
+                            <h4>Tapis Data</h4>
+                            <p>Gunakan penapis tarikh, pemandu, atau status</p>
+                        </div>
+                    </div>
+                    <div class="guide-step guide-step-pink">
+                        <div class="guide-step-number">3</div>
+                        <div class="guide-step-content">
+                            <h4>Klik Eksport</h4>
+                            <p>Tekan butang "Eksport PDF" atau "Eksport Excel"</p>
+                        </div>
+                    </div>
+                    <div class="guide-step guide-step-pink">
+                        <div class="guide-step-number">4</div>
+                        <div class="guide-step-content">
+                            <h4>Muat Turun</h4>
+                            <p>Fail akan dimuat turun secara automatik</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 8: Tetapan Sistem --}}
+        <div id="tetapan" class="guide-section">
+            <div class="guide-section-header">
+                <div class="guide-section-icon bg-cyan-100 text-cyan-700">
+                    <span class="material-symbols-outlined text-[24px]">settings</span>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">8. Tetapan Sistem</h2>
+                    <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Konfigurasi & Integrasi</p>
+                </div>
+            </div>
+
+            <p class="text-gray-700 mb-4" style="font-family: Poppins, sans-serif !important; font-size: 12px !important; line-height: 1.6;">
+                Tetapan sistem hanya boleh diakses oleh Administrator.
+            </p>
+
+            <div class="guide-subsection">
+                <div class="guide-subsection-title">
+                    <span class="material-symbols-outlined text-cyan-600 text-[16px]">tune</span>
+                    Tetapan Tersedia
+                </div>
+                <div class="guide-feature-list">
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-cyan-600">badge</span>
+                        <span><strong>Tetapan Umum</strong> - Nama sistem, logo, versi</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-cyan-600">group</span>
+                        <span><strong>Pengurusan Kumpulan</strong> - Peranan dan kebenaran</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-cyan-600">link</span>
+                        <span><strong>Integrasi API</strong> - Token dan endpoint</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-cyan-600">cloud</span>
+                        <span><strong>Weather API</strong> - Integrasi cuaca</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-cyan-600">email</span>
+                        <span><strong>Konfigurasi Email</strong> - SMTP settings</span>
+                    </div>
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-cyan-600">notifications</span>
+                        <span><strong>Notifikasi</strong> - FCM & push notifications</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-info-box warning">
+                <span class="material-symbols-outlined text-[20px]">warning</span>
+                <div>
+                    <p class="font-semibold text-yellow-900 mb-1" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Amaran</p>
+                    <p class="text-yellow-800" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Hanya ubah tetapan sistem jika anda faham impaknya. Perubahan yang salah boleh menjejaskan fungsi sistem.</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Quick Links Section --}}
+        <div class="guide-quick-links">
+            <div class="text-center mb-6">
+                <h3 class="font-bold text-gray-900 mb-2" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">
+                    Perlukan Bantuan Lanjut?
+                </h3>
+                <p class="text-gray-700" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                    Akses sumber bantuan tambahan di sini
+                </p>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-3">
+                <a href="{{ route('help.faq') }}" class="guide-quick-link-button primary">
+                    <span class="material-symbols-outlined text-[16px]">quiz</span>
+                    Soalan Lazim (FAQ)
+                </a>
+                <a href="{{ route('help.hubungi-sokongan') }}" class="guide-quick-link-button secondary">
+                    <span class="material-symbols-outlined text-[16px]">support_agent</span>
+                    Hubungi Sokongan
+                </a>
+                <a href="{{ route('help.nota-keluaran') }}" class="guide-quick-link-button accent">
+                    <span class="material-symbols-outlined text-[16px]">new_releases</span>
+                    Nota Keluaran
+                </a>
+            </div>
+        </div>
+
+    </x-ui.page-header>
 </x-dashboard-layout>

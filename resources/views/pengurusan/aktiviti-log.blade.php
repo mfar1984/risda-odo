@@ -152,144 +152,182 @@
             @endforelse
         </x-ui.data-table>
 
-        <!-- Pagination -->
-        @if($activities->hasPages())
-            <div class="mt-6">
-                {{ $activities->links() }}
-            </div>
-        @endif
-
-        <!-- Record Counter -->
-        <div class="mt-4 text-sm text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-            Menunjukkan {{ $activities->firstItem() ?? 0 }} hingga {{ $activities->lastItem() ?? 0 }} daripada {{ $activities->total() }} rekod
+        <!-- Pagination (exactly like log-pemandu) -->
+        <div class="mt-6">
+            <x-ui.pagination :paginator="$activities" record-label="aktiviti" />
         </div>
     </x-ui.page-header>
 
-    <!-- Modal Popup -->
+    <!-- Modal Popup (Beautiful Design) -->
     <div x-show="showModal" 
          x-cloak
-         class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center" 
-         style="font-family: Poppins, sans-serif; z-index: 9999;">
+         @keydown.escape.window="showModal = false"
+         class="fixed inset-0 overflow-y-auto"
+         style="z-index: 9999 !important;">
+        
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+             @click="showModal = false"></div>
         
         <!-- Modal Container -->
-        <div @click.away="showModal = false" class="relative mx-auto p-5 border w-[700px] shadow-lg rounded-md bg-white">
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                <h3 class="text-sm font-semibold text-gray-900" style="font-size: 13px;">
-                    Butiran Aktiviti Log
-                </h3>
-                <button @click="showModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="relative bg-white rounded-sm shadow-xl w-full max-w-3xl max-h-[85vh] my-8 flex flex-col"
+                 @click.away="showModal = false">
+                
+                <!-- Header (Gradient Blue) -->
+                <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-white text-[20px]">article</span>
+                        <div>
+                            <h3 class="text-white font-semibold" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">
+                                Butiran Aktiviti Log
+                            </h3>
+                            <p class="text-indigo-100" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
+                                Maklumat lengkap rekod aktiviti sistem
+                            </p>
+                        </div>
+                    </div>
+                    <button @click="showModal = false" class="text-white hover:text-gray-200">
+                        <span class="material-symbols-outlined text-[24px]">close</span>
+                    </button>
+                </div>
 
-            <!-- Body -->
-            <div class="space-y-3">
+                <!-- Body (Scrollable) -->
+                <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(85vh - 140px);">
                 <template x-if="selectedActivity">
                     <div>
-                        <!-- Compact 2-column layout -->
-                        <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
-                            <!-- ID -->
-                            <div>
-                                <span class="text-gray-500" style="font-size: 10px;">ID:</span>
-                                <span class="font-medium text-gray-900 ml-2" style="font-size: 11px;" x-text="selectedActivity.id"></span>
-                            </div>
-                            
-                            <!-- Log Name -->
-                            <div>
-                                <span class="text-gray-500" style="font-size: 10px;">Kategori:</span>
-                                <span class="font-medium text-gray-900 ml-2" style="font-size: 11px;" x-text="selectedActivity.log_name"></span>
-                            </div>
-
-                            <!-- Description -->
-                            <div class="col-span-2">
-                                <span class="text-gray-500" style="font-size: 10px;">Penerangan:</span>
-                                <span class="font-medium text-gray-900 ml-2" style="font-size: 11px;" x-text="selectedActivity.description"></span>
-                            </div>
-
-                            <!-- Event (only show if not N/A) -->
-                            <template x-if="selectedActivity.event && selectedActivity.event !== 'N/A'">
-                                <div>
-                                    <span class="text-gray-500" style="font-size: 10px;">Event:</span>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ml-2"
+                        
+                        <!-- Activity Info Card -->
+                        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-6 rounded-sm">
+                            <div class="flex items-start gap-3">
+                                <span class="material-symbols-outlined text-indigo-600 text-[20px]">info</span>
+                                <div class="flex-1">
+                                    <div class="text-[12px] font-semibold text-indigo-900 mb-1" style="font-family: Poppins, sans-serif !important;">
+                                        <span x-text="selectedActivity.description"></span>
+                                    </div>
+                                    <div class="text-[10px] text-indigo-700" style="font-family: Poppins, sans-serif !important;">
+                                        ID: <span x-text="selectedActivity.id" class="font-mono"></span> 
+                                        <span class="mx-2">•</span> 
+                                        <span x-text="selectedActivity.created_at"></span>
+                                    </div>
+                                </div>
+                                <template x-if="selectedActivity.event && selectedActivity.event !== 'N/A'">
+                                    <span class="inline-flex items-center h-5 px-2 text-[10px] font-medium rounded-sm"
                                           :class="{
-                                              'bg-green-100 text-green-800': selectedActivity.event === 'created',
-                                              'bg-blue-100 text-blue-800': selectedActivity.event === 'updated',
-                                              'bg-red-100 text-red-800': selectedActivity.event === 'deleted',
-                                              'bg-gray-100 text-gray-800': true
+                                              'bg-green-100 text-green-800 border border-green-200': selectedActivity.event === 'created',
+                                              'bg-blue-100 text-blue-800 border border-blue-200': selectedActivity.event === 'updated',
+                                              'bg-red-100 text-red-800 border border-red-200': selectedActivity.event === 'deleted',
+                                              'bg-yellow-100 text-yellow-800 border border-yellow-200': selectedActivity.event === 'approved',
+                                              'bg-orange-100 text-orange-800 border border-orange-200': selectedActivity.event === 'rejected',
+                                              'bg-purple-100 text-purple-800 border border-purple-200': selectedActivity.event === 'exported',
+                                              'bg-gray-100 text-gray-800 border border-gray-200': !['created','updated','deleted','approved','rejected','exported'].includes(selectedActivity.event)
                                           }"
-                                          style="font-size: 10px;"
+                                          style="font-family: Poppins, sans-serif !important;"
                                           x-text="selectedActivity.event === 'created' ? 'Cipta' : 
                                                   selectedActivity.event === 'updated' ? 'Kemaskini' : 
                                                   selectedActivity.event === 'deleted' ? 'Padam' : 
+                                                  selectedActivity.event === 'approved' ? 'Lulus' :
+                                                  selectedActivity.event === 'rejected' ? 'Tolak' :
+                                                  selectedActivity.event === 'exported' ? 'Eksport' :
                                                   selectedActivity.event">
                                     </span>
-                                </div>
-                            </template>
-
-                            <!-- Created At -->
-                            <div>
-                                <span class="text-gray-500" style="font-size: 10px;">Masa:</span>
-                                <span class="font-medium text-gray-900 ml-2" style="font-size: 11px;" x-text="selectedActivity.created_at"></span>
-                            </div>
-
-                            <!-- Divider -->
-                            <div class="col-span-2 border-t border-gray-200 my-2"></div>
-
-                            <!-- User Name -->
-                            <div>
-                                <span class="text-gray-500" style="font-size: 10px;">Pengguna:</span>
-                                <span class="font-medium text-gray-900 ml-2" style="font-size: 11px;" x-text="selectedActivity.causer_name"></span>
-                            </div>
-                            
-                            <!-- Email -->
-                            <div>
-                                <span class="text-gray-500" style="font-size: 10px;">Email:</span>
-                                <span class="font-medium text-gray-900 ml-2" style="font-size: 11px;" x-text="selectedActivity.causer_email"></span>
-                            </div>
-
-                            <!-- Divider -->
-                            <div class="col-span-2 border-t border-gray-200 my-2"></div>
-
-                            <!-- Model Type (only show if not N/A) -->
-                            <template x-if="selectedActivity.subject_type && selectedActivity.subject_type !== 'N/A'">
-                                <div>
-                                    <span class="text-gray-500" style="font-size: 10px;">Jenis Model:</span>
-                                    <span class="font-medium text-gray-900 ml-2" style="font-size: 11px;" x-text="selectedActivity.subject_type"></span>
-                                </div>
-                            </template>
-                            
-                            <!-- Model ID (only show if not N/A) -->
-                            <template x-if="selectedActivity.subject_id && selectedActivity.subject_id !== 'N/A'">
-                                <div>
-                                    <span class="text-gray-500" style="font-size: 10px;">ID Model:</span>
-                                    <span class="font-medium text-gray-900 ml-2" style="font-size: 11px;" x-text="selectedActivity.subject_id"></span>
-                                </div>
-                            </template>
-
-                            <!-- Divider -->
-                            <div class="col-span-2 border-t border-gray-200 my-2"></div>
-
-                            <!-- IP -->
-                            <div>
-                                <span class="text-gray-500" style="font-size: 10px;">IP Address:</span>
-                                <span class="font-medium text-gray-900 font-mono ml-2" style="font-size: 10px;" x-text="selectedActivity.ip"></span>
-                            </div>
-                            
-                            <!-- User Agent -->
-                            <div>
-                                <span class="text-gray-500" style="font-size: 10px;">User Agent:</span>
-                                <span class="font-medium text-gray-900 ml-2 block mt-1 text-wrap" style="font-size: 9px; line-height: 1.3;" x-text="selectedActivity.user_agent"></span>
+                                </template>
                             </div>
                         </div>
+
+                        <!-- Details Grid -->
+                        <div class="space-y-6">
+                            
+                            <!-- User Info Section -->
+                            <div>
+                                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
+                                    <span class="material-symbols-outlined text-gray-600 text-[16px]">person</span>
+                                    <h4 class="text-[11px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                        Maklumat Pengguna
+                                    </h4>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Nama Pengguna</div>
+                                        <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.causer_name"></div>
+                                    </div>
+                                    <div>
+                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Email</div>
+                                        <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.causer_email"></div>
+                                    </div>
+                                    <div>
+                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Kategori Log</div>
+                                        <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.log_name"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Model Info Section (conditional) -->
+                            <template x-if="(selectedActivity.subject_type && selectedActivity.subject_type !== 'N/A') || (selectedActivity.subject_id && selectedActivity.subject_id !== 'N/A')">
+                            <div>
+                                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
+                                    <span class="material-symbols-outlined text-gray-600 text-[16px]">category</span>
+                                    <h4 class="text-[11px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                        Maklumat Model
+                                    </h4>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+
+                                    <template x-if="selectedActivity.subject_type && selectedActivity.subject_type !== 'N/A'">
+                                        <div>
+                                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Jenis Model</div>
+                                            <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.subject_type"></div>
+                                        </div>
+                                    </template>
+                                    <template x-if="selectedActivity.subject_id && selectedActivity.subject_id !== 'N/A'">
+                                        <div>
+                                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">ID Model</div>
+                                            <div class="text-[11px] font-medium text-gray-900 font-mono" style="font-family: 'Courier New', monospace !important;" x-text="selectedActivity.subject_id"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            </template>
+
+                            <!-- Technical Info Section -->
+                            <div>
+                                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
+                                    <span class="material-symbols-outlined text-gray-600 text-[16px]">computer</span>
+                                    <h4 class="text-[11px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                        Maklumat Teknikal
+                                    </h4>
+                                </div>
+                                <div class="space-y-3">
+                                    <div>
+                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">IP Address</div>
+                                        <div class="text-[11px] font-medium text-gray-900 font-mono inline-flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-sm" style="font-family: 'Courier New', monospace !important;">
+                                            <span class="material-symbols-outlined text-[14px] text-gray-500">wifi</span>
+                                            <span x-text="selectedActivity.ip"></span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">User Agent</div>
+                                        <div class="text-[10px] text-gray-700 bg-gray-50 p-3 rounded-sm leading-relaxed" style="font-family: Poppins, sans-serif !important; word-break: break-all;" x-text="selectedActivity.user_agent"></div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
+                    </div>
                     </template>
+                </div>
+
+                <!-- Footer -->
+                <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-end">
+                    <button @click="showModal = false" 
+                            type="button"
+                            class="h-8 px-4 text-[11px] font-medium rounded-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-colors inline-flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">check</span>
+                        Tutup
+                    </button>
                 </div>
 
             </div>
         </div>
-    </div>
     </div>
 </x-dashboard-layout>

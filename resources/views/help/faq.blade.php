@@ -3,657 +3,690 @@
         title="Soalan Lazim (FAQ)" 
         description="Jawapan kepada soalan yang kerap ditanya mengenai sistem"
     >
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div x-data="faqData()" class="space-y-6">
             
-            <!-- Search Bar -->
-            <div class="bg-white rounded-md shadow-sm border border-gray-200 mb-6" x-data="{ search: '' }">
-                <div class="flex items-center gap-3 px-4 h-[42px]">
-                    <span class="material-symbols-outlined text-gray-400 text-lg">search</span>
-                    <input 
-                        type="text" 
-                        x-model="search"
-                        @input="filterFAQs($event.target.value)"
-                        placeholder="Cari soalan..." 
-                        class="flex-1 border-0 focus:ring-0 text-sm text-gray-900 placeholder-gray-400 h-full py-0"
-                    >
-                    <button 
-                        x-show="search.length > 0"
-                        @click="search = ''; filterFAQs('')"
-                        class="text-gray-400 hover:text-gray-600"
-                    >
-                        <span class="material-symbols-outlined text-lg">close</span>
-                    </button>
+            {{-- Hero Search Section --}}
+            <div class="faq-hero">
+                <div class="faq-hero-content">
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="faq-hero-icon">
+                            <span class="material-symbols-outlined text-white text-[32px]">help_center</span>
+                        </div>
+                    </div>
+                    <h2 class="text-white text-center font-bold mb-2" style="font-family: Poppins, sans-serif !important; font-size: 20px !important;">
+                        Ada Soalan?
+                    </h2>
+                    <p class="text-white/80 text-center mb-6" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                        Cari jawapan kepada soalan anda di sini
+                    </p>
+                    
+                    {{-- Search Bar --}}
+                    <div class="faq-search-wrapper">
+                        <span class="material-symbols-outlined faq-search-icon">search</span>
+                        <input 
+                            type="text" 
+                            x-model="searchTerm"
+                            @input="filterFAQs($event.target.value)"
+                            placeholder="Cari soalan atau kata kunci..." 
+                            class="faq-search-input"
+                        >
+                        <button 
+                            x-show="searchTerm.length > 0"
+                            @click="searchTerm = ''; filterFAQs('')"
+                            class="faq-search-clear"
+                        >
+                            <span class="material-symbols-outlined text-[18px]">close</span>
+                        </button>
+                    </div>
+
+                    {{-- Stats --}}
+                    <div class="faq-stats">
+                        <div class="faq-stat-item">
+                            <span class="faq-stat-number">28</span>
+                            <span class="faq-stat-label">Soalan</span>
+                        </div>
+                        <div class="faq-stat-divider"></div>
+                        <div class="faq-stat-item">
+                            <span class="faq-stat-number">6</span>
+                            <span class="faq-stat-label">Kategori</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Quick Links -->
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-md border border-blue-200 p-4 mb-6">
-                <p class="text-sm font-semibold text-gray-900 mb-3">Kategori Soalan:</p>
-                <div class="flex flex-wrap gap-2">
-                    <a href="#umum" class="inline-flex items-center px-3 py-1.5 bg-white border border-blue-300 rounded text-xs font-medium text-blue-700 hover:bg-blue-100">
-                        <span class="material-symbols-outlined text-sm mr-1">info</span>
-                        Umum
-                    </a>
-                    <a href="#login" class="inline-flex items-center px-3 py-1.5 bg-white border border-purple-300 rounded text-xs font-medium text-purple-700 hover:bg-purple-100">
-                        <span class="material-symbols-outlined text-sm mr-1">login</span>
-                        Log Masuk
-                    </a>
-                    <a href="#program" class="inline-flex items-center px-3 py-1.5 bg-white border border-indigo-300 rounded text-xs font-medium text-indigo-700 hover:bg-indigo-100">
-                        <span class="material-symbols-outlined text-sm mr-1">event</span>
-                        Program
-                    </a>
-                    <a href="#perjalanan" class="inline-flex items-center px-3 py-1.5 bg-white border border-green-300 rounded text-xs font-medium text-green-700 hover:bg-green-100">
-                        <span class="material-symbols-outlined text-sm mr-1">directions_car</span>
-                        Perjalanan
-                    </a>
-                    <a href="#tuntutan" class="inline-flex items-center px-3 py-1.5 bg-white border border-orange-300 rounded text-xs font-medium text-orange-700 hover:bg-orange-100">
-                        <span class="material-symbols-outlined text-sm mr-1">receipt_long</span>
-                        Tuntutan
-                    </a>
-                    <a href="#mobile" class="inline-flex items-center px-3 py-1.5 bg-white border border-teal-300 rounded text-xs font-medium text-teal-700 hover:bg-teal-100">
-                        <span class="material-symbols-outlined text-sm mr-1">phone_android</span>
-                        Aplikasi Mobile
-                    </a>
-                </div>
+            {{-- Category Cards Grid --}}
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <a href="#umum" class="faq-category-card faq-card-blue">
+                    <div class="faq-category-icon">
+                        <span class="material-symbols-outlined text-[24px]">info</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 600;">Soalan Umum</h3>
+                        <p style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">5 soalan</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[18px] opacity-50">arrow_forward</span>
+                </a>
+
+                <a href="#login" class="faq-category-card faq-card-purple">
+                    <div class="faq-category-icon">
+                        <span class="material-symbols-outlined text-[24px]">login</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 600;">Log Masuk</h3>
+                        <p style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">4 soalan</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[18px] opacity-50">arrow_forward</span>
+                </a>
+
+                <a href="#program" class="faq-category-card faq-card-indigo">
+                    <div class="faq-category-icon">
+                        <span class="material-symbols-outlined text-[24px]">event</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 600;">Program</h3>
+                        <p style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">5 soalan</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[18px] opacity-50">arrow_forward</span>
+                </a>
+
+                <a href="#perjalanan" class="faq-category-card faq-card-green">
+                    <div class="faq-category-icon">
+                        <span class="material-symbols-outlined text-[24px]">directions_car</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 600;">Perjalanan</h3>
+                        <p style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">5 soalan</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[18px] opacity-50">arrow_forward</span>
+                </a>
+
+                <a href="#tuntutan" class="faq-category-card faq-card-orange">
+                    <div class="faq-category-icon">
+                        <span class="material-symbols-outlined text-[24px]">receipt_long</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 600;">Tuntutan</h3>
+                        <p style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">5 soalan</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[18px] opacity-50">arrow_forward</span>
+                </a>
+
+                <a href="#mobile" class="faq-category-card faq-card-teal">
+                    <div class="faq-category-icon">
+                        <span class="material-symbols-outlined text-[24px]">phone_android</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 600;">Aplikasi Mobile</h3>
+                        <p style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">4 soalan</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[18px] opacity-50">arrow_forward</span>
+                </a>
             </div>
 
-            <!-- FAQ Sections -->
-            <div x-data="faqData()" class="space-y-6">
+            {{-- FAQ Sections --}}
+            <div class="space-y-8">
                 
-                <!-- Category 1: Umum -->
+                {{-- Category 1: Umum --}}
                 <div id="umum" class="faq-category scroll-mt-6">
-                    <div class="flex items-center mb-4">
-                        <span class="material-symbols-outlined text-blue-600 text-2xl mr-3">info</span>
-                        <h2 class="text-base font-semibold text-gray-900">Soalan Umum</h2>
+                    <div class="faq-section-header faq-header-blue">
+                        <span class="material-symbols-outlined text-[20px]">info</span>
+                        <h2 style="font-family: Poppins, sans-serif !important; font-size: 14px !important; font-weight: 600;">Soalan Umum</h2>
+                        <span class="faq-count">5</span>
                     </div>
                     
-                    <div class="bg-white rounded-md shadow-sm border border-gray-200 divide-y divide-gray-200">
-                        <!-- FAQ Item 1 -->
+                    <div class="faq-accordion">
                         <div class="faq-item" data-category="umum" data-question="Apakah itu Sistem JARA?" data-keywords="jara sistem tentang">
-                            <button @click="toggle('umum_1')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Apakah itu Sistem JARA?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'umum_1' }">expand_more</span>
+                            <button @click="toggle('umum_1')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">1</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Apakah itu Sistem JARA?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'umum_1' }">expand_more</span>
                             </button>
-                            <div x-show="open === 'umum_1'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed">
+                            <div x-show="open === 'umum_1'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
                                     JARA adalah singkatan kepada <strong>Jejak Aset & Rekod Automatif</strong>. Ia merupakan sistem pengurusan kenderaan dan perjalanan yang direka khas untuk RISDA bagi merekod penggunaan kenderaan, menguruskan program, dan memproses tuntutan pemandu secara automatik dan efisien.
                                 </p>
                             </div>
                         </div>
 
-                        <!-- FAQ Item 2 -->
                         <div class="faq-item" data-category="umum" data-question="Siapa yang boleh menggunakan sistem ini?" data-keywords="pengguna akses siapa">
-                            <button @click="toggle('umum_2')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Siapa yang boleh menggunakan sistem ini?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'umum_2' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'umum_2'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">Sistem ini boleh digunakan oleh:</p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li><strong>Administrator</strong> - Akses penuh ke semua modul dan tetapan</li>
-                                    <li><strong>Pengurus Bahagian</strong> - Urus program, kenderaan, dan staf di bahagian masing-masing</li>
-                                    <li><strong>Pengurus Stesen</strong> - Urus program dan kenderaan di stesen masing-masing</li>
-                                    <li><strong>Pemandu</strong> - Rekod perjalanan dan hantar tuntutan melalui aplikasi mobile</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 3 -->
-                        <div class="faq-item" data-category="umum" data-question="Apakah pelayar web yang disokong?" data-keywords="browser chrome firefox edge safari">
-                            <button @click="toggle('umum_3')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Apakah pelayar web yang disokong?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'umum_3' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'umum_3'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">Sistem ini menyokong pelayar web moden:</p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Google Chrome (versi terkini) - <strong>Disyorkan</strong></li>
-                                    <li>Mozilla Firefox (versi terkini)</li>
-                                    <li>Microsoft Edge (versi terkini)</li>
-                                    <li>Safari (versi terkini)</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 4 -->
-                        <div class="faq-item" data-category="umum" data-question="Adakah sistem ini selamat?" data-keywords="keselamatan security password">
-                            <button @click="toggle('umum_4')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Adakah sistem ini selamat?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'umum_4' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'umum_4'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">Ya, sistem ini menggunakan pelbagai lapisan keselamatan:</p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Kata laluan disulitkan menggunakan <strong>Argon2</strong> (standard industri)</li>
-                                    <li>Kawalan akses berasaskan <strong>peranan dan kebenaran</strong></li>
-                                    <li>Semua aktiviti direkod dalam <strong>activity log</strong></li>
-                                    <li>API dilindungi dengan <strong>token authentication</strong></li>
-                                    <li>Data diasingkan mengikut <strong>organisasi</strong> (multi-tenancy)</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Category 2: Log Masuk -->
-                <div id="login" class="faq-category scroll-mt-6">
-                    <div class="flex items-center mb-4">
-                        <span class="material-symbols-outlined text-purple-600 text-2xl mr-3">login</span>
-                        <h2 class="text-base font-semibold text-gray-900">Log Masuk & Akaun</h2>
-                    </div>
-                    
-                    <div class="bg-white rounded-md shadow-sm border border-gray-200 divide-y divide-gray-200">
-                        <!-- FAQ Item 5 -->
-                        <div class="faq-item" data-category="login" data-question="Lupa kata laluan, bagaimana?" data-keywords="lupa password reset">
-                            <button @click="toggle('login_1')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Saya lupa kata laluan, bagaimana?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'login_1' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'login_1'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">
-                                    Sila hubungi <strong>pentadbir sistem</strong> atau <strong>pengurus anda</strong> untuk menetapkan semula kata laluan. Berikan maklumat berikut:
-                                </p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Nama penuh</li>
-                                    <li>Email akaun</li>
-                                    <li>Bahagian/Stesen</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 6 -->
-                        <div class="faq-item" data-category="login" data-question="Kenapa tidak boleh log masuk?" data-keywords="gagal login error">
-                            <button @click="toggle('login_2')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Kenapa saya tidak boleh log masuk?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'login_2' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'login_2'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">Berikut adalah sebab-sebab biasa:</p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-2 ml-4">
-                                    <li><strong>Email atau kata laluan salah</strong> - Pastikan CAPS LOCK tidak aktif</li>
-                                    <li><strong>Akaun tidak aktif</strong> - Hubungi pentadbir untuk mengaktifkan akaun</li>
-                                    <li><strong>Sambungan internet</strong> - Semak sambungan internet anda</li>
-                                    <li><strong>Pelayar web lama</strong> - Gunakan versi terkini Chrome/Firefox</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 7 -->
-                        <div class="faq-item" data-category="login" data-question="Bagaimana tukar kata laluan?" data-keywords="tukar change password">
-                            <button @click="toggle('login_3')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Bagaimana cara menukar kata laluan?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'login_3' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'login_3'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">Untuk menukar kata laluan:</p>
-                                <ol class="list-decimal list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Log masuk ke sistem</li>
-                                    <li>Klik nama anda di sudut kanan atas</li>
-                                    <li>Pilih <strong>Profil</strong></li>
-                                    <li>Pergi ke tab <strong>Tukar Kata Laluan</strong></li>
-                                    <li>Masukkan kata laluan semasa dan kata laluan baharu</li>
-                                    <li>Klik <strong>Simpan</strong></li>
-                                </ol>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 8 -->
-                        <div class="faq-item" data-category="login" data-question="Aplikasi mobile logout sendiri?" data-keywords="logout auto keluar">
-                            <button @click="toggle('login_4')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Kenapa aplikasi mobile logout sendiri?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'login_4' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'login_4'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">
-                                    Aplikasi mobile akan auto-logout jika:
-                                </p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Sudah lebih <strong>7 hari</strong> sejak login terakhir</li>
-                                    <li>Token authentication tamat tempoh</li>
-                                    <li>Kata laluan ditukar di sistem web</li>
-                                    <li>Akaun dinyahaktifkan oleh pentadbir</li>
-                                </ul>
-                                <p class="text-sm text-gray-700 mt-2">
-                                    <strong>Tips:</strong> Tandakan "Ingat Saya" semasa log masuk untuk kekal log masuk lebih lama.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Category 3: Program -->
-                <div id="program" class="faq-category scroll-mt-6">
-                    <div class="flex items-center mb-4">
-                        <span class="material-symbols-outlined text-indigo-600 text-2xl mr-3">event</span>
-                        <h2 class="text-base font-semibold text-gray-900">Pengurusan Program</h2>
-                    </div>
-                    
-                    <div class="bg-white rounded-md shadow-sm border border-gray-200 divide-y divide-gray-200">
-                        <!-- FAQ Item 9 -->
-                        <div class="faq-item" data-category="program" data-question="Bagaimana buat program baru?" data-keywords="tambah create program">
-                            <button @click="toggle('program_1')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Bagaimana cara membuat program baru?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'program_1' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'program_1'" x-collapse class="px-6 pb-4">
-                                <ol class="list-decimal list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Pergi ke menu <strong>Program → Senarai Program</strong></li>
-                                    <li>Klik butang <strong>+ Tambah Program</strong></li>
-                                    <li>Isi maklumat (nama, tarikh, lokasi, pemandu, kenderaan)</li>
-                                    <li>Klik <strong>Simpan</strong></li>
-                                    <li>Program akan berstatus <strong>Draf</strong> dan perlu diluluskan</li>
-                                </ol>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 10 -->
-                        <div class="faq-item" data-category="program" data-question="Status program apa maksudnya?" data-keywords="status draf lulus aktif selesai">
-                            <button @click="toggle('program_2')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Apakah maksud status program?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'program_2' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'program_2'" x-collapse class="px-6 pb-4">
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-2 ml-4">
-                                    <li><strong>Draf</strong> - Program baru dicipta, belum diluluskan</li>
-                                    <li><strong>Lulus</strong> - Program diluluskan, menunggu tarikh mula</li>
-                                    <li><strong>Aktif</strong> - Program sedang berjalan, pemandu boleh rekod perjalanan</li>
-                                    <li><strong>Selesai</strong> - Program tamat, semua perjalanan selesai</li>
-                                    <li><strong>Tolak</strong> - Program tidak diluluskan</li>
-                                    <li><strong>Tertunda</strong> - Program lewat dimulakan (auto-update oleh sistem)</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 11 -->
-                        <div class="faq-item" data-category="program" data-question="Boleh edit program selepas lulus?" data-keywords="edit kemaskini program">
-                            <button @click="toggle('program_3')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Bolehkah edit program selepas diluluskan?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'program_3' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'program_3'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">
-                                    Ya, program boleh diedit selagi:
-                                </p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Status masih <strong>Draf</strong> atau <strong>Lulus</strong></li>
-                                    <li>Belum ada perjalanan yang direkod (status bukan Aktif)</li>
-                                    <li>Anda mempunyai kebenaran untuk mengedit</li>
-                                </ul>
-                                <p class="text-sm text-gray-700 mt-2">
-                                    <strong>Nota:</strong> Program yang sudah Aktif atau Selesai tidak boleh diedit untuk mengekalkan integriti data.
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 12 -->
-                        <div class="faq-item" data-category="program" data-question="Pemandu tidak terima notifikasi?" data-keywords="notifikasi notification">
-                            <button @click="toggle('program_4')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Pemandu tidak terima notifikasi program?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'program_4' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'program_4'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">Semak perkara berikut:</p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Pemandu telah <strong>log masuk</strong> ke aplikasi mobile sekurang-kurangnya sekali</li>
-                                    <li>Notifikasi <strong>dibenarkan</strong> untuk aplikasi RISDA Driver</li>
-                                    <li>Telefon mempunyai sambungan <strong>internet</strong> aktif</li>
-                                    <li>Pemandu adalah yang <strong>betul ditugaskan</strong> dalam program</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Category 4: Perjalanan -->
-                <div id="perjalanan" class="faq-category scroll-mt-6">
-                    <div class="flex items-center mb-4">
-                        <span class="material-symbols-outlined text-green-600 text-2xl mr-3">directions_car</span>
-                        <h2 class="text-base font-semibold text-gray-900">Rekod Perjalanan</h2>
-                    </div>
-                    
-                    <div class="bg-white rounded-md shadow-sm border border-gray-200 divide-y divide-gray-200">
-                        <!-- FAQ Item 13 -->
-                        <div class="faq-item" data-category="perjalanan" data-question="Bagaimana check-out?" data-keywords="check-out checkout mula">
-                            <button @click="toggle('perjalanan_1')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Bagaimana cara check-out (mula perjalanan)?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'perjalanan_1' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'perjalanan_1'" x-collapse class="px-6 pb-4">
-                                <ol class="list-decimal list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Buka aplikasi mobile</li>
-                                    <li>Pergi ke tab <strong>Do</strong></li>
-                                    <li>Pilih program dari senarai</li>
-                                    <li>Tekan <strong>Start Journey</strong></li>
-                                    <li>Masukkan <strong>bacaan odometer</strong> semasa</li>
-                                    <li>Ambil <strong>foto odometer</strong> (optional)</li>
-                                    <li>Tekan <strong>Confirm</strong></li>
-                                </ol>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 14 -->
-                        <div class="faq-item" data-category="perjalanan" data-question="Lupa check-in, boleh tambah kemudian?" data-keywords="lupa check-in tamat">
-                            <button @click="toggle('perjalanan_2')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Lupa check-in, boleh tambah kemudian?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'perjalanan_2' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'perjalanan_2'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed">
-                                    Tidak. Rekod perjalanan <strong>MESTI</strong> dibuat semasa check-out dan check-in sebenar. Jika terlupa, hubungi <strong>pengurus anda</strong> untuk bantuan. Pengurus boleh mengedit rekod perjalanan melalui sistem web.
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 15 -->
-                        <div class="faq-item" data-category="perjalanan" data-question="Foto odometer wajib?" data-keywords="foto odometer gambar">
-                            <button @click="toggle('perjalanan_3')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Adakah foto odometer wajib?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'perjalanan_3' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'perjalanan_3'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">
-                                    Foto odometer adalah <strong>optional</strong> tetapi <strong>amat disyorkan</strong> untuk:
-                                </p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Bukti bacaan odometer yang tepat</li>
-                                    <li>Elak pertikaian atau salah faham</li>
-                                    <li>Kemudahan semakan semula jika perlu</li>
-                                    <li>Audit trail yang lengkap</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 16 -->
-                        <div class="faq-item" data-category="perjalanan" data-question="Jarak auto-calculate macam mana?" data-keywords="jarak kilometer auto">
-                            <button @click="toggle('perjalanan_4')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Bagaimana jarak auto-calculate?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'perjalanan_4' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'perjalanan_4'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">
-                                    Sistem akan mengira jarak secara automatik menggunakan formula:
-                                </p>
-                                <div class="bg-gray-100 rounded p-3 mb-2">
-                                    <code class="text-sm text-blue-700">Jarak (KM) = Odometer Masuk - Odometer Keluar</code>
+                            <button @click="toggle('umum_2')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">2</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Siapa yang boleh menggunakan sistem ini?</span>
                                 </div>
-                                <p class="text-sm text-gray-700">
-                                    Contoh: 125045 KM - 125000 KM = <strong>45 KM</strong>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'umum_2' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'umum_2'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; margin-bottom: 8px;">Sistem ini boleh digunakan oleh:</p>
+                                <ul class="faq-list">
+                                    <li><span class="material-symbols-outlined text-[12px] text-blue-600">check_circle</span><strong>Administrator</strong> - Akses penuh ke semua modul dan tetapan</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-blue-600">check_circle</span><strong>Pengurus Bahagian</strong> - Urus program, kenderaan, dan staf di bahagian masing-masing</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-blue-600">check_circle</span><strong>Pengurus Stesen</strong> - Urus program dan kenderaan di stesen masing-masing</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-blue-600">check_circle</span><strong>Pemandu</strong> - Rekod perjalanan dan hantar tuntutan melalui aplikasi mobile</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="umum" data-question="Adakah sistem ini percuma?" data-keywords="percuma bayaran kos">
+                            <button @click="toggle('umum_3')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">3</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Adakah sistem ini percuma?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'umum_3' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'umum_3'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Ya, sistem JARA adalah sistem dalaman RISDA dan percuma untuk semua pengguna yang diberi akses. Tiada sebarang bayaran atau kos langganan yang dikenakan.
                                 </p>
                             </div>
                         </div>
 
-                        <!-- FAQ Item 17 -->
-                        <div class="faq-item" data-category="perjalanan" data-question="Boleh check-out tanpa program?" data-keywords="check-out program">
-                            <button @click="toggle('perjalanan_5')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Boleh check-out tanpa program?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'perjalanan_5' }">expand_more</span>
+                        <div class="faq-item" data-category="umum" data-question="Bagaimana untuk mendapatkan akses ke sistem?" data-keywords="akses daftar register">
+                            <button @click="toggle('umum_4')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">4</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bagaimana untuk mendapatkan akses ke sistem?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'umum_4' }">expand_more</span>
                             </button>
-                            <div x-show="open === 'perjalanan_5'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed">
-                                    Tidak. Setiap perjalanan <strong>MESTI dikaitkan dengan program</strong> yang telah diluluskan. Ini untuk memastikan:
+                            <div x-show="open === 'umum_4'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Untuk mendapatkan akses, sila hubungi Administrator sistem atau Pengurus Bahagian anda. Mereka akan mencipta akaun pengguna untuk anda dan memberikan maklumat log masuk. Pendaftaran sendiri tidak dibenarkan untuk tujuan keselamatan.
                                 </p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4 mt-2">
-                                    <li>Penggunaan kenderaan adalah sah dan dibenarkan</li>
-                                    <li>Kos boleh dikaitkan dengan program tertentu</li>
-                                    <li>Audit trail yang lengkap dan teratur</li>
-                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="umum" data-question="Apakah perbezaan antara Bahagian dan Stesen?" data-keywords="bahagian stesen organisasi">
+                            <button @click="toggle('umum_5')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">5</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Apakah perbezaan antara Bahagian dan Stesen?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'umum_5' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'umum_5'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    <strong>Bahagian</strong> merujuk kepada bahagian utama dalam RISDA (contoh: Bahagian Pengurusan Ladang), manakala <strong>Stesen</strong> adalah lokasi fizikal di bawah bahagian tersebut (contoh: Stesen Kuala Lumpur, Stesen Johor Bahru). Setiap bahagian boleh mempunyai beberapa stesen.
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Category 5: Tuntutan -->
+                {{-- Category 2: Log Masuk --}}
+                <div id="login" class="faq-category scroll-mt-6">
+                    <div class="faq-section-header faq-header-purple">
+                        <span class="material-symbols-outlined text-[20px]">login</span>
+                        <h2 style="font-family: Poppins, sans-serif !important; font-size: 14px !important; font-weight: 600;">Log Masuk & Akaun</h2>
+                        <span class="faq-count">4</span>
+                    </div>
+                    
+                    <div class="faq-accordion">
+                        <div class="faq-item" data-category="login" data-question="Saya lupa kata laluan saya. Bagaimana?" data-keywords="lupa password reset">
+                            <button @click="toggle('login_1')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">6</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Saya lupa kata laluan saya. Bagaimana?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'login_1' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'login_1'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Jika anda lupa kata laluan, klik pautan "Lupa Kata Laluan?" di halaman log masuk. Masukkan alamat e-mel anda, dan pautan reset kata laluan akan dihantar ke e-mel anda. Ikut arahan dalam e-mel untuk menetapkan kata laluan baharu.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="login" data-question="Akaun saya dikunci. Apa yang perlu saya lakukan?" data-keywords="kunci locked banned">
+                            <button @click="toggle('login_2')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">7</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Akaun saya dikunci. Apa yang perlu saya lakukan?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'login_2' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'login_2'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Akaun akan dikunci secara automatik selepas 5 cubaan log masuk yang gagal untuk tujuan keselamatan. Sila hubungi Administrator sistem atau Pengurus Bahagian anda untuk membuka kunci akaun. Mereka boleh menetapkan semula kata laluan anda juga jika perlu.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="login" data-question="Bagaimana untuk menukar kata laluan saya?" data-keywords="tukar change password">
+                            <button @click="toggle('login_3')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">8</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bagaimana untuk menukar kata laluan saya?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'login_3' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'login_3'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Selepas log masuk, pergi ke menu <strong>Profil</strong> di bahagian atas kanan, kemudian pilih <strong>Kemaskini Kata Laluan</strong>. Masukkan kata laluan semasa anda, diikuti dengan kata laluan baharu. Pastikan kata laluan baharu sekurang-kurangnya 8 aksara.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="login" data-question="Bolehkah saya log masuk di beberapa peranti serentak?" data-keywords="multiple devices concurrent">
+                            <button @click="toggle('login_4')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">9</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bolehkah saya log masuk di beberapa peranti serentak?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'login_4' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'login_4'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Ya, anda boleh log masuk di beberapa peranti pada masa yang sama. Walau bagaimanapun, untuk keselamatan, anda disarankan untuk log keluar selepas selesai menggunakan sistem, terutamanya pada peranti awam atau berkongsi.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Category 3: Program --}}
+                <div id="program" class="faq-category scroll-mt-6">
+                    <div class="faq-section-header faq-header-indigo">
+                        <span class="material-symbols-outlined text-[20px]">event</span>
+                        <h2 style="font-family: Poppins, sans-serif !important; font-size: 14px !important; font-weight: 600;">Pengurusan Program</h2>
+                        <span class="faq-count">5</span>
+                    </div>
+                    
+                    <div class="faq-accordion">
+                        <div class="faq-item" data-category="program" data-question="Bagaimana untuk membuat program baharu?" data-keywords="cipta create tambah add">
+                            <button @click="toggle('program_1')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">10</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bagaimana untuk membuat program baharu?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'program_1' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'program_1'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6; margin-bottom: 8px;">
+                                    Untuk membuat program baharu:
+                                </p>
+                                <ol class="faq-list-numbered">
+                                    <li>Pergi ke menu <strong>Program</strong></li>
+                                    <li>Klik butang <strong>Tambah Program</strong></li>
+                                    <li>Isikan maklumat program (nama, tarikh mula/tamat, lokasi, dll)</li>
+                                    <li>Pilih pemandu yang ditugaskan</li>
+                                    <li>Klik <strong>Simpan</strong> untuk cipta program</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="program" data-question="Apakah status program yang ada?" data-keywords="status draft aktif selesai batal">
+                            <button @click="toggle('program_2')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">11</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Apakah status program yang ada?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'program_2' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'program_2'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; margin-bottom: 8px;">Status program:</p>
+                                <ul class="faq-list">
+                                    <li><span class="material-symbols-outlined text-[12px] text-gray-600">fiber_manual_record</span><strong>Draf</strong> - Program baru dicipta, belum aktif</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-blue-600">fiber_manual_record</span><strong>Aktif</strong> - Program sedang berjalan</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-green-600">fiber_manual_record</span><strong>Selesai</strong> - Program telah tamat</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-red-600">fiber_manual_record</span><strong>Dibatalkan</strong> - Program dibatalkan</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="program" data-question="Bolehkah saya edit program yang sudah aktif?" data-keywords="edit ubah kemaskini update">
+                            <button @click="toggle('program_3')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">12</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bolehkah saya edit program yang sudah aktif?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'program_3' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'program_3'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Ya, anda boleh edit program yang aktif, tetapi dengan had tertentu. Anda boleh mengemas kini maklumat asas seperti penerangan dan nota, tetapi tarikh mula/tamat dan pemandu mungkin terhad jika log perjalanan sudah wujud. Hubungi Administrator jika perlu tukar maklumat kritikal.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="program" data-question="Bagaimana program menjadi 'Selesai' secara automatik?" data-keywords="automatic status complete">
+                            <button @click="toggle('program_4')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">13</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bagaimana program menjadi 'Selesai' secara automatik?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'program_4' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'program_4'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Sistem akan secara automatik menukar status program kepada 'Selesai' apabila tarikh tamat program telah berlalu. Proses ini berjalan setiap hari pada tengah malam. Notifikasi akan dihantar kepada pemandu dan pengurus yang berkaitan.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="program" data-question="Bolehkah satu pemandu ditugaskan ke beberapa program serentak?" data-keywords="multiple concurrent pemandu">
+                            <button @click="toggle('program_5')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">14</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bolehkah satu pemandu ditugaskan ke beberapa program serentak?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'program_5' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'program_5'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Ya, seorang pemandu boleh ditugaskan ke beberapa program pada masa yang sama, selagi tarikh program tidak bertindih. Sistem akan memberi amaran jika terdapat konflik tarikh semasa penugasan.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Category 4: Perjalanan --}}
+                <div id="perjalanan" class="faq-category scroll-mt-6">
+                    <div class="faq-section-header faq-header-green">
+                        <span class="material-symbols-outlined text-[20px]">directions_car</span>
+                        <h2 style="font-family: Poppins, sans-serif !important; font-size: 14px !important; font-weight: 600;">Log Perjalanan</h2>
+                        <span class="faq-count">5</span>
+                    </div>
+                    
+                    <div class="faq-accordion">
+                        <div class="faq-item" data-category="perjalanan" data-question="Bagaimana pemandu merekod perjalanan?" data-keywords="rekod record log journey">
+                            <button @click="toggle('journey_1')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">15</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bagaimana pemandu merekod perjalanan?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'journey_1' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'journey_1'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Pemandu menggunakan aplikasi mobile JARA untuk merekod perjalanan. Mereka perlu klik butang "Mula Perjalanan" sebelum berlepas, dan "Tamat Perjalanan" selepas sampai. Sistem akan automatik merekod masa, lokasi GPS, dan jarak perjalanan. Pemandu juga boleh tambah nota dan gambar jika perlu.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="perjalanan" data-question="Apa yang berlaku jika pemandu terlupa tamat perjalanan?" data-keywords="forget end complete">
+                            <button @click="toggle('journey_2')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">16</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Apa yang berlaku jika pemandu terlupa tamat perjalanan?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'journey_2' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'journey_2'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Jika pemandu terlupa klik "Tamat Perjalanan", mereka masih boleh tamatkan perjalanan tersebut melalui aplikasi dengan memilih perjalanan yang sedang berjalan. Sistem juga akan hantar peringatan selepas 12 jam jika perjalanan masih belum ditamatkan. Pengurus juga boleh tamatkan perjalanan melalui sistem web.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="perjalanan" data-question="Bolehkah perjalanan diedit selepas tamat?" data-keywords="edit modify after complete">
+                            <button @click="toggle('journey_3')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">17</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bolehkah perjalanan diedit selepas tamat?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'journey_3' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'journey_3'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Pemandu boleh edit nota dan gambar perjalanan dalam tempoh 24 jam selepas perjalanan tamat. Walau bagaimanapun, maklumat seperti masa mula/tamat dan jarak tidak boleh diedit oleh pemandu. Jika ada kesilapan data, hubungi Pengurus untuk bantuan.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="perjalanan" data-question="Mengapa jarak GPS tidak sama dengan odometer?" data-keywords="distance difference gps odometer">
+                            <button @click="toggle('journey_4')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">18</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Mengapa jarak GPS tidak sama dengan odometer?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'journey_4' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'journey_4'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Perbezaan kecil (5-10%) antara jarak GPS dan odometer adalah normal disebabkan perbezaan cara pengiraan. GPS mengira jarak garis lurus antara koordinat, manakala odometer mengukur jarak sebenar roda. Sistem menggunakan bacaan odometer sebagai rujukan utama untuk pengiraan tuntutan.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="perjalanan" data-question="Bolehkah saya lihat sejarah perjalanan yang lepas?" data-keywords="history past previous">
+                            <button @click="toggle('journey_5')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">19</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bolehkah saya lihat sejarah perjalanan yang lepas?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'journey_5' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'journey_5'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Ya, pergi ke menu <strong>Log Pemandu</strong> di sistem web atau tab <strong>Sejarah</strong> di aplikasi mobile. Anda boleh lihat semua perjalanan lepas dengan butiran lengkap termasuk masa, lokasi, jarak, dan gambar. Gunakan penapis tarikh untuk cari perjalanan tertentu.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Category 5: Tuntutan --}}
                 <div id="tuntutan" class="faq-category scroll-mt-6">
-                    <div class="flex items-center mb-4">
-                        <span class="material-symbols-outlined text-orange-600 text-2xl mr-3">receipt_long</span>
-                        <h2 class="text-base font-semibold text-gray-900">Tuntutan</h2>
+                    <div class="faq-section-header faq-header-orange">
+                        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                        <h2 style="font-family: Poppins, sans-serif !important; font-size: 14px !important; font-weight: 600;">Tuntutan</h2>
+                        <span class="faq-count">5</span>
                     </div>
                     
-                    <div class="bg-white rounded-md shadow-sm border border-gray-200 divide-y divide-gray-200">
-                        <!-- FAQ Item 18 -->
-                        <div class="faq-item" data-category="tuntutan" data-question="Kategori tuntutan apa ada?" data-keywords="kategori tuntutan jenis">
-                            <button @click="toggle('tuntutan_1')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Apakah kategori tuntutan yang ada?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'tuntutan_1' }">expand_more</span>
+                    <div class="faq-accordion">
+                        <div class="faq-item" data-category="tuntutan" data-question="Bagaimana untuk membuat tuntutan?" data-keywords="create submit hantar claim">
+                            <button @click="toggle('claim_1')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">20</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bagaimana untuk membuat tuntutan?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'claim_1' }">expand_more</span>
                             </button>
-                            <div x-show="open === 'tuntutan_1'" x-collapse class="px-6 pb-4">
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li><strong>Tol</strong> - Bayaran tol lebuhraya</li>
-                                    <li><strong>Parking</strong> - Bayaran parkir kenderaan</li>
-                                    <li><strong>Makanan & Minuman (F&B)</strong> - Belanja makan minum</li>
-                                    <li><strong>Penginapan</strong> - Kos penginapan jika program bermalam</li>
-                                    <li><strong>Minyak</strong> - Kos minyak tambahan</li>
-                                    <li><strong>Penyelenggaraan</strong> - Kos baiki kenderaan (emergency)</li>
-                                    <li><strong>Lain-lain</strong> - Perbelanjaan lain berkaitan program</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 19 -->
-                        <div class="faq-item" data-category="tuntutan" data-question="Mesti ada resit?" data-keywords="resit receipt wajib">
-                            <button @click="toggle('tuntutan_2')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Adakah resit wajib untuk tuntutan?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'tuntutan_2' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'tuntutan_2'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">
-                                    Ya, <strong>resit adalah WAJIB</strong> untuk semua tuntutan. Pastikan:
+                            <div x-show="open === 'claim_1'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6; margin-bottom: 8px;">
+                                    Untuk membuat tuntutan:
                                 </p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Resit asal (bukan photocopy jika boleh)</li>
-                                    <li>Resit <strong>jelas dan boleh dibaca</strong></li>
-                                    <li>Menunjukkan <strong>jumlah, tarikh, dan nama kedai</strong></li>
-                                    <li>Ambil foto resit <strong>dalam keadaan terang</strong></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 20 -->
-                        <div class="faq-item" data-category="tuntutan" data-question="Tuntutan ditolak, boleh hantar semula?" data-keywords="tolak reject resubmit">
-                            <button @click="toggle('tuntutan_3')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Tuntutan ditolak, boleh hantar semula?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'tuntutan_3' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'tuntutan_3'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">
-                                    Ya, boleh! Jika tuntutan ditolak:
-                                </p>
-                                <ol class="list-decimal list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Baca <strong>alasan penolakan</strong> dengan teliti</li>
-                                    <li>Pergi ke tab <strong>Claim</strong> dalam aplikasi</li>
-                                    <li>Cari tuntutan yang ditolak (status: Ditolak)</li>
-                                    <li>Tekan untuk <strong>edit</strong></li>
-                                    <li>Betulkan maklumat/resit mengikut alasan</li>
-                                    <li>Tekan <strong>Resubmit</strong></li>
+                                <ol class="faq-list-numbered">
+                                    <li>Buka aplikasi mobile JARA</li>
+                                    <li>Pergi ke tab <strong>Tuntutan</strong></li>
+                                    <li>Klik <strong>Buat Tuntutan</strong></li>
+                                    <li>Pilih jenis tuntutan (Minyak, Tol, Lain-lain)</li>
+                                    <li>Isikan jumlah dan muat naik resit</li>
+                                    <li>Klik <strong>Hantar</strong></li>
                                 </ol>
                             </div>
                         </div>
 
-                        <!-- FAQ Item 21 -->
-                        <div class="faq-item" data-category="tuntutan" data-question="Berapa lama kelulusan?" data-keywords="masa lama process">
-                            <button @click="toggle('tuntutan_4')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Berapa lama tuntutan akan diluluskan?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'tuntutan_4' }">expand_more</span>
+                        <div class="faq-item" data-category="tuntutan" data-question="Berapa lama tuntutan diproses?" data-keywords="process time duration approval">
+                            <button @click="toggle('claim_2')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">21</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Berapa lama tuntutan diproses?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'claim_2' }">expand_more</span>
                             </button>
-                            <div x-show="open === 'tuntutan_4'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed">
-                                    Masa pemprosesan bergantung kepada <strong>pengurus/pentadbir</strong> anda. Secara amnya:
-                                </p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4 mt-2">
-                                    <li>Tuntutan kecil (Tol, Parking): <strong>1-3 hari bekerja</strong></li>
-                                    <li>Tuntutan besar (Penginapan, Penyelenggaraan): <strong>3-7 hari bekerja</strong></li>
-                                </ul>
-                                <p class="text-sm text-gray-700 mt-2">
-                                    Anda akan terima <strong>notifikasi</strong> apabila tuntutan diproses.
+                            <div x-show="open === 'claim_2'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Tuntutan biasanya diproses dalam tempoh 3-5 hari bekerja selepas dihantar. Anda akan terima notifikasi melalui aplikasi apabila tuntutan diluluskan atau ditolak. Jika tuntutan memerlukan pengesahan tambahan, proses mungkin mengambil masa lebih lama.
                                 </p>
                             </div>
                         </div>
 
-                        <!-- FAQ Item 22 -->
-                        <div class="faq-item" data-category="tuntutan" data-question="Boleh padam tuntutan?" data-keywords="delete padam cancel">
-                            <button @click="toggle('tuntutan_5')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Boleh padam tuntutan yang sudah dihantar?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'tuntutan_5' }">expand_more</span>
+                        <div class="faq-item" data-category="tuntutan" data-question="Apakah jenis tuntutan yang boleh dibuat?" data-keywords="types categories jenis">
+                            <button @click="toggle('claim_3')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">22</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Apakah jenis tuntutan yang boleh dibuat?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'claim_3' }">expand_more</span>
                             </button>
-                            <div x-show="open === 'tuntutan_5'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed">
-                                    Pemandu <strong>tidak boleh</strong> padam tuntutan sendiri. Jika ingin membatalkan tuntutan, hubungi pengurus anda. Hanya <strong>pengurus/pentadbir</strong> boleh membatalkan tuntutan yang statusnya masih <strong>Pending</strong>.
+                            <div x-show="open === 'claim_3'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; margin-bottom: 8px;">Jenis tuntutan yang tersedia:</p>
+                                <ul class="faq-list">
+                                    <li><span class="material-symbols-outlined text-[12px] text-orange-600">local_gas_station</span><strong>Minyak</strong> - Tuntutan kos minyak kenderaan</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-orange-600">toll</span><strong>Tol</strong> - Tuntutan bayaran tol</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-orange-600">local_parking</span><strong>Parking</strong> - Tuntutan bayaran parking</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-orange-600">fastfood</span><strong>Makan</strong> - Elaun makan (mengikut syarat)</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-orange-600">more_horiz</span><strong>Lain-lain</strong> - Perbelanjaan lain yang berkaitan</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="tuntutan" data-question="Kenapa tuntutan saya ditolak?" data-keywords="rejected denied why alasan">
+                            <button @click="toggle('claim_4')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">23</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Kenapa tuntutan saya ditolak?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'claim_4' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'claim_4'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; margin-bottom: 8px;">Tuntutan mungkin ditolak kerana:</p>
+                                <ul class="faq-list">
+                                    <li><span class="material-symbols-outlined text-[12px] text-red-600">close</span>Resit tidak jelas atau tidak lengkap</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-red-600">close</span>Jumlah tuntutan tidak sepadan dengan resit</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-red-600">close</span>Tuntutan melebihi had yang dibenarkan</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-red-600">close</span>Tuntutan tidak berkaitan dengan program</li>
+                                    <li><span class="material-symbols-outlined text-[12px] text-red-600">close</span>Dokumentasi sokongan tidak mencukupi</li>
+                                </ul>
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6; margin-top: 8px;">
+                                    Anda boleh semak nota penolakan dan hantar semula tuntutan dengan maklumat yang betul.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="tuntutan" data-question="Bolehkah saya batalkan tuntutan yang sudah dihantar?" data-keywords="cancel withdraw delete">
+                            <button @click="toggle('claim_5')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">24</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bolehkah saya batalkan tuntutan yang sudah dihantar?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'claim_5' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'claim_5'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Anda boleh batalkan tuntutan selagi ia masih berstatus <strong>Pending</strong> (belum diproses). Selepas tuntutan diluluskan atau ditolak, ia tidak boleh dibatalkan. Untuk batalkan, pergi ke senarai tuntutan anda dan klik butang <strong>Batalkan</strong> pada tuntutan yang berkenaan.
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Category 6: Aplikasi Mobile -->
+                {{-- Category 6: Mobile App --}}
                 <div id="mobile" class="faq-category scroll-mt-6">
-                    <div class="flex items-center mb-4">
-                        <span class="material-symbols-outlined text-teal-600 text-2xl mr-3">phone_android</span>
-                        <h2 class="text-base font-semibold text-gray-900">Aplikasi Mobile</h2>
+                    <div class="faq-section-header faq-header-teal">
+                        <span class="material-symbols-outlined text-[20px]">phone_android</span>
+                        <h2 style="font-family: Poppins, sans-serif !important; font-size: 14px !important; font-weight: 600;">Aplikasi Mobile</h2>
+                        <span class="faq-count">4</span>
                     </div>
                     
-                    <div class="bg-white rounded-md shadow-sm border border-gray-200 divide-y divide-gray-200">
-                        <!-- FAQ Item 23 -->
-                        <div class="faq-item" data-category="mobile" data-question="Android apa yang disokong?" data-keywords="android version versi">
-                            <button @click="toggle('mobile_1')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Versi Android yang disokong?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'mobile_1' }">expand_more</span>
+                    <div class="faq-accordion">
+                        <div class="faq-item" data-category="mobile" data-question="Bagaimana untuk muat turun aplikasi mobile?" data-keywords="download install app">
+                            <button @click="toggle('mobile_1')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">25</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bagaimana untuk muat turun aplikasi mobile?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'mobile_1' }">expand_more</span>
                             </button>
-                            <div x-show="open === 'mobile_1'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed">
-                                    Aplikasi RISDA Driver menyokong <strong>Android 6.0 (Marshmallow) ke atas</strong>. Untuk prestasi terbaik, gunakan Android 9.0 atau lebih baharu.
+                            <div x-show="open === 'mobile_1'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Aplikasi JARA tersedia untuk Android sahaja buat masa ini. Dapatkan pautan muat turun daripada Pengurus anda atau melalui e-mel pemberitahuan. Install fail APK dan berikan kebenaran yang diperlukan. Pastikan tetapan "Install from Unknown Sources" diaktifkan.
                                 </p>
                             </div>
                         </div>
 
-                        <!-- FAQ Item 24 -->
-                        <div class="faq-item" data-category="mobile" data-question="iOS ada aplikasi?" data-keywords="ios iphone apple">
-                            <button @click="toggle('mobile_2')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Ada aplikasi untuk iOS (iPhone)?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'mobile_2' }">expand_more</span>
+                        <div class="faq-item" data-category="mobile" data-question="Adakah aplikasi perlu sambungan Internet?" data-keywords="offline internet connection">
+                            <button @click="toggle('mobile_2')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">26</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Adakah aplikasi perlu sambungan Internet?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'mobile_2' }">expand_more</span>
                             </button>
-                            <div x-show="open === 'mobile_2'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed">
-                                    Pada masa ini, aplikasi hanya tersedia untuk <strong>Android</strong>. Versi iOS sedang dalam perancangan.
+                            <div x-show="open === 'mobile_2'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Aplikasi boleh berfungsi dalam mod offline untuk merekod perjalanan. Data akan disimpan dalam telefon dan automatik disegerakkan ke pelayan apabila sambungan Internet tersedia. Walau bagaimanapun, untuk hantar tuntutan dan lihat maklumat program terkini, sambungan Internet diperlukan.
                                 </p>
                             </div>
                         </div>
 
-                        <!-- FAQ Item 25 -->
-                        <div class="faq-item" data-category="mobile" data-question="Aplikasi guna internet banyak?" data-keywords="data internet quota">
-                            <button @click="toggle('mobile_3')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Aplikasi guna internet banyak?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'mobile_3' }">expand_more</span>
+                        <div class="faq-item" data-category="mobile" data-question="Mengapa aplikasi menggunakan lokasi GPS?" data-keywords="location permission privacy gps">
+                            <button @click="toggle('mobile_3')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">27</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Mengapa aplikasi menggunakan lokasi GPS?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'mobile_3' }">expand_more</span>
                             </button>
-                            <div x-show="open === 'mobile_3'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">
-                                    Tidak. Aplikasi direka <strong>offline-first</strong>:
-                                </p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Data disimpan dalam telefon (Hive storage)</li>
-                                    <li>Internet hanya perlu untuk sync dan download program</li>
-                                    <li>Foto dimampatkan sebelum upload</li>
-                                    <li>Anggaran penggunaan: <strong>5-10 MB/hari</strong></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 26 -->
-                        <div class="faq-item" data-category="mobile" data-question="GPS tidak berfungsi?" data-keywords="gps location lokasi">
-                            <button @click="toggle('mobile_4')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">GPS tidak berfungsi, kenapa?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'mobile_4' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'mobile_4'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">Semak perkara berikut:</p>
-                                <ol class="list-decimal list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Pastikan <strong>GPS telefon dibuka</strong> (Location Services)</li>
-                                    <li>Beri <strong>kebenaran lokasi</strong> kepada aplikasi RISDA Driver</li>
-                                    <li>Gunakan aplikasi di <strong>kawasan terbuka</strong> (bukan dalam bangunan)</li>
-                                    <li>Restart aplikasi atau telefon</li>
-                                </ol>
-                            </div>
-                        </div>
-
-                        <!-- FAQ Item 27 -->
-                        <div class="faq-item" data-category="mobile" data-question="Kamera tidak berfungsi?" data-keywords="camera kamera foto gambar">
-                            <button @click="toggle('mobile_5')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Tidak boleh ambil gambar, kenapa?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'mobile_5' }">expand_more</span>
-                            </button>
-                            <div x-show="open === 'mobile_5'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">Kemungkinan sebab:</p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Aplikasi tidak diberi <strong>kebenaran kamera</strong></li>
-                                    <li>Storage telefon <strong>penuh</strong></li>
-                                    <li>Kamera telefon sedang digunakan aplikasi lain</li>
-                                </ul>
-                                <p class="text-sm text-gray-700 mt-2">
-                                    <strong>Penyelesaian:</strong> Pergi ke Settings → Apps → RISDA Driver → Permissions → Benarkan Camera & Storage
+                            <div x-show="open === 'mobile_3'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    GPS diperlukan untuk merekod lokasi mula dan tamat perjalanan serta mengira jarak perjalanan dengan tepat. Ini memastikan ketepatan data untuk tujuan audit dan memudahkan pengesahan tuntutan. Data lokasi hanya digunakan semasa perjalanan dan tidak direkod pada masa lain.
                                 </p>
                             </div>
                         </div>
 
-                        <!-- FAQ Item 28 -->
-                        <div class="faq-item" data-category="mobile" data-question="Update aplikasi macam mana?" data-keywords="update kemaskini version">
-                            <button @click="toggle('mobile_6')" class="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <span class="text-sm font-medium text-gray-900">Bagaimana update aplikasi ke versi terkini?</span>
-                                <span class="material-symbols-outlined text-gray-400 transition-transform" :class="{ 'rotate-180': open === 'mobile_6' }">expand_more</span>
+                        <div class="faq-item" data-category="mobile" data-question="Bagaimana untuk kemaskini aplikasi ke versi terbaru?" data-keywords="update version upgrade">
+                            <button @click="toggle('mobile_4')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">28</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bagaimana untuk kemaskini aplikasi ke versi terbaru?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'mobile_4' }">expand_more</span>
                             </button>
-                            <div x-show="open === 'mobile_6'" x-collapse class="px-6 pb-4">
-                                <p class="text-sm text-gray-700 leading-relaxed mb-2">
-                                    Pentadbir akan mengedarkan fail APK terkini apabila ada update. Untuk install:
+                            <div x-show="open === 'mobile_4'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Anda akan terima notifikasi apabila versi baharu tersedia. Klik notifikasi untuk muat turun dan install versi terkini. Pastikan data anda telah disegerakkan sebelum kemaskini. Versi semasa aplikasi boleh dilihat di menu <strong>Tetapan > Tentang</strong>.
                                 </p>
-                                <ol class="list-decimal list-inside text-sm text-gray-700 space-y-1 ml-4">
-                                    <li>Muat turun fail APK terkini</li>
-                                    <li>Buka fail APK</li>
-                                    <li>Benarkan "Install from Unknown Sources" jika diminta</li>
-                                    <li>Klik <strong>Install</strong></li>
-                                    <li>Update akan replace versi lama (data kekal selamat)</li>
-                                </ol>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- No Results Message -->
-                <div x-show="!hasVisibleFAQs()" class="text-center py-12">
-                    <span class="material-symbols-outlined text-gray-300 text-6xl mb-4">search_off</span>
-                    <h3 class="text-base font-semibold text-gray-900 mb-2">Tiada Hasil Ditemui</h3>
-                    <p class="text-sm text-gray-600">Cuba cari dengan kata kunci yang berbeza</p>
                 </div>
 
             </div>
 
-            <!-- Contact Support -->
-            <div class="bg-gradient-to-r from-orange-50 to-red-50 rounded-md border border-orange-200 p-6 mt-8">
-                <div class="flex items-start">
-                    <span class="material-symbols-outlined text-orange-600 text-3xl mr-4">contact_support</span>
-                    <div>
-                        <h3 class="text-base font-semibold text-gray-900 mb-2">Soalan Tidak Dijawab?</h3>
-                        <p class="text-sm text-gray-700 mb-3">Jika soalan anda tidak dijawab di sini, sila hubungi pasukan sokongan kami:</p>
-                        <a href="{{ route('help.hubungi-sokongan') }}" class="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded transition-colors">
-                            <span class="material-symbols-outlined text-lg mr-2">mail</span>
+            {{-- Still Need Help Section --}}
+            <div class="faq-help-section">
+                <div class="faq-help-icon">
+                    <span class="material-symbols-outlined text-[32px] text-blue-600">contact_support</span>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-gray-900 font-semibold mb-1" style="font-family: Poppins, sans-serif !important; font-size: 13px !important;">
+                        Masih Perlukan Bantuan?
+                    </h3>
+                    <p class="text-gray-600 mb-3" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
+                        Tidak jumpa jawapan yang anda cari? Hubungi pasukan sokongan kami.
+                    </p>
+                    <div class="flex gap-3">
+                        <a href="{{ route('help.hubungi-sokongan') }}" class="faq-help-button faq-button-primary">
+                            <span class="material-symbols-outlined text-[16px]">support_agent</span>
                             Hubungi Sokongan
+                        </a>
+                        <a href="{{ route('help.panduan-pengguna') }}" class="faq-help-button faq-button-secondary">
+                            <span class="material-symbols-outlined text-[16px]">menu_book</span>
+                            Panduan Pengguna
                         </a>
                     </div>
                 </div>
             </div>
 
         </div>
+        
     </x-ui.page-header>
 
     <script>
         function faqData() {
             return {
                 open: null,
-                
+                searchTerm: '',
+
                 toggle(id) {
                     this.open = this.open === id ? null : id;
-                },
-
-                hasVisibleFAQs() {
-                    const items = document.querySelectorAll('.faq-item');
-                    return Array.from(items).some(item => item.style.display !== 'none');
                 }
             }
         }
@@ -696,10 +729,4 @@
             });
         });
     </script>
-
-    <style>
-        .scroll-mt-6 {
-            scroll-margin-top: 1.5rem;
-        }
-    </style>
 </x-dashboard-layout>

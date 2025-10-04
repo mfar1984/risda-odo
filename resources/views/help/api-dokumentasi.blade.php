@@ -3,6 +3,83 @@
         title="Dokumentasi API"
         description="Panduan lengkap untuk integrasi API sistem RISDA Odometer"
     >
+        {{-- Hero Section --}}
+        <div class="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 rounded-sm p-8 shadow-lg mb-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 border border-blue-400/30 rounded-sm mb-3">
+                        <span class="material-symbols-outlined text-blue-400" style="font-size: 18px;">code</span>
+                        <span style="font-family: Poppins, sans-serif; font-size: 11px; font-weight: 600; color: #93c5fd;">Version 1.0</span>
+                    </div>
+                    <h1 style="font-family: Poppins, sans-serif; font-size: 28px; font-weight: 700; color: white; margin-bottom: 8px;">
+                        RISDA Odometer API
+                    </h1>
+                    <p style="font-family: Poppins, sans-serif; font-size: 13px; color: #cbd5e1; max-width: 700px; line-height: 1.6;">
+                        RESTful API untuk integrasi sistem pengurusan kenderaan, log pemandu, tuntutan, dan laporan. 
+                        Dilengkapi dengan keselamatan berlapis dan multi-tenancy untuk isolasi data.
+                    </p>
+                </div>
+                <div class="text-right">
+                    <div style="font-family: Poppins, sans-serif; font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Base URL</div>
+                    <div style="font-family: 'Courier New', monospace; font-size: 13px; color: #60a5fa; font-weight: 600; margin-top: 4px;">
+                        /api/v1
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Quick Stats --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white rounded-sm border shadow-sm p-5 hover:shadow-md transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-sm bg-blue-100 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-blue-600" style="font-size: 24px;">security</span>
+                    </div>
+                    <div>
+                        <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 600; color: #1e293b;">3-Layer Security</h3>
+                        <p style="font-family: Poppins, sans-serif; font-size: 10px; color: #64748b;">API Key + Token + Multi-tenancy</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-sm border shadow-sm p-5 hover:shadow-md transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-sm bg-green-100 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-green-600" style="font-size: 24px;">check_circle</span>
+                    </div>
+                    <div>
+                        <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 600; color: #1e293b;">RESTful Design</h3>
+                        <p style="font-family: Poppins, sans-serif; font-size: 10px; color: #64748b;">Standard HTTP & JSON</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-sm border shadow-sm p-5 hover:shadow-md transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-sm bg-purple-100 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-purple-600" style="font-size: 24px;">speed</span>
+                    </div>
+                    <div>
+                        <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 600; color: #1e293b;">Fast & Reliable</h3>
+                        <p style="font-family: Poppins, sans-serif; font-size: 10px; color: #64748b;">Optimized performance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Search Bar --}}
+        <div class="bg-white rounded-sm border border-gray-200 shadow-sm p-4 mb-6">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" style="font-size: 20px;">search</span>
+                <input 
+                    type="text" 
+                    id="endpoint-search"
+                    placeholder="Cari endpoint... (cth: health, login, program)"
+                    class="w-full pl-10 pr-4 h-[42px] border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    style="font-family: Poppins, sans-serif; font-size: 12px;"
+                    onkeyup="filterEndpoints(this.value)"
+                >
+            </div>
+        </div>
+
         {{-- Main Content: Sidebar + Content Area --}}
         <div class="grid grid-cols-12 gap-6" style="height: calc(100vh - 250px);">
             {{-- Left Sidebar Menu (Scrollable with Grouping) --}}
@@ -218,104 +295,210 @@
             {{-- Right Content Area (Scrollable) --}}
             <div class="col-span-12 lg:col-span-9 overflow-y-auto" style="max-height: calc(100vh - 200px);">
                 {{-- Overview Content --}}
-                <div id="content-overview" class="content-section">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-blue-600">info</span>
-                        Authentication Overview
-                    </h3>
-                    <div class="prose max-w-none">
-                            <p class="text-gray-600 mb-4">
-                                RISDA Odometer API menggunakan sistem keselamatan berlapis untuk memastikan hanya aplikasi dan pengguna yang sah dapat mengakses data.
+                <div id="content-overview" class="content-section bg-white rounded-sm border shadow-sm p-6">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                        <div class="w-10 h-10 rounded-sm bg-blue-100 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-blue-600" style="font-size: 24px;">info</span>
+                        </div>
+                        <div>
+                            <h3 style="font-family: Poppins, sans-serif; font-size: 18px; font-weight: 700; color: #1e293b;">
+                                Authentication Overview
+                            </h3>
+                            <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">
+                                Sistem keselamatan berlapis untuk API RISDA Odometer
                             </p>
-                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-                                <div class="flex">
-                                    <span class="material-symbols-outlined text-yellow-400 mr-3">info</span>
-                                    <div class="text-sm text-yellow-700">
-                                        <strong>Penting:</strong> Setiap request memerlukan header <code class="bg-yellow-100 px-1 py-0.5 rounded">Accept: application/json</code> untuk memastikan response dalam format JSON.
-                                    </div>
-                                </div>
-                            </div>
-                            <h4 class="font-semibold text-gray-900 mb-2">Required Headers untuk Semua Requests:</h4>
-                            <div class="bg-gray-50 rounded-lg p-4 font-mono text-sm space-y-2 mb-4">
-                                <div class="flex gap-2">
-                                    <span class="text-gray-500">Content-Type:</span>
-                                    <span class="text-blue-600">application/json</span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <span class="text-gray-500">Accept:</span>
-                                    <span class="text-blue-600">application/json</span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <span class="text-gray-500">X-API-Key:</span>
-                                    <span class="text-purple-600">YOUR_GLOBAL_API_KEY</span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <span class="text-gray-500">Authorization:</span>
-                                    <span class="text-green-600">Bearer YOUR_USER_TOKEN</span>
-                                    <span class="text-xs text-gray-400">(selepas login)</span>
-                                </div>
+                        </div>
+                    </div>
+
+                    <p style="font-family: Poppins, sans-serif; font-size: 12px; color: #475569; line-height: 1.7; margin-bottom: 20px;">
+                        RISDA Odometer API menggunakan sistem keselamatan berlapis untuk memastikan hanya aplikasi dan pengguna yang sah dapat mengakses data.
+                    </p>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-sm">
+                        <div class="flex gap-3">
+                            <span class="material-symbols-outlined text-yellow-600" style="font-size: 20px;">warning</span>
+                            <div>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #92400e; line-height: 1.6;">
+                                    <strong style="font-weight: 600;">Penting:</strong> Setiap request memerlukan header 
+                                    <code class="bg-yellow-200 px-2 py-0.5 rounded-sm text-yellow-900" style="font-family: 'Courier New', monospace; font-size: 10px;">Accept: application/json</code> 
+                                    untuk memastikan response dalam format JSON.
+                                </p>
                             </div>
                         </div>
                     </div>
 
+                    <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
+                        Required Headers untuk Semua Requests:
+                    </h4>
+
+                    <div class="bg-slate-900 rounded-sm p-4 font-mono">
+                        <div class="space-y-2">
+                            <div class="flex gap-2">
+                                <span style="color: #60a5fa;">Content-Type:</span>
+                                <span style="color: #34d399;">application/json</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span style="color: #60a5fa;">Accept:</span>
+                                <span style="color: #34d399;">application/json</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span style="color: #60a5fa;">X-API-Key:</span>
+                                <span style="color: #a78bfa;">YOUR_GLOBAL_API_KEY</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span style="color: #60a5fa;">Authorization:</span>
+                                <span style="color: #34d399;">Bearer YOUR_USER_TOKEN</span>
+                                <span style="font-family: Poppins, sans-serif; font-size: 10px; color: #94a3b8;">(selepas login)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                     {{-- Security Content --}}
-                    <div id="content-security" class="content-section hidden">
-                        <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-blue-600">security</span>
-                            3-Layer Security System
-                        </h3>
+                    <div id="content-security" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-blue-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 24px;">security</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 18px; font-weight: 700; color: #1e293b;">
+                                    3-Layer Security System
+                                </h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">
+                                    Triple-layer authentication untuk keselamatan maksimum
+                                </p>
+                            </div>
+                        </div>
+
                         <div class="space-y-4">
-                            <div class="border-l-4 border-blue-500 bg-blue-50 p-4">
-                                <h4 class="font-semibold text-blue-900 mb-2">Layer 1: Global API Key</h4>
-                                <p class="text-sm text-blue-700">
-                                    Header: <code class="bg-blue-100 px-1 py-0.5 rounded">X-API-Key</code><br>
-                                    Verify bahawa request datang dari aplikasi mobile RISDA yang sah. API Key ini global dan sama untuk semua users.
-                                </p>
+                            <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-sm bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
+                                        <span style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 700;">1</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e3a8a; margin-bottom: 6px;">
+                                            Global API Key
+                                        </h4>
+                                        <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #1e40af; line-height: 1.6;">
+                                            Header: <code class="bg-blue-200 px-2 py-0.5 rounded-sm text-blue-900" style="font-family: 'Courier New', monospace; font-size: 10px;">X-API-Key</code><br>
+                                            Verify bahawa request datang dari aplikasi mobile RISDA yang sah. API Key ini global dan sama untuk semua users.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="border-l-4 border-green-500 bg-green-50 p-4">
-                                <h4 class="font-semibold text-green-900 mb-2">Layer 2: User Authentication</h4>
-                                <p class="text-sm text-green-700">
-                                    Endpoint: <code class="bg-green-100 px-1 py-0.5 rounded">POST /auth/login</code><br>
-                                    User login dengan email & password menggunakan custom Argon2id + Email Salt untuk maximum security.
-                                </p>
+
+                            <div class="border-l-4 border-green-500 bg-green-50 p-4 rounded-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-sm bg-green-600 text-white flex items-center justify-center flex-shrink-0">
+                                        <span style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 700;">2</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #065f46; margin-bottom: 6px;">
+                                            User Authentication
+                                        </h4>
+                                        <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #047857; line-height: 1.6;">
+                                            Endpoint: <code class="bg-green-200 px-2 py-0.5 rounded-sm text-green-900" style="font-family: 'Courier New', monospace; font-size: 10px;">POST /auth/login</code><br>
+                                            User login dengan email & password menggunakan custom Argon2id + Email Salt untuk maximum security.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="border-l-4 border-purple-500 bg-purple-50 p-4">
-                                <h4 class="font-semibold text-purple-900 mb-2">Layer 3: Laravel Sanctum Token</h4>
-                                <p class="text-sm text-purple-700">
-                                    Header: <code class="bg-purple-100 px-1 py-0.5 rounded">Authorization: Bearer TOKEN</code><br>
-                                    Setiap request selepas login memerlukan Bearer token yang unique untuk setiap device/session.
-                                </p>
+
+                            <div class="border-l-4 border-purple-500 bg-purple-50 p-4 rounded-sm">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-sm bg-purple-600 text-white flex items-center justify-center flex-shrink-0">
+                                        <span style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 700;">3</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #581c87; margin-bottom: 6px;">
+                                            Laravel Sanctum Token
+                                        </h4>
+                                        <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #6b21a8; line-height: 1.6;">
+                                            Header: <code class="bg-purple-200 px-2 py-0.5 rounded-sm text-purple-900" style="font-family: 'Courier New', monospace; font-size: 10px;">Authorization: Bearer TOKEN</code><br>
+                                            Setiap request selepas login memerlukan Bearer token yang unique untuk setiap device/session.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-indigo-900 mb-2">Multi-Tenancy Data Isolation</h4>
-                                <p class="text-sm text-indigo-700">
-                                    Setiap user mempunyai <code class="bg-indigo-100 px-1 py-0.5 rounded">jenis_organisasi</code> dan <code class="bg-indigo-100 px-1 py-0.5 rounded">organisasi_id</code>. API akan automatically filter data berdasarkan organizational scope user tersebut.
-                                </p>
+
+                            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-sm p-4">
+                                <div class="flex items-start gap-3">
+                                    <span class="material-symbols-outlined text-indigo-600" style="font-size: 24px;">shield</span>
+                                    <div>
+                                        <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #312e81; margin-bottom: 6px;">
+                                            Multi-Tenancy Data Isolation
+                                        </h4>
+                                        <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #4338ca; line-height: 1.6;">
+                                            Setiap user mempunyai <code class="bg-indigo-200 px-2 py-0.5 rounded-sm text-indigo-900" style="font-family: 'Courier New', monospace; font-size: 10px;">jenis_organisasi</code> dan <code class="bg-indigo-200 px-2 py-0.5 rounded-sm text-indigo-900" style="font-family: 'Courier New', monospace; font-size: 10px;">organisasi_id</code>. API akan automatically filter data berdasarkan organizational scope user tersebut.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- Health Check Content --}}
-                    <div id="content-health" class="content-section hidden">
-                        <div class="mb-4">
-                            <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded mr-2">GET</span>
-                            <code class="text-lg font-mono text-gray-900">/health</code>
-                        </div>
-                        <p class="text-gray-600 mb-6">Health check endpoint (public, no authentication required)</p>
-                        
-                        <h4 class="font-semibold text-gray-900 mb-3">Contoh Request:</h4>
-                        <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                            <pre class="text-sm overflow-x-auto"><code>curl -X GET {{ url('/api/health') }}</code></pre>
+                    <div id="content-health" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-sm bg-green-100 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-green-600" style="font-size: 24px;">monitor_heart</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="px-2 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">GET</span>
+                                        <code class="text-[14px] font-mono text-gray-900">/health</code>
+                                    </div>
+                                    <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">
+                                        Health check endpoint (public, no authentication required)
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-semibold rounded-sm border border-green-200" style="font-family: Poppins, sans-serif;">
+                                PUBLIC
+                            </span>
                         </div>
 
-                        <h4 class="font-semibold text-gray-900 mb-3">Response (200 OK):</h4>
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <pre class="text-sm overflow-x-auto"><code>{
-  "success": true,
-  "message": "RISDA Odometer API is running",
-  "version": "1.0.0",
-  "timestamp": "2025-10-01T10:34:16+08:00"
+                        {{-- Description --}}
+                        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-sm">
+                            <div class="flex gap-3">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 20px;">info</span>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #1e40af; line-height: 1.6;">
+                                    Endpoint ini tidak memerlukan authentication. Digunakan untuk monitoring dan health check sistem.
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Request Example --}}
+                        <div class="mb-6">
+                            <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
+                                Contoh Request:
+                            </h4>
+                            <div class="bg-slate-900 rounded-sm p-4 relative group">
+                                <pre class="text-sm overflow-x-auto"><code style="color: #cbd5e1; font-family: 'Courier New', monospace; font-size: 11px;">curl -X GET {{ url('/api/health') }}</code></pre>
+                            </div>
+                        </div>
+
+                        {{-- Response --}}
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b;">
+                                    Response:
+                                </h4>
+                                <span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-semibold rounded-sm border border-green-200" style="font-family: Poppins, sans-serif;">
+                                    200 OK
+                                </span>
+                            </div>
+                            <div class="bg-slate-900 rounded-sm p-4">
+                                <pre class="text-sm overflow-x-auto"><code style="font-family: 'Courier New', monospace; font-size: 11px;">{
+  <span style="color: #60a5fa;">"success"</span>: <span style="color: #34d399;">true</span>,
+  <span style="color: #60a5fa;">"message"</span>: <span style="color: #fbbf24;">"RISDA Odometer API is running"</span>,
+  <span style="color: #60a5fa;">"version"</span>: <span style="color: #fbbf24;">"1.0.0"</span>,
+  <span style="color: #60a5fa;">"timestamp"</span>: <span style="color: #fbbf24;">"2025-10-01T10:34:16+08:00"</span>
 }</code></pre>
+                            </div>
                         </div>
                     </div>
 
@@ -400,56 +583,96 @@ X-API-Key: YOUR_GLOBAL_API_KEY</code></pre>
                     </div>
 
                     {{-- Get User Content --}}
-                    <div id="content-user" class="content-section hidden">
-                        <div class="mb-4">
-                            <span class="px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded mr-2">GET</span>
-                            <code class="text-lg font-mono text-gray-900">/auth/user</code>
-                        </div>
-                        <p class="text-gray-600 mb-6">Dapatkan maklumat user yang sedang login (authenticated)</p>
-                        
-                        <h4 class="font-semibold text-gray-900 mb-3">Request Headers:</h4>
-                        <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                            <pre class="text-sm overflow-x-auto"><code>Accept: application/json
-X-API-Key: YOUR_GLOBAL_API_KEY
-Authorization: Bearer YOUR_TOKEN</code></pre>
+                    <div id="content-user" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-sm bg-blue-100 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-blue-600" style="font-size: 24px;">account_circle</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="px-2 py-0.5 bg-green-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">GET</span>
+                                        <code class="text-[14px] font-mono text-gray-900">/auth/user</code>
+                                    </div>
+                                    <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">
+                                        Dapatkan maklumat user yang sedang login (authenticated)
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-red-50 text-red-700 text-[10px] font-semibold rounded-sm border border-red-200" style="font-family: Poppins, sans-serif;">
+                                PROTECTED
+                            </span>
                         </div>
 
-                        <h4 class="font-semibold text-gray-900 mb-3">Response (200 OK):</h4>
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <pre class="text-sm overflow-x-auto"><code>{
-  "success": true,
-  "data": {
-    "id": 10,
-    "name": "Adam Bin Abdullah",
-    "email": "user@jara.my",
-    "profile_picture_url": "http://localhost:8000/storage/profile_pictures/profile_10_1234567890.jpg",
-    "no_telefon": "012-3456789",
-    "jenis_organisasi": "stesen",
-    "organisasi_id": 3,
-    "kumpulan_id": 2,
-    "status": "aktif",
-    "bahagian": null,
-    "stesen": {
-      "id": 3,
-      "nama": "Pejabat RISDA Stesen Kuala Lumpur",
-      "kod": "STESEN-003"
+                        {{-- Description --}}
+                        <div class="bg-purple-50 border-l-4 border-purple-400 p-4 mb-6 rounded-sm">
+                            <div class="flex gap-3">
+                                <span class="material-symbols-outlined text-purple-600" style="font-size: 20px;">lock</span>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #6b21a8; line-height: 1.6;">
+                                    Endpoint ini memerlukan Bearer token. Digunakan untuk mendapatkan profile user yang sedang login beserta data organisasi.
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Request Headers --}}
+                        <div class="mb-6">
+                            <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
+                                Request Headers:
+                            </h4>
+                            <div class="bg-slate-900 rounded-sm p-4">
+                                <pre class="text-sm overflow-x-auto"><code style="font-family: 'Courier New', monospace; font-size: 11px;"><span style="color: #60a5fa;">Accept:</span> <span style="color: #34d399;">application/json</span>
+<span style="color: #60a5fa;">X-API-Key:</span> <span style="color: #a78bfa;">YOUR_GLOBAL_API_KEY</span>
+<span style="color: #60a5fa;">Authorization:</span> <span style="color: #34d399;">Bearer YOUR_TOKEN</span></code></pre>
+                            </div>
+                        </div>
+
+                        {{-- Response --}}
+                        <div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b;">
+                                    Response:
+                                </h4>
+                                <span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-semibold rounded-sm border border-green-200" style="font-family: Poppins, sans-serif;">
+                                    200 OK
+                                </span>
+                            </div>
+                            <div class="bg-slate-900 rounded-sm p-4">
+                                <pre class="text-sm overflow-x-auto"><code style="font-family: 'Courier New', monospace; font-size: 11px;">{
+  <span style="color: #60a5fa;">"success"</span>: <span style="color: #34d399;">true</span>,
+  <span style="color: #60a5fa;">"data"</span>: {
+    <span style="color: #60a5fa;">"id"</span>: <span style="color: #fb923c;">10</span>,
+    <span style="color: #60a5fa;">"name"</span>: <span style="color: #fbbf24;">"Adam Bin Abdullah"</span>,
+    <span style="color: #60a5fa;">"email"</span>: <span style="color: #fbbf24;">"user@jara.my"</span>,
+    <span style="color: #60a5fa;">"profile_picture_url"</span>: <span style="color: #fbbf24;">"http://localhost:8000/storage/profile_pictures/profile_10_1234567890.jpg"</span>,
+    <span style="color: #60a5fa;">"no_telefon"</span>: <span style="color: #fbbf24;">"012-3456789"</span>,
+    <span style="color: #60a5fa;">"jenis_organisasi"</span>: <span style="color: #fbbf24;">"stesen"</span>,
+    <span style="color: #60a5fa;">"organisasi_id"</span>: <span style="color: #fb923c;">3</span>,
+    <span style="color: #60a5fa;">"kumpulan_id"</span>: <span style="color: #fb923c;">2</span>,
+    <span style="color: #60a5fa;">"status"</span>: <span style="color: #fbbf24;">"aktif"</span>,
+    <span style="color: #60a5fa;">"bahagian"</span>: <span style="color: #94a3b8;">null</span>,
+    <span style="color: #60a5fa;">"stesen"</span>: {
+      <span style="color: #60a5fa;">"id"</span>: <span style="color: #fb923c;">3</span>,
+      <span style="color: #60a5fa;">"nama"</span>: <span style="color: #fbbf24;">"Pejabat RISDA Stesen Kuala Lumpur"</span>,
+      <span style="color: #60a5fa;">"kod"</span>: <span style="color: #fbbf24;">"STESEN-003"</span>
     },
-    "kumpulan": {
-      "id": 2,
-      "nama": "Pemandu",
-      "kebenaran_matrix": { ... }
+    <span style="color: #60a5fa;">"kumpulan"</span>: {
+      <span style="color: #60a5fa;">"id"</span>: <span style="color: #fb923c;">2</span>,
+      <span style="color: #60a5fa;">"nama"</span>: <span style="color: #fbbf24;">"Pemandu"</span>,
+      <span style="color: #60a5fa;">"kebenaran_matrix"</span>: { <span style="color: #94a3b8;">...</span> }
     },
-    "staf": {
-      "id": 15,
-      "no_pekerja": "RS2025-1001",
-      "nama_penuh": "Adam Bin Abdullah",
-      "no_kad_pengenalan": "850123-10-5678",
-      "jawatan": "Pemandu Kenderaan",
-      "no_telefon": "012-3456789",
-      "alamat": "No. 123, Jalan Merdeka, Taman Sejahtera, 50000 Kuala Lumpur"
+    <span style="color: #60a5fa;">"staf"</span>: {
+      <span style="color: #60a5fa;">"id"</span>: <span style="color: #fb923c;">15</span>,
+      <span style="color: #60a5fa;">"no_pekerja"</span>: <span style="color: #fbbf24;">"RS2025-1001"</span>,
+      <span style="color: #60a5fa;">"nama_penuh"</span>: <span style="color: #fbbf24;">"Adam Bin Abdullah"</span>,
+      <span style="color: #60a5fa;">"no_kad_pengenalan"</span>: <span style="color: #fbbf24;">"850123-10-5678"</span>,
+      <span style="color: #60a5fa;">"jawatan"</span>: <span style="color: #fbbf24;">"Pemandu Kenderaan"</span>,
+      <span style="color: #60a5fa;">"no_telefon"</span>: <span style="color: #fbbf24;">"012-3456789"</span>,
+      <span style="color: #60a5fa;">"alamat"</span>: <span style="color: #fbbf24;">"No. 123, Jalan Merdeka, Taman Sejahtera, 50000 Kuala Lumpur"</span>
     }
   }
 }</code></pre>
+                            </div>
                         </div>
                     </div>
 
@@ -1897,6 +2120,35 @@ Content-Type: application/json</code></pre>
         document.addEventListener('DOMContentLoaded', function() {
             showSection('overview');
         });
+
+        // Search/Filter endpoints
+        function filterEndpoints(searchTerm) {
+            searchTerm = searchTerm.toLowerCase().trim();
+            
+            // Get all menu buttons
+            const menuButtons = document.querySelectorAll('.menu-item');
+            
+            menuButtons.forEach(button => {
+                const buttonText = button.textContent.toLowerCase();
+                const buttonId = button.id.replace('menu-', '');
+                
+                // Show/hide based on search match
+                if (searchTerm === '' || buttonText.includes(searchTerm) || buttonId.includes(searchTerm)) {
+                    button.style.display = 'block';
+                } else {
+                    button.style.display = 'none';
+                }
+            });
+
+            // If search is active, show first matching result
+            if (searchTerm !== '') {
+                const firstVisible = Array.from(menuButtons).find(btn => btn.style.display !== 'none');
+                if (firstVisible) {
+                    const sectionId = firstVisible.id.replace('menu-', '');
+                    showSection(sectionId);
+                }
+            }
+        }
     </script>
     @endpush
 </x-dashboard-layout>

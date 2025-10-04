@@ -10,6 +10,9 @@
 @import './components/modal.css';
 @import './components/navigation.css';
 @import './components/release-notes.css';
+@import './components/faq.css';
+@import './components/user-guide.css';
+@import './components/api-docs.css';
 @import './components/sidebar.css';
 @import './components/header.css';
 @import './components/footer.css';
@@ -24,6 +27,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Alpine.js x-cloak directive */
+[x-cloak] {
+    display: none !important;
+}
 
 /* RISDA Base Styles */
 @layer base {

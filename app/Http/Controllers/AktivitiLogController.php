@@ -55,7 +55,8 @@ class AktivitiLogController extends Controller
             $query->where('event', $request->event);
         }
 
-        $activities = $query->paginate(10);
+        // Pagination: 5 per page (same as log-pemandu)
+        $activities = $query->paginate(5);
 
         return view('pengurusan.aktiviti-log', compact('activities'));
     }

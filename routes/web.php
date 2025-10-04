@@ -303,9 +303,7 @@ Route::middleware('auth')->group(function () {
             return view('help.faq');
         })->name('faq');
 
-        Route::get('/hubungi-sokongan', function () {
-            return view('help.hubungi-sokongan');
-        })->name('hubungi-sokongan');
+        Route::get('/hubungi-sokongan', [App\Http\Controllers\SupportTicketController::class, 'index'])->name('hubungi-sokongan');
 
         Route::get('/status-sistem', function () {
             return view('help.status-sistem');
