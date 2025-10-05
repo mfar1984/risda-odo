@@ -17,6 +17,10 @@
     ], $overallStats ?? []);
 @endphp
 
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Laporan Pemandu">
     <x-ui.page-header
         title="Laporan Pemandu"
@@ -70,6 +74,8 @@
             :reset-url="route('laporan.laporan-pemandu')"
         />
 
+        <!-- Desktop Table (Hidden on Mobile) -->
+        <div class="data-table-container">
         <x-ui.data-table
             :headers="[
                 ['label' => 'Pemandu', 'align' => 'text-left'],
@@ -135,6 +141,52 @@
                 </tr>
             @endforelse
         </x-ui.data-table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-table-card">
+            @forelse($driverCollection as $driver)
+                @php $stats = $driverData->get($driver->id); @endphp
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">{{ $driver->name }}</div>
+                    </div>
+                    <div class="mobile-card-body">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">mail</span></span>
+                            <span class="mobile-card-value">{{ $driver->email }}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">apartment</span></span>
+                            <span class="mobile-card-value">{{ $driver->bahagian->nama_bahagian ?? '-' }}<div class="mobile-card-value-secondary">{{ $driver->stesen->nama_stesen ?? 'Semua Stesen' }}</div></span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">history</span></span>
+                            <span class="mobile-card-value">Log: {{ number_format($stats['jumlah_log'] ?? 0) }} • Jarak: {{ number_format($stats['jumlah_jarak'] ?? 0, 1) }} km</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
+                            <span class="mobile-card-value">Kos: RM {{ number_format($stats['jumlah_kos'] ?? 0, 2) }} • Purata/Log: RM {{ number_format($stats['purata_kos'] ?? 0, 2) }}</span>
+                        </div>
+                    </div>
+                    <div class="mobile-card-footer">
+                        <a href="{{ route('laporan.laporan-pemandu.show', ['driver' => $driver->id]) }}" class="mobile-card-action mobile-action-view">
+                            <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                            <span class="mobile-card-action-label">Lihat</span>
+                        </a>
+                        <a href="{{ route('laporan.laporan-pemandu.pdf', ['driver' => $driver->id]) }}" class="mobile-card-action" style="color:#dc2626;">
+                            <span class="material-symbols-outlined mobile-card-action-icon">picture_as_pdf</span>
+                            <span class="mobile-card-action-label">PDF</span>
+                        </a>
+                    </div>
+                </div>
+            @empty
+                <div class="mobile-empty-state">
+                    <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">group</span>
+                    <p>Tiada pemandu ditemui</p>
+                </div>
+            @endforelse
+        </div>
 
         <x-ui.pagination :paginator="$drivers" record-label="pemandu" />
     </x-ui.page-header>

@@ -18,6 +18,10 @@
     ], $overallStats ?? []);
 @endphp
 
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Laporan Kilometer">
     <x-ui.page-header
         title="Laporan Kilometer"
@@ -63,6 +67,8 @@
             :reset-url="route('laporan.laporan-kilometer')"
         />
 
+        <!-- Desktop Table (Hidden on Mobile) -->
+        <div class="data-table-container">
         <x-ui.data-table
             :headers="[
                 ['label' => 'Program', 'align' => 'text-left'],
@@ -140,6 +146,94 @@
                 </tr>
             @endforelse
         </x-ui.data-table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-table-card">
+            @forelse($programCollection as $program)
+                @php
+                    $stats = $programData->get($program->id);
+                    $jarakDirekod = $stats['jumlah_jarak'] ?? 0;
+                    $anggara = $stats['jarak_anggaran'] ?? 0;
+                    $perbezaan = $stats['perbezaan_jarak'] ?? ($jarakDirekod - $anggara);
+                @endphp
+
+                <div class="mobile-card">
+                    <!-- Header: Nama Program + Status -->
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">{{ $program->nama_program }}</div>
+                        <div class="mobile-card-badge"><x-ui.status-badge :status="$program->status" /></div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="mobile-card-body">
+                        <!-- Tempoh -->
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">today</span></span>
+                            <span class="mobile-card-value">
+                                {{ optional($program->tarikh_mula)->format('d/m/Y H:i') ?? '-' }}
+                                <div class="mobile-card-value-secondary">hingga {{ optional($program->tarikh_selesai)->format('d/m/Y H:i') ?? '-' }}</div>
+                            </span>
+                        </div>
+
+                        <!-- Pemohon & Lokasi -->
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">person</span></span>
+                            <span class="mobile-card-value">Pemohon: {{ $program->pemohon->nama_penuh ?? '-' }}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">location_on</span></span>
+                            <span class="mobile-card-value">{{ $program->lokasi_program ?? '-' }}</span>
+                        </div>
+
+                        <!-- Kenderaan -->
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">directions_car</span></span>
+                            <span class="mobile-card-value">{{ $program->kenderaan->no_plat ?? '-' }}<div class="mobile-card-value-secondary">{{ trim(($program->kenderaan->jenama ?? '') . ' ' . ($program->kenderaan->model ?? '')) }}</div></span>
+                        </div>
+
+                        <!-- Jarak -->
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">straighten</span></span>
+                            <span class="mobile-card-value">
+                                Direkod: <strong>{{ number_format($jarakDirekod, 1) }}</strong> km
+                                <div class="mobile-card-value-secondary">Anggaran: {{ number_format($anggara, 1) }} km • Bezanya: {{ number_format($perbezaan, 1) }} km</div>
+                            </span>
+                        </div>
+
+                        <!-- Log & Kos -->
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">history</span></span>
+                            <span class="mobile-card-value">
+                                Log: {{ number_format($stats['jumlah_log'] ?? 0) }}
+                                <div class="mobile-card-value-secondary">Check-in/Check-out: {{ number_format($stats['jumlah_checkin'] ?? 0) }} / {{ number_format($stats['jumlah_checkout'] ?? 0) }}</div>
+                            </span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
+                            <span class="mobile-card-value">Kos: RM {{ number_format($stats['jumlah_kos'] ?? 0, 2) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div class="mobile-card-footer">
+                        <a href="{{ route('laporan.laporan-kilometer.show', $program) }}" class="mobile-card-action mobile-action-view">
+                            <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                            <span class="mobile-card-action-label">Lihat</span>
+                        </a>
+                        <a href="{{ route('laporan.laporan-kilometer.pdf', $program) }}" class="mobile-card-action" style="color:#dc2626;">
+                            <span class="material-symbols-outlined mobile-card-action-icon">picture_as_pdf</span>
+                            <span class="mobile-card-action-label">PDF</span>
+                        </a>
+                    </div>
+                </div>
+            @empty
+                <div class="mobile-empty-state">
+                    <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">alt_route</span>
+                    <p>Tiada program ditemui</p>
+                </div>
+            @endforelse
+        </div>
 
         <x-ui.pagination :paginator="$programs" record-label="program" />
     </x-ui.page-header>

@@ -69,7 +69,24 @@ class RisdaStafController extends Controller
                 ->withInput();
         }
 
-        RisdaStaf::create($request->all());
+        $staf = RisdaStaf::create($request->all());
+
+        activity('risda')
+            ->performedOn($staf)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'entity' => 'staf',
+                'no_pekerja' => $staf->no_pekerja,
+                'nama_penuh' => $staf->nama_penuh,
+                'bahagian' => optional($staf->bahagian)->nama_bahagian,
+                'stesen' => optional($staf->stesen)->nama_stesen,
+                'jawatan' => $staf->jawatan,
+                'status' => $staf->status,
+            ])
+            ->event('created')
+            ->log("Staf '{$staf->nama_penuh}' telah ditambah");
 
         return redirect()->route('pengurusan.senarai-risda')
             ->with('success', 'RISDA Staf berjaya ditambah!');
@@ -131,7 +148,29 @@ class RisdaStafController extends Controller
                 ->withInput();
         }
 
+        $old = $risdaStaf->only(['no_pekerja','nama_penuh','bahagian_id','stesen_id','jawatan','email','no_telefon','status']);
         $risdaStaf->update($request->all());
+
+        $changes = [];
+        foreach ($old as $k => $v) {
+            if ($v != $risdaStaf->$k) {
+                $changes[$k] = ['old' => $v, 'new' => $risdaStaf->$k];
+            }
+        }
+
+        activity('risda')
+            ->performedOn($risdaStaf)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'entity' => 'staf',
+                'no_pekerja' => $risdaStaf->no_pekerja,
+                'nama_penuh' => $risdaStaf->nama_penuh,
+                'changes' => $changes,
+            ])
+            ->event('updated')
+            ->log("Staf '{$risdaStaf->nama_penuh}' telah dikemaskini (" . count($changes) . " medan diubah)");
 
         return redirect()->route('pengurusan.senarai-risda')
             ->with('success', 'RISDA Staf berjaya dikemaskini!');
@@ -142,7 +181,21 @@ class RisdaStafController extends Controller
      */
     public function destroy(RisdaStaf $risdaStaf)
     {
+        $id = $risdaStaf->id;
+        $name = $risdaStaf->nama_penuh;
         $risdaStaf->delete();
+
+        activity('risda')
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'entity' => 'staf',
+                'staf_id' => $id,
+                'nama_penuh' => $name,
+            ])
+            ->event('deleted')
+            ->log("Staf '{$name}' telah dipadam");
 
         return redirect()->route('pengurusan.senarai-risda')
             ->with('success', 'RISDA Staf berjaya dipadam!');

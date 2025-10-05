@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Senarai RISDA">
     <x-ui.page-header
         title="Senarai RISDA"
@@ -94,7 +98,8 @@
                         :reset-url="route('pengurusan.senarai-risda', ['tab' => 'bahagian'])"
                     />
 
-                    <!-- Table -->
+                    <!-- Desktop Table -->
+                    <div class="data-table-container">
                     <x-ui.data-table
                         :headers="[
                             ['label' => 'Nama', 'align' => 'text-left'],
@@ -120,8 +125,7 @@
                                 <x-ui.action-buttons
                                     :show-url="route('pengurusan.show-bahagian', $bahagian)"
                                     :edit-url="route('pengurusan.edit-bahagian', $bahagian)"
-                                    :delete-url="route('pengurusan.delete-bahagian', $bahagian)"
-                                    :delete-confirm-message="'Adakah anda pasti untuk memadam ' . $bahagian->nama_bahagian . '?'"
+                                    :delete-onclick="'deleteBahagianItem(' . $bahagian->id . ')'"
                                 />
                             </td>
                         </tr>
@@ -133,6 +137,48 @@
                         </tr>
                         @endforelse
                     </x-ui.data-table>
+                    </div>
+
+                    <!-- Mobile Card View -->
+                    <div class="mobile-table-card">
+                        @forelse($bahagians ?? [] as $bahagian)
+                            <div class="mobile-card">
+                                <div class="mobile-card-header">
+                                    <div class="mobile-card-title">{{ $bahagian->nama_bahagian }}</div>
+                                    <div class="mobile-card-badge"><x-ui.status-badge :status="$bahagian->status_dropdown" /></div>
+                                </div>
+                                <div class="mobile-card-body">
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">home_pin</span></span>
+                                        <span class="mobile-card-value">{{ $bahagian->alamat_1 }}{{ $bahagian->alamat_2 ? ', ' . $bahagian->alamat_2 : '' }}</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">location_city</span></span>
+                                        <span class="mobile-card-value">{{ $bahagian->poskod }} {{ $bahagian->bandar }}, {{ $bahagian->negeri }}</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">call</span></span>
+                                        <span class="mobile-card-value">{{ $bahagian->no_telefon }}</span>
+                                    </div>
+                                </div>
+                                <div class="mobile-card-footer">
+                                    <a href="{{ route('pengurusan.show-bahagian', $bahagian) }}" class="mobile-card-action mobile-action-view">
+                                        <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                                        <span class="mobile-card-action-label">Lihat</span>
+                                    </a>
+                                    <a href="{{ route('pengurusan.edit-bahagian', $bahagian) }}" class="mobile-card-action mobile-action-edit">
+                                        <span class="material-symbols-outlined mobile-card-action-icon">edit</span>
+                                        <span class="mobile-card-action-label">Edit</span>
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="mobile-empty-state">
+                                <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">business</span>
+                                <p>Tiada RISDA Bahagian</p>
+                            </div>
+                        @endforelse
+                    </div>
 
                     <!-- Pagination -->
                     <x-ui.pagination :paginator="$bahagians" record-label="bahagian" />
@@ -194,7 +240,8 @@
                         :reset-url="route('pengurusan.senarai-risda', ['tab' => 'stesen'])"
                     />
 
-                    <!-- Table -->
+                    <!-- Desktop Table -->
+                    <div class="data-table-container">
                     <x-ui.data-table
                         :headers="[
                             ['label' => 'Nama', 'align' => 'text-left'],
@@ -230,8 +277,7 @@
                                 <x-ui.action-buttons
                                     :show-url="route('pengurusan.show-stesen', $stesen)"
                                     :edit-url="route('pengurusan.edit-stesen', $stesen)"
-                                    :delete-url="route('pengurusan.delete-stesen', $stesen)"
-                                    :delete-confirm-message="'Adakah anda pasti untuk memadam ' . $stesen->nama_stesen . '?'"
+                                    :delete-onclick="'deleteStesenItem(' . $stesen->id . ')'"
                                 />
                             </td>
                         </tr>
@@ -243,6 +289,54 @@
                         </tr>
                         @endforelse
                     </x-ui.data-table>
+                    </div>
+
+                    <!-- Mobile Card View -->
+                    <div class="mobile-table-card">
+                        @forelse($stesens ?? [] as $stesen)
+                            <div class="mobile-card">
+                                <div class="mobile-card-header">
+                                    <div class="mobile-card-title">{{ $stesen->nama_stesen }}</div>
+                                    <div class="mobile-card-badge"><x-ui.status-badge :status="$stesen->status_dropdown" /></div>
+                                </div>
+                                <div class="mobile-card-body">
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">business</span></span>
+                                        <span class="mobile-card-value">{{ $stesen->risdaBahagian->nama_bahagian ?? 'N/A' }}</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">home_pin</span></span>
+                                        <span class="mobile-card-value">{{ $stesen->alamat_1 }}@if($stesen->alamat_2)<div class="mobile-card-value-secondary">{{ $stesen->alamat_2 }}</div>@endif<div class="mobile-card-value-secondary">{{ $stesen->poskod }} {{ $stesen->bandar }}, {{ $stesen->negeri }}</div></span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">call</span></span>
+                                        <span class="mobile-card-value">{{ $stesen->no_telefon }}</span>
+                                    </div>
+                                    @if($stesen->email)
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">mail</span></span>
+                                        <span class="mobile-card-value">{{ $stesen->email }}</span>
+                                    </div>
+                                    @endif
+                                </div>
+                                <div class="mobile-card-footer">
+                                    <a href="{{ route('pengurusan.show-stesen', $stesen) }}" class="mobile-card-action mobile-action-view">
+                                        <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                                        <span class="mobile-card-action-label">Lihat</span>
+                                    </a>
+                                    <a href="{{ route('pengurusan.edit-stesen', $stesen) }}" class="mobile-card-action mobile-action-edit">
+                                        <span class="material-symbols-outlined mobile-card-action-icon">edit</span>
+                                        <span class="mobile-card-action-label">Edit</span>
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="mobile-empty-state">
+                                <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">location_on</span>
+                                <p>Tiada RISDA Stesen</p>
+                            </div>
+                        @endforelse
+                    </div>
 
                     <!-- Pagination -->
                     <x-ui.pagination :paginator="$stesens" record-label="stesen" />
@@ -304,7 +398,8 @@
                         :reset-url="route('pengurusan.senarai-risda', ['tab' => 'staf'])"
                     />
 
-                    <!-- Table -->
+                    <!-- Desktop Table -->
+                    <div class="data-table-container">
                     <x-ui.data-table
                         :headers="[
                             ['label' => 'No. Pekerja', 'align' => 'text-left'],
@@ -338,8 +433,7 @@
                                 <x-ui.action-buttons
                                     :show-url="route('pengurusan.show-staf', $staf)"
                                     :edit-url="route('pengurusan.edit-staf', $staf)"
-                                    :delete-url="route('pengurusan.delete-staf', $staf)"
-                                    :delete-confirm-message="'Adakah anda pasti untuk memadam ' . $staf->nama_penuh . '?'"
+                                    :delete-onclick="'deleteStafItem(' . $staf->id . ')'"
                                 />
                             </td>
                         </tr>
@@ -351,6 +445,56 @@
                         </tr>
                         @endforelse
                     </x-ui.data-table>
+                    </div>
+
+                    <!-- Mobile Card View -->
+                    <div class="mobile-table-card">
+                        @forelse($stafs ?? [] as $staf)
+                            <div class="mobile-card">
+                                <div class="mobile-card-header">
+                                    <div class="mobile-card-title">{{ $staf->nama_penuh }}</div>
+                                    <div class="mobile-card-badge"><x-ui.status-badge :status="$staf->status" /></div>
+                                </div>
+                                <div class="mobile-card-body">
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">badge</span></span>
+                                        <span class="mobile-card-value">{{ $staf->no_pekerja }}</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">apartment</span></span>
+                                        <span class="mobile-card-value">{{ $staf->bahagian->nama_bahagian ?? 'N/A' }}<div class="mobile-card-value-secondary">{{ $staf->stesen->nama_stesen ?? 'Semua Stesen' }}</div></span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">work</span></span>
+                                        <span class="mobile-card-value">{{ $staf->jawatan }}</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">mail</span></span>
+                                        <span class="mobile-card-value">{{ $staf->email }}</span>
+                                    </div>
+                                    <div class="mobile-card-row">
+                                        <span class="mobile-card-label"><span class="material-symbols-outlined">call</span></span>
+                                        <span class="mobile-card-value">{{ $staf->no_telefon }}</span>
+                                    </div>
+                                </div>
+                                <div class="mobile-card-footer">
+                                    <a href="{{ route('pengurusan.show-staf', $staf) }}" class="mobile-card-action mobile-action-view">
+                                        <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                                        <span class="mobile-card-action-label">Lihat</span>
+                                    </a>
+                                    <a href="{{ route('pengurusan.edit-staf', $staf) }}" class="mobile-card-action mobile-action-edit">
+                                        <span class="material-symbols-outlined mobile-card-action-icon">edit</span>
+                                        <span class="mobile-card-action-label">Edit</span>
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="mobile-empty-state">
+                                <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">people</span>
+                                <p>Tiada RISDA Staf</p>
+                            </div>
+                        @endforelse
+                    </div>
 
                     <!-- Pagination -->
                     <x-ui.pagination :paginator="$stafs" record-label="staf" />
@@ -358,4 +502,10 @@
             </div>
         </div>
     </x-ui.page-header>
+
+    {{-- Centralized Delete Modal --}}
+    <x-modals.delete-confirmation-modal />
+
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>

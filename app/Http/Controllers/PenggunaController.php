@@ -262,8 +262,15 @@ class PenggunaController extends Controller
             'status' => $request->status_akaun,
         ]);
 
+        // Resolve group name for logging
+        $groupName = null;
+        if ($request->kumpulan_id) {
+            $group = UserGroup::find($request->kumpulan_id);
+            $groupName = $group?->nama_kumpulan;
+        }
+
         // Log activity
-        activity()
+        activity('pengguna')
             ->performedOn($user)
             ->causedBy(auth()->user())
             ->withProperties([
@@ -274,8 +281,10 @@ class PenggunaController extends Controller
                 'jenis_organisasi' => $jenisOrganisasi,
                 'organisasi_id' => $organisasiId,
                 'kumpulan_id' => $request->kumpulan_id,
+                'group_name' => $groupName,
                 'status' => $request->status_akaun,
                 'staf_id' => $request->staf_id,
+                'stesen_akses_ids' => $stesenAksesIds,
             ])
             ->event('created')
             ->log("Pengguna '{$user->name}' ({$user->email}) telah ditambah");
@@ -381,6 +390,7 @@ class PenggunaController extends Controller
         $oldJenisOrganisasi = $pengguna->jenis_organisasi;
         $oldOrganisasiId = $pengguna->organisasi_id;
         $oldKumpulanId = $pengguna->kumpulan_id;
+        $oldStesenAksesIds = $pengguna->stesen_akses_ids;
 
         // Update user data
         $updateData = [
@@ -423,9 +433,16 @@ class PenggunaController extends Controller
         if ($oldKumpulanId != $pengguna->kumpulan_id) {
             $changes['kumpulan_id'] = ['old' => $oldKumpulanId, 'new' => $pengguna->kumpulan_id];
         }
+        if (json_encode($oldStesenAksesIds) != json_encode($stesenAksesIds)) {
+            $changes['stesen_akses_ids'] = ['old' => $oldStesenAksesIds, 'new' => $stesenAksesIds];
+        }
+
+        // Resolve group names for before/after
+        $oldGroupName = $oldKumpulanId ? optional(UserGroup::find($oldKumpulanId))->nama_kumpulan : null;
+        $newGroupName = $pengguna->kumpulan_id ? optional(UserGroup::find($pengguna->kumpulan_id))->nama_kumpulan : null;
 
         // Log activity
-        activity()
+        activity('pengguna')
             ->performedOn($pengguna)
             ->causedBy(auth()->user())
             ->withProperties([
@@ -436,6 +453,8 @@ class PenggunaController extends Controller
                 'changes' => $changes,
                 'password_changed' => $passwordChanged,
                 'total_fields_changed' => count($changes) + ($passwordChanged ? 1 : 0),
+                'group_name_before' => $oldGroupName,
+                'group_name_after' => $newGroupName,
             ])
             ->event('updated')
             ->log("Pengguna '{$pengguna->name}' telah dikemaskini (" . (count($changes) + ($passwordChanged ? 1 : 0)) . " medan diubah)");
@@ -505,7 +524,7 @@ class PenggunaController extends Controller
         $pengguna->delete();
 
         // Log activity
-        activity()
+        activity('pengguna')
             ->causedBy(auth()->user())
             ->withProperties([
                 'ip' => request()->ip(),

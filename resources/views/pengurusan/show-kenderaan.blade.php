@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout
     title="Lihat Kenderaan"
     description="Maklumat terperinci kenderaan"
@@ -278,18 +282,20 @@
                             @endif
 
                             @if($currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'padam'))
-                            <form action="{{ route('pengurusan.delete-kenderaan', $kenderaan) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam kenderaan {{ $kenderaan->no_plat }}?')">
-                                @csrf
-                                @method('DELETE')
-                                <x-buttons.danger-button type="submit">
-                                    <span class="material-symbols-outlined mr-2" style="font-size: 16px;">delete</span>
-                                    Padam
-                                </x-buttons.danger-button>
-                            </form>
+                            <x-buttons.danger-button type="button" onclick="deleteKenderaanItem({{ $kenderaan->id }})">
+                                <span class="material-symbols-outlined mr-2" style="font-size: 16px;">delete</span>
+                                Padam
+                            </x-buttons.danger-button>
                             @endif
                         </div>
                     </div>
                 </div>
             </section>
         </x-ui.container>
+
+    {{-- Centralized Delete Modal --}}
+    <x-modals.delete-confirmation-modal />
+
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>

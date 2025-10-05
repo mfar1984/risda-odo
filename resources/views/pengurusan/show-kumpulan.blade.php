@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout
     title="Lihat Kumpulan Pengguna"
     description="Maklumat terperinci kumpulan pengguna"
@@ -80,8 +84,8 @@
                             Matriks Kebenaran
                         </h3>
                     
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
+                    <div class="overflow-x-auto permission-matrix-wrapper">
+                        <table class="min-w-full divide-y divide-gray-200 permission-matrix-table">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
@@ -104,7 +108,7 @@
                                         {{ $moduleLabels[$module] ?? ucfirst(str_replace('_', ' ', $module)) }}
                                     </td>
                                     @foreach($permissionLabels as $permission => $permLabel)
-                                    <td class="px-3 py-4 whitespace-nowrap text-center">
+                                    <td class="px-3 py-4 whitespace-nowrap text-center" @if(isset($permissions[$permission])) data-label="{{ $permLabel }}" @endif>
                                         @if(isset($permissions[$permission]))
                                             @if(isset($userGroup->kebenaran_matrix[$module][$permission]) && $userGroup->kebenaran_matrix[$module][$permission])
                                                 <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
@@ -143,17 +147,19 @@
                                 </x-buttons.warning-button>
                             </a>
 
-                            <form action="{{ route('pengurusan.delete-kumpulan', $userGroup) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $userGroup->nama_kumpulan }}?')">
-                                @csrf
-                                @method('DELETE')
-                                <x-buttons.danger-button type="submit">
-                                    <span class="material-symbols-outlined mr-2" style="font-size: 16px;">delete</span>
-                                    Padam
-                                </x-buttons.danger-button>
-                            </form>
+                            <x-buttons.danger-button type="button" onclick="deleteKumpulanItem({{ $userGroup->id }})">
+                                <span class="material-symbols-outlined mr-2" style="font-size: 16px;">delete</span>
+                                Padam
+                            </x-buttons.danger-button>
                         </div>
                     </div>
                 </div>
             </section>
         </x-ui.container>
+
+    {{-- Centralized Delete Modal --}}
+    <x-modals.delete-confirmation-modal />
+
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>

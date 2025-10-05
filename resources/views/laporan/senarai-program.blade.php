@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Laporan Senarai Program">
     <x-ui.page-header
         title="Laporan Senarai Program"

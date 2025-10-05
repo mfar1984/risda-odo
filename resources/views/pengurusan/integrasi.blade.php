@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Integrasi">
     @php
         $maskedApiToken = $integrasi->api_token ? substr($integrasi->api_token, 0, 8) . str_repeat('*', max(strlen($integrasi->api_token) - 8, 0)) : null;
@@ -9,6 +13,7 @@
         title="Integrasi"
         description="Pengurusan integrasi sistem (API, Cuaca & Email Configuration)"
     >
+        <div class="integrasi-page">
 
         <!-- Tab Navigation -->
         <div class="mb-8" x-data="{

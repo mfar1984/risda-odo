@@ -426,19 +426,21 @@
                             @endif
 
                             @if(auth()->user()->adaKebenaran('program', 'padam'))
-                                <form action="{{ route('delete-program', $program) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $program->nama_program }}?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <x-buttons.danger-button type="submit">
-                                        <span class="material-symbols-outlined mr-2" style="font-size: 16px;">delete</span>
-                                        Padam
-                                    </x-buttons.danger-button>
-                                </form>
+                                <x-buttons.danger-button type="button" onclick="deleteProgramItem({{ $program->id }})">
+                                    <span class="material-symbols-outlined mr-2" style="font-size: 16px;">delete</span>
+                                    Padam
+                                </x-buttons.danger-button>
                             @endif
                         </div>
                     </div>
                 </div>
     </x-ui.page-header>
+
+    {{-- Centralized Delete Modal --}}
+    <x-modals.delete-confirmation-modal />
+
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>
 
 <script>

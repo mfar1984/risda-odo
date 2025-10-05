@@ -136,7 +136,7 @@ class KenderaanController extends Controller
         $kenderaan = Kenderaan::create($data);
 
         // Log activity
-        activity()
+        activity('kenderaan')
             ->performedOn($kenderaan)
             ->causedBy(auth()->user())
             ->withProperties([
@@ -148,6 +148,8 @@ class KenderaanController extends Controller
                 'tahun' => $kenderaan->tahun,
                 'jenis_bahan_api' => $kenderaan->jenis_bahan_api,
                 'status' => $kenderaan->status,
+                'cukai_tamat_tempoh' => $kenderaan->cukai_tamat_tempoh,
+                'tarikh_pendaftaran' => $kenderaan->tarikh_pendaftaran,
                 'documents_uploaded' => $uploadedDocuments,
             ])
             ->event('created')
@@ -241,7 +243,7 @@ class KenderaanController extends Controller
         }
 
         // Log activity
-        activity()
+        activity('kenderaan')
             ->performedOn($kenderaan)
             ->causedBy(auth()->user())
             ->withProperties([
@@ -284,7 +286,7 @@ class KenderaanController extends Controller
         $kenderaan->delete();
 
         // Log activity
-        activity()
+        activity('kenderaan')
             ->causedBy(auth()->user())
             ->withProperties([
                 'ip' => request()->ip(),

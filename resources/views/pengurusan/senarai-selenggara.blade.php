@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Senarai Penyelenggaraan">
     <x-ui.page-header
         title="Senarai Penyelenggaraan"
@@ -61,7 +65,8 @@
             :reset-url="route('pengurusan.senarai-selenggara')"
         />
 
-        <!-- Table -->
+        <!-- Desktop Table (Hidden on Mobile) -->
+        <div class="data-table-container">
         <x-ui.data-table
             :headers="[
                 ['label' => 'Kenderaan', 'align' => 'text-left'],
@@ -110,8 +115,7 @@
                     <x-ui.action-buttons
                         :show-url="$currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'lihat') ? route('pengurusan.show-selenggara', $selenggara) : ''"
                         :edit-url="$currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'kemaskini') ? route('pengurusan.edit-selenggara', $selenggara) : ''"
-                        :delete-url="$currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'padam') ? route('pengurusan.delete-selenggara', $selenggara) : ''"
-                        :delete-confirm-message="'Adakah anda pasti untuk memadam rekod penyelenggaraan ' . $selenggara->kenderaan->no_plat . '?'"
+                        :delete-onclick="$currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'padam') ? 'deleteSelenggaraItem(' . $selenggara->id . ')' : ''"
                         :show-view="$currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'lihat')"
                         :show-edit="$currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'kemaskini')"
                         :show-delete="$currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'padam')"
@@ -126,8 +130,68 @@
             </tr>
             @endforelse
         </x-ui.data-table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-table-card">
+            @forelse($selenggaraRecords as $selenggara)
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">{{ $selenggara->kenderaan->no_plat }}</div>
+                        <div class="mobile-card-badge"><x-ui.status-badge :status="$selenggara->status" /></div>
+                    </div>
+                    <div class="mobile-card-body">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">directions_car</span></span>
+                            <span class="mobile-card-value">{{ $selenggara->kenderaan->nama_penuh }}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">category</span></span>
+                            <span class="mobile-card-value">{{ $selenggara->kategoriKos->nama_kategori }}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">calendar_month</span></span>
+                            <span class="mobile-card-value">Mula: {{ $selenggara->tarikh_mula->format('d/m/Y') }}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">event_available</span></span>
+                            <span class="mobile-card-value">Tamat: {{ $selenggara->tarikh_selesai->format('d/m/Y') }}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">attach_money</span></span>
+                            <span class="mobile-card-value">RM {{ number_format($selenggara->jumlah_kos, 2) }}</span>
+                        </div>
+                    </div>
+                    <div class="mobile-card-footer">
+                        @if($currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'lihat'))
+                        <a href="{{ route('pengurusan.show-selenggara', $selenggara) }}" class="mobile-card-action mobile-action-view">
+                            <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                            <span class="mobile-card-action-label">Lihat</span>
+                        </a>
+                        @endif
+                        @if($currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'kemaskini'))
+                        <a href="{{ route('pengurusan.edit-selenggara', $selenggara) }}" class="mobile-card-action mobile-action-edit">
+                            <span class="material-symbols-outlined mobile-card-action-icon">edit</span>
+                            <span class="mobile-card-action-label">Edit</span>
+                        </a>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div class="mobile-empty-state">
+                    <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">build</span>
+                    <p>Tiada rekod penyelenggaraan</p>
+                </div>
+            @endforelse
+        </div>
 
         <!-- Pagination -->
         <x-ui.pagination :paginator="$selenggaraRecords" record-label="rekod penyelenggaraan" />
     </x-ui.page-header>
+
+    {{-- Centralized Delete Modal --}}
+    <x-modals.delete-confirmation-modal />
+
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>

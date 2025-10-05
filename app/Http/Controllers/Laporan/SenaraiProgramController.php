@@ -232,8 +232,8 @@ class SenaraiProgramController extends Controller
 
         $filename = 'laporan-program-' . str($program->nama_program)->slug('-') . '.pdf';
 
-        // Log activity
-        activity()
+        // Log activity (export program report)
+        activity('program')
             ->performedOn($program)
             ->causedBy($user)
             ->withProperties([
@@ -242,6 +242,10 @@ class SenaraiProgramController extends Controller
                 'program_name' => $program->nama_program,
                 'filename' => $filename,
                 'format' => 'pdf',
+                'filters' => [
+                    'tarikh_dari' => $request->input('tarikh_dari'),
+                    'tarikh_hingga' => $request->input('tarikh_hingga'),
+                ],
             ])
             ->event('exported')
             ->log("Program '{$program->nama_program}' telah dieksport ke PDF");

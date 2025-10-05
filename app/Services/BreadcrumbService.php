@@ -70,6 +70,11 @@ class BreadcrumbService
             'icon' => null,
             'parent' => 'laporan',
         ],
+        'laporan.laporan-kenderaan.show' => [
+            'name' => 'Butiran Laporan Kenderaan',
+            'icon' => null,
+            'parent' => 'laporan.laporan-kenderaan',
+        ],
         'laporan.laporan-kilometer' => [
             'name' => 'Laporan Kilometer',
             'icon' => null,

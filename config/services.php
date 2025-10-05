@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // Firebase Cloud Messaging (toggleable via .env)
+    'firebase' => [
+        'enabled' => env('FCM_ENABLED', false),
+    ],
+
 ];

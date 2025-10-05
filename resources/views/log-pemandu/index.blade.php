@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Log Pemandu">
     <x-ui.page-header
         title="Log Pemandu"
@@ -212,13 +216,9 @@
                                 @endif
 
                                 @if($canDelete)
-                                    <form action="{{ route('log-pemandu.destroy', $log) }}" method="POST" class="inline" onsubmit="return confirm('Padam log pemandu pada {{ optional($log->tarikh_perjalanan)->format('d/m/Y') }}?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900">
-                                            <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
-                                        </button>
-                                    </form>
+                                    <button onclick="deleteLogPemanduItem({{ $log->id }})" class="text-red-600 hover:text-red-900">
+                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                                    </button>
                                 @endif
                             </div>
                         </td>
@@ -391,14 +391,10 @@
                             @endif
 
                             @if($canDelete)
-                                <form action="{{ route('log-pemandu.destroy', $log) }}" method="POST" class="inline" onsubmit="return confirm('Padam log pemandu pada {{ optional($log->tarikh_perjalanan)->format('d/m/Y') }}?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="mobile-card-action mobile-action-delete">
-                                        <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
-                                        Padam
-                                    </button>
-                                </form>
+                                <button onclick="deleteLogPemanduItem({{ $log->id }})" class="mobile-card-action mobile-action-delete">
+                                    <span class="material-symbols-outlined mobile-card-action-icon">delete</span>
+                                    <span class="mobile-card-action-label">Padam</span>
+                                </button>
                             @endif
                         </div>
                     @endif
@@ -417,7 +413,7 @@
         </div>
     </x-ui.page-header>
 
-    {{-- Auto-refresh tab counts AND table data --}}
+    {{-- Auto-refresh tab counts AND table data (disabled; switch to on-demand) --}}
     <script>
         let isRefreshing = false;
 
@@ -493,13 +489,18 @@
             }
         }
 
-        // Refresh tab counts every 5 seconds
-        setInterval(refreshTabCounts, 5000);
-        
-        // Refresh table data every 10 seconds
-        setInterval(refreshTableData, 10000);
-        
-        // Initial load
+        // On-demand: refresh when window/tab gains focus
+        window.addEventListener('focus', () => {
+            refreshTabCounts();
+            refreshTableData();
+        });
+        // Initial one-time refresh
         refreshTabCounts();
     </script>
+
+    {{-- Centralized Delete Modal --}}
+    <x-modals.delete-confirmation-modal />
+
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>

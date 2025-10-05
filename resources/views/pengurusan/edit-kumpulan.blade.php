@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout
     title="Edit Kumpulan Pengguna"
     description="Kemaskini maklumat kumpulan pengguna"
@@ -65,20 +69,10 @@
                     <!-- Permission Matrix Section -->
                     <div class="border-t pt-6">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">
-                                Matriks Kebenaran
-                            </h3>
-                            <div class="flex space-x-2">
-                                <button type="button" onclick="selectAllPermissions()" class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                                    Pilih Semua
-                                </button>
-                                <button type="button" onclick="clearAllPermissions()" class="text-xs bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                                    Kosongkan Semua
-                                </button>
-                            </div>
+                            <h3 class="text-lg font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 16px !important;">Matriks Kebenaran</h3>
                         </div>
                         
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto permission-matrix-wrapper">
                             <table class="min-w-full divide-y divide-gray-200 permission-matrix-table">
                                 <thead class="bg-gray-50">
                                     <tr>
@@ -102,7 +96,7 @@
                                             {{ $moduleLabels[$module] ?? ucfirst(str_replace('_', ' ', $module)) }}
                                         </td>
                                         @foreach($permissionLabels as $permission => $permLabel)
-                                        <td class="px-3 py-4 whitespace-nowrap text-center">
+                                        <td class="px-3 py-4 whitespace-nowrap text-center" @if(isset($defaultPermissions[$permission])) data-label="{{ $permLabel }}" @endif>
                                             @if(isset($defaultPermissions[$permission]))
                                             <input
                                                 type="checkbox"
@@ -120,6 +114,21 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Quick Actions (align sama seperti tambah-kumpulan) -->
+                        <div class="flex justify-between items-center mt-6 p-4 bg-gray-50 rounded">
+                            <div class="text-sm text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
+                                Tindakan Pantas:
+                            </div>
+                            <div class="flex space-x-3">
+                                <button type="button" onclick="selectAllPermissions()" class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
+                                    Pilih Semua
+                                </button>
+                                <button type="button" onclick="clearAllPermissions()" class="text-xs bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
+                                    Kosongkan Semua
+                                </button>
+                            </div>
                         </div>
                     </div>
 

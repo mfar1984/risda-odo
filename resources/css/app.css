@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+/* Font is loaded via layout head; avoid duplicate remote import here */
 
 /* Import Component Styles */
 @import './components/buttons.css';
@@ -23,8 +23,7 @@
 @import './components/toast.css';
 @import './components/badge.css';
 @import './components/permission-matrix.css';
-@import './components/mobile-table.css';
-@import './components/mobile-forms.css';
+/* Mobile CSS split to separate entry (mobile.css) */
 
 @tailwind base;
 @tailwind components;

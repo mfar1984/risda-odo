@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Senarai Kumpulan">
     <x-ui.page-header
         title="Senarai Kumpulan"
@@ -49,7 +53,8 @@
             :reset-url="route('pengurusan.senarai-kumpulan')"
         />
 
-        <!-- Table -->
+        <!-- Desktop Table (Hidden on Mobile) -->
+        <div class="data-table-container">
         <x-ui.data-table
             :headers="[
                 ['label' => 'Nama Kumpulan', 'align' => 'text-left'],
@@ -75,8 +80,7 @@
                     <x-ui.action-buttons
                         :show-url="route('pengurusan.show-kumpulan', $group)"
                         :edit-url="route('pengurusan.edit-kumpulan', $group)"
-                        :delete-url="route('pengurusan.delete-kumpulan', $group)"
-                        :delete-confirm-message="'Adakah anda pasti untuk memadam ' . $group->nama_kumpulan . '?'"
+                        :delete-onclick="'deleteKumpulanItem(' . $group->id . ')'"
                     />
                 </td>
             </tr>
@@ -88,8 +92,48 @@
             </tr>
             @endforelse
         </x-ui.data-table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-table-card">
+            @forelse($kumpulans ?? [] as $group)
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">{{ $group->nama_kumpulan }}</div>
+                        <div class="mobile-card-badge"><x-ui.status-badge :status="$group->status" /></div>
+                    </div>
+                    <div class="mobile-card-body">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">description</span></span>
+                            <span class="mobile-card-value">{{ $group->keterangan ?? '-' }}</span>
+                        </div>
+                    </div>
+                    <div class="mobile-card-footer">
+                        <a href="{{ route('pengurusan.show-kumpulan', $group) }}" class="mobile-card-action mobile-action-view">
+                            <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                            <span class="mobile-card-action-label">Lihat</span>
+                        </a>
+                        <a href="{{ route('pengurusan.edit-kumpulan', $group) }}" class="mobile-card-action mobile-action-edit">
+                            <span class="material-symbols-outlined mobile-card-action-icon">edit</span>
+                            <span class="mobile-card-action-label">Edit</span>
+                        </a>
+                    </div>
+                </div>
+            @empty
+                <div class="mobile-empty-state">
+                    <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">shield_person</span>
+                    <p>Tiada kumpulan</p>
+                </div>
+            @endforelse
+        </div>
 
         <!-- Pagination -->
         <x-ui.pagination :paginator="$kumpulans" record-label="kumpulan" />
     </x-ui.page-header>
+
+    {{-- Centralized Delete Modal --}}
+    <x-modals.delete-confirmation-modal />
+
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>

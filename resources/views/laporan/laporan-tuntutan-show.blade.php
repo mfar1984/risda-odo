@@ -4,6 +4,10 @@
     $program = $tuntutan->logPemandu->program;
 @endphp
 
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Butiran Tuntutan">
     <x-ui.page-header
         title="Butiran Tuntutan: {{ $program->nama_program }}"
@@ -152,7 +156,7 @@
                         <img src="{{ $resitUrl }}" 
                              alt="Resit Tuntutan" 
                              class="max-w-full rounded-lg shadow-md hover:opacity-90 transition-opacity"
-                             style="max-width: 600px; max-height: 250px; object-fit: cover;">
+                             style="width: 100%; height: auto; max-height: 220px; object-fit: contain;">
                         <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-30 rounded-lg">
                             <span class="material-symbols-outlined text-white text-5xl">zoom_in</span>
                         </div>
@@ -171,6 +175,8 @@
                     <div class="text-xs text-gray-500">Jumlah rekod: {{ number_format($relatedClaims->count() + 1) }}</div>
                 </div>
 
+                <!-- Desktop Table -->
+                <div class="data-table-container">
                 <x-ui.data-table
                     :headers="[
                         ['label' => 'Tarikh', 'align' => 'text-left'],
@@ -251,6 +257,84 @@
                         @endif
                     @endforelse
                 </x-ui.data-table>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="mobile-table-card">
+                    <!-- Current Claim Highlight -->
+                    <div class="mobile-card" style="border-left: 3px solid #2563eb;">
+                        <div class="mobile-card-header">
+                            <div class="mobile-card-title">{{ $tuntutan->created_at->format('d/m/Y') }}</div>
+                            <div class="mobile-card-badge">
+                                <x-ui.status-badge 
+                                    :status="$tuntutan->status" 
+                                    :label="$tuntutan->status_label"
+                                    :color="$tuntutan->status_badge_color" 
+                                />
+                            </div>
+                        </div>
+                        <div class="mobile-card-body">
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label"><span class="material-symbols-outlined">person</span></span>
+                                <span class="mobile-card-value">{{ $tuntutan->logPemandu->pemandu->risdaStaf->nama_penuh ?? '-' }}<div class="mobile-card-value-secondary">{{ $tuntutan->logPemandu->pemandu->risdaStaf->no_pekerja ?? '-' }}</div></span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label"><span class="material-symbols-outlined">category</span></span>
+                                <span class="mobile-card-value">{{ $tuntutan->kategori_label }}</span>
+                            </div>
+                            <div class="mobile-card-row">
+                                <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
+                                <span class="mobile-card-value"><strong>RM {{ number_format($tuntutan->jumlah, 2) }}</strong></span>
+                            </div>
+                        </div>
+                        <div class="mobile-card-footer">
+                            <span class="mobile-card-action" style="color:#2563eb;">
+                                <span class="material-symbols-outlined mobile-card-action-icon">info</span>
+                                <span class="mobile-card-action-label">Tuntutan Semasa</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    @forelse($relatedClaims as $claim)
+                        <div class="mobile-card">
+                            <div class="mobile-card-header">
+                                <div class="mobile-card-title">{{ $claim->created_at->format('d/m/Y') }}</div>
+                                <div class="mobile-card-badge">
+                                    <x-ui.status-badge 
+                                        :status="$claim->status" 
+                                        :label="$claim->status_label"
+                                        :color="$claim->status_badge_color" 
+                                    />
+                                </div>
+                            </div>
+                            <div class="mobile-card-body">
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label"><span class="material-symbols-outlined">person</span></span>
+                                    <span class="mobile-card-value">{{ $claim->logPemandu->pemandu->risdaStaf->nama_penuh ?? '-' }}<div class="mobile-card-value-secondary">{{ $claim->logPemandu->pemandu->risdaStaf->no_pekerja ?? '-' }}</div></span>
+                                </div>
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label"><span class="material-symbols-outlined">category</span></span>
+                                    <span class="mobile-card-value">{{ $claim->kategori_label }}</span>
+                                </div>
+                                <div class="mobile-card-row">
+                                    <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
+                                    <span class="mobile-card-value"><strong>RM {{ number_format($claim->jumlah, 2) }}</strong></span>
+                                </div>
+                            </div>
+                            <div class="mobile-card-footer">
+                                <a href="{{ route('laporan.laporan-tuntutan.show', $claim->id) }}" class="mobile-card-action mobile-action-view">
+                                    <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                                    <span class="mobile-card-action-label">Lihat</span>
+                                </a>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="mobile-empty-state">
+                            <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">list_alt</span>
+                            <p>Tiada tuntutan lain</p>
+                        </div>
+                    @endforelse
+                </div>
             </x-ui.card>
 
             {{-- Processing Info Card (if processed) --}}
@@ -301,11 +385,11 @@
             @endif
 
             {{-- Action Buttons --}}
-            <div class="flex justify-end space-x-2">
+            <div class="flex flex-wrap justify-end gap-2 tuntutan-action-buttons">
                 {{-- Approve Button --}}
                 @if($tuntutan->canBeApproved() && Auth::user()->adaKebenaran('laporan_tuntutan', 'terima'))
                 <button onclick="approveItem({{ $tuntutan->id }})" 
-                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                        class="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-sm hover:bg-green-700 transition-colors"
                         title="Lulus Tuntutan">
                     <span class="material-symbols-outlined text-base mr-2">check_circle</span>
                     Lulus
@@ -315,7 +399,7 @@
                 {{-- Reject Button --}}
                 @if($tuntutan->canBeRejected() && Auth::user()->adaKebenaran('laporan_tuntutan', 'tolak'))
                 <button onclick="openRejectModal({{ $tuntutan->id }})" 
-                        class="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                        class="inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-sm hover:bg-orange-700 transition-colors"
                         title="Tolak Tuntutan">
                     <span class="material-symbols-outlined text-base mr-2">cancel</span>
                     Tolak
@@ -325,7 +409,7 @@
                 {{-- Cancel Button --}}
                 @if($tuntutan->canBeCancelled() && Auth::user()->adaKebenaran('laporan_tuntutan', 'gantung'))
                 <button onclick="openCancelModal({{ $tuntutan->id }})" 
-                        class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                        class="inline-flex items-center justify-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-sm hover:bg-red-700 transition-colors"
                         title="Batal Tuntutan">
                     <span class="material-symbols-outlined text-base mr-2">block</span>
                     Batal
@@ -334,8 +418,8 @@
 
                 {{-- Delete Button --}}
                 @if(Auth::user()->adaKebenaran('laporan_tuntutan', 'padam'))
-                <button onclick="deleteItem({{ $tuntutan->id }})" 
-                        class="inline-flex items-center px-4 py-2 bg-gray-700 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+                <button onclick="deleteTuntutanItem({{ $tuntutan->id }})" 
+                        class="inline-flex items-center justify-center px-4 py-2 bg-gray-700 text-white text-sm font-medium rounded-sm hover:bg-gray-800 transition-colors"
                         title="Padam Tuntutan">
                     <span class="material-symbols-outlined text-base mr-2">delete</span>
                     Padam
@@ -345,78 +429,25 @@
         </div>
     </x-ui.page-header>
 
-    {{-- Reject Modal --}}
-    <div id="rejectModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[1100] flex items-center justify-center">
-        <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3">
-                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Tolak Tuntutan</h3>
-                <form id="rejectForm" method="POST" action="{{ route('laporan.laporan-tuntutan.reject', $tuntutan->id) }}">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="alasan_tolak" class="block text-sm font-medium text-gray-700 mb-2">
-                            Alasan Penolakan: <span class="text-red-600">*</span>
-                        </label>
-                        <textarea id="alasan_tolak" name="alasan_tolak" rows="4" required minlength="10" maxlength="1000"
-                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                  placeholder="Sila berikan alasan penolakan (minimum 10 aksara)"></textarea>
-                        <p class="mt-2 text-xs text-orange-600">⚠️ Pemandu boleh edit & hantar semula</p>
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" onclick="closeRejectModal()"
-                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors">
-                            Batal
-                        </button>
-                        <button type="submit"
-                                class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors">
-                            Tolak Tuntutan
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    {{-- Centralized Modals --}}
+    <x-modals.approve-tuntutan-modal />
+    <x-modals.reject-tuntutan-modal />
+    <x-modals.cancel-tuntutan-modal />
+    <x-modals.delete-confirmation-modal />
 
-    {{-- Cancel Modal --}}
-    <div id="cancelModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-[1100] flex items-center justify-center">
-        <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3">
-                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Batal Tuntutan</h3>
-                <form id="cancelForm" method="POST" action="{{ route('laporan.laporan-tuntutan.cancel', $tuntutan->id) }}">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="alasan_gantung" class="block text-sm font-medium text-gray-700 mb-2">
-                            Alasan Pembatalan: <span class="text-red-600">*</span>
-                        </label>
-                        <textarea id="alasan_gantung" name="alasan_gantung" rows="4" required minlength="10" maxlength="1000"
-                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                  placeholder="Sila berikan alasan pembatalan (minimum 10 aksara)"></textarea>
-                        <p class="mt-2 text-sm text-red-600 font-medium">⚠️ AMARAN: Tindakan ini kekal! Pemandu tidak boleh edit.</p>
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" onclick="closeCancelModal()"
-                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors">
-                            Batal
-                        </button>
-                        <button type="submit"
-                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-                            Batal Tuntutan
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    {{-- Image Modal for Receipt (matching laporan-kos design) --}}
+    {{-- Image Modal for Receipt --}}
     <div id="imageModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
         <span onclick="closeImageModal()" style="position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
         <img id="modalImage" style="margin: auto; display: block; max-width: 90%; max-height: 90%; margin-top: 50px; cursor: zoom-in;" onclick="toggleZoom(this)">
         <div id="modalCaption" style="margin: auto; display: block; width: 80%; max-width: 700px; text-align: center; color: #ccc; padding: 10px 0; font-size: 16px;"></div>
     </div>
 
-    {{-- JavaScript for modals and actions --}}
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/tuntutan-actions.js')
+    @vite('resources/js/delete-actions.js')
+
+    {{-- Image Modal Functions --}}
     <script>
-        // Image Modal Functions (matching laporan-kos)
         let isZoomed = false;
         
         function openImageModal(imageSrc, caption) {
@@ -455,12 +486,10 @@
             }
         }
         
-        // Close modal on ESC key
+        // Close image modal on ESC key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closeImageModal();
-                closeRejectModal();
-                closeCancelModal();
             }
         });
         
@@ -471,145 +500,5 @@
             }
         });
 
-        // Approve
-        function approveItem(id) {
-            if (!confirm('Adakah anda pasti untuk meluluskan tuntutan ini?')) {
-                return;
-            }
-
-            fetch(`/laporan/laporan-tuntutan/${id}/approve`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    window.location.reload();
-                } else {
-                    alert(data.message || 'Ralat berlaku');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ralat berlaku. Sila cuba lagi.');
-            });
-        }
-
-        // Reject Modal
-        function openRejectModal(id) {
-            document.getElementById('alasan_tolak').value = '';
-            document.getElementById('rejectModal').classList.remove('hidden');
-        }
-
-        function closeRejectModal() {
-            document.getElementById('rejectModal').classList.add('hidden');
-        }
-
-        document.getElementById('rejectForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-
-            fetch(this.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    window.location.reload();
-                } else {
-                    alert(data.message || 'Ralat berlaku');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ralat berlaku. Sila cuba lagi.');
-            });
-        });
-
-        // Cancel Modal
-        function openCancelModal(id) {
-            document.getElementById('alasan_gantung').value = '';
-            document.getElementById('cancelModal').classList.remove('hidden');
-        }
-
-        function closeCancelModal() {
-            document.getElementById('cancelModal').classList.add('hidden');
-        }
-
-        document.getElementById('cancelForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-
-            fetch(this.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    window.location.reload();
-                } else {
-                    alert(data.message || 'Ralat berlaku');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ralat berlaku. Sila cuba lagi.');
-            });
-        });
-
-        // Delete
-        function deleteItem(id) {
-            if (!confirm('Adakah anda pasti untuk memadam tuntutan ini? Tindakan ini tidak boleh dibatalkan.')) {
-                return;
-            }
-
-            fetch(`/laporan/laporan-tuntutan/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    window.location.href = '/laporan/laporan-tuntutan';
-                } else {
-                    alert(data.message || 'Ralat berlaku');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ralat berlaku. Sila cuba lagi.');
-            });
-        }
-
-        // Close modals when clicking outside
-        window.onclick = function(event) {
-            const rejectModal = document.getElementById('rejectModal');
-            const cancelModal = document.getElementById('cancelModal');
-            
-            if (event.target == rejectModal) {
-                closeRejectModal();
-            }
-            if (event.target == cancelModal) {
-                closeCancelModal();
-            }
-        }
     </script>
 </x-dashboard-layout>

@@ -99,9 +99,12 @@
                         }
                     },
                     init() {
+                        // Initial fetch only; polling disabled by request
                         this.fetchNotifications();
-                        // Auto-refresh every 30 seconds (optimized for performance)
-                        setInterval(() => this.fetchNotifications(), 30000);
+                        // Fetch when dropdown is opened (on-demand)
+                        this.$watch('open', (value) => { if (value) { this.fetchNotifications(); } });
+                        // Fetch when window/tab gains focus (on-demand)
+                        window.addEventListener('focus', () => { this.fetchNotifications(); });
                     }
                 }" @click.away="open = false">
                     <button @click="open = !open" class="topbar-notification-btn">

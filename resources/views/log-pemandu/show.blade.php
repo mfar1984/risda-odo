@@ -289,14 +289,10 @@
                     @endif
 
                     @if(auth()->user()->adaKebenaran('log_pemandu_semua', 'padam'))
-                        <form action="{{ route('log-pemandu.destroy', $log) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam log ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <x-buttons.danger-button type="submit">
-                                <span class="material-symbols-outlined mr-2" style="font-size: 16px;">delete</span>
-                                Padam
-                            </x-buttons.danger-button>
-                        </form>
+                        <x-buttons.danger-button type="button" onclick="deleteLogPemanduItem({{ $log->id }})">
+                            <span class="material-symbols-outlined mr-2" style="font-size: 16px;">delete</span>
+                            Padam
+                        </x-buttons.danger-button>
                     @endif
                 </div>
             </div>
@@ -363,5 +359,11 @@
             }
         });
     </script>
+
+    {{-- Centralized Delete Modal --}}
+    <x-modals.delete-confirmation-modal />
+
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>
 

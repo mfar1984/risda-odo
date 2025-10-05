@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout 
     title="Tambah Kumpulan"
     description="Tambah kumpulan pengguna baru dengan kebenaran akses"
@@ -79,8 +83,8 @@
                 </div>
 
                 <!-- Permission Matrix Table -->
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-300 border border-gray-300">
+                <div class="overflow-x-auto permission-matrix-wrapper">
+                    <table class="min-w-full divide-y divide-gray-300 border border-gray-300 permission-matrix-table">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 11px !important; min-width: 200px;">
@@ -100,7 +104,7 @@
                                     {{ $moduleLabels[$module] ?? ucfirst(str_replace('_', ' ', $module)) }}
                                 </td>
                                 @foreach($permissionLabels as $action => $label)
-                                <td class="px-3 py-3 text-center border-r border-gray-300">
+                                <td class="px-3 py-3 text-center border-r border-gray-300" @if(isset($permissions[$action])) data-label="{{ $label }}" @endif>
                                     @if(isset($permissions[$action]))
                                     <input
                                         type="checkbox"

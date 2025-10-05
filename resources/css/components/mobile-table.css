@@ -15,6 +15,29 @@
        MOBILE VIEW (max-width: 768px)
        ======================================== */
     @media (max-width: 768px) {
+        /* ========================================
+           Permission Matrix (Tambah/Edit Kumpulan)
+           Show sticky header on mobile, keep table scrollable
+           ======================================== */
+        .permission-matrix-table td[data-label]::before {
+            content: attr(data-label);
+            color: #6b7280;
+            font-weight: 500;
+            font-family: Poppins, sans-serif !important;
+            font-size: 10px !important;
+            margin-right: 8px;
+            display: inline-block;
+        }
+
+        /* Hide helper label if no checkbox inside the cell */
+        .permission-matrix-table td:not([data-label])::before {
+            content: '' !important;
+            display: none !important;
+        }
+
+        .permission-matrix-table td[data-label] input[type="checkbox"] {
+            vertical-align: middle;
+        }
         /* Hide desktop table on mobile */
         .data-table-container table,
         .overflow-hidden.shadow.ring-1 {

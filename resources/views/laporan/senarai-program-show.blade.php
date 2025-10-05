@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Laporan Program">
     <x-ui.page-header
         title="Laporan Program: {{ $program->nama_program }}"

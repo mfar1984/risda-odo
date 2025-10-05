@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout
     title="Tambah Pengguna"
     description="Tambah pengguna baharu dalam sistem"

@@ -130,7 +130,7 @@ class TuntutanController extends Controller
     /**
      * Approve a claim
      */
-    public function approve(Tuntutan $tuntutan)
+    public function approve(Request $request, Tuntutan $tuntutan)
     {
         // Check permission
         if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'terima')) {
@@ -189,8 +189,8 @@ class TuntutanController extends Controller
                 ]
             );
 
-            // Log activity
-            activity()
+            // Log activity (tuntutan)
+            activity('tuntutan')
                 ->performedOn($tuntutan)
                 ->causedBy(Auth::user())
                 ->withProperties([
@@ -200,19 +200,26 @@ class TuntutanController extends Controller
                     'amount' => $tuntutan->jumlah,
                     'category' => $tuntutan->kategori_label,
                     'driver_id' => $driverId,
-                    'driver_name' => $tuntutan->logPemandu->pemandu->risdaStaf->nama ?? 'N/A',
+                    'driver_name' => ($tuntutan->logPemandu->pemandu->risdaStaf->nama_penuh ?? $tuntutan->logPemandu->pemandu->name) ?? 'N/A',
+                    'program_name' => $tuntutan->logPemandu->program->nama_program ?? 'N/A',
                     'old_status' => 'pending',
                     'new_status' => 'diluluskan',
+                    'approval_code' => $request->input('approval_code'),
                 ])
                 ->event('approved')
                 ->log("Tuntutan {$tuntutan->kategori_label} sebanyak RM {$tuntutan->jumlah} telah diluluskan");
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Tuntutan berjaya diluluskan'
-            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tuntutan berjaya diluluskan'
+                ]);
+            }
+
+            return redirect()->route('laporan.laporan-tuntutan')
+                ->with('success', 'Tuntutan berjaya diluluskan');
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -294,8 +301,8 @@ class TuntutanController extends Controller
                 ]
             );
 
-            // Log activity
-            activity()
+            // Log activity (tuntutan)
+            activity('tuntutan')
                 ->performedOn($tuntutan)
                 ->causedBy(Auth::user())
                 ->withProperties([
@@ -305,7 +312,8 @@ class TuntutanController extends Controller
                     'amount' => $tuntutan->jumlah,
                     'category' => $tuntutan->kategori_label,
                     'driver_id' => $driverId,
-                    'driver_name' => $tuntutan->logPemandu->pemandu->risdaStaf->nama ?? 'N/A',
+                    'driver_name' => ($tuntutan->logPemandu->pemandu->risdaStaf->nama_penuh ?? $tuntutan->logPemandu->pemandu->name) ?? 'N/A',
+                    'program_name' => $tuntutan->logPemandu->program->nama_program ?? 'N/A',
                     'old_status' => 'pending',
                     'new_status' => 'ditolak',
                     'rejection_reason' => $request->alasan_tolak,
@@ -315,10 +323,15 @@ class TuntutanController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Tuntutan berjaya ditolak. Pemandu boleh mengedit dan menghantar semula.'
-            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tuntutan berjaya ditolak. Pemandu boleh mengedit dan menghantar semula.'
+                ]);
+            }
+
+            return redirect()->route('laporan.laporan-tuntutan')
+                ->with('success', 'Tuntutan berjaya ditolak. Pemandu boleh mengedit dan menghantar semula.');
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -400,8 +413,8 @@ class TuntutanController extends Controller
                 ]
             );
 
-            // Log activity
-            activity()
+            // Log activity (tuntutan)
+            activity('tuntutan')
                 ->performedOn($tuntutan)
                 ->causedBy(Auth::user())
                 ->withProperties([
@@ -411,7 +424,8 @@ class TuntutanController extends Controller
                     'amount' => $tuntutan->jumlah,
                     'category' => $tuntutan->kategori_label,
                     'driver_id' => $driverId,
-                    'driver_name' => $tuntutan->logPemandu->pemandu->risdaStaf->nama ?? 'N/A',
+                    'driver_name' => ($tuntutan->logPemandu->pemandu->risdaStaf->nama_penuh ?? $tuntutan->logPemandu->pemandu->name) ?? 'N/A',
+                    'program_name' => $tuntutan->logPemandu->program->nama_program ?? 'N/A',
                     'old_status' => $tuntutan->getOriginal('status'),
                     'new_status' => 'digantung',
                     'cancellation_reason' => $request->alasan_gantung,
@@ -421,10 +435,15 @@ class TuntutanController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Tuntutan berjaya digantung. Pemandu tidak boleh mengedit tuntutan ini.'
-            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tuntutan berjaya digantung. Pemandu tidak boleh mengedit tuntutan ini.'
+                ]);
+            }
+
+            return redirect()->route('laporan.laporan-tuntutan')
+                ->with('success', 'Tuntutan berjaya digantung. Pemandu tidak boleh mengedit tuntutan ini.');
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -437,7 +456,7 @@ class TuntutanController extends Controller
     /**
      * Soft delete a claim
      */
-    public function destroy(Tuntutan $tuntutan)
+    public function destroy(Request $request, Tuntutan $tuntutan)
     {
         // Check permission
         if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'padam')) {
@@ -454,12 +473,13 @@ class TuntutanController extends Controller
             $claimCategory = $tuntutan->kategori_label;
             $claimStatus = $tuntutan->status;
             $driverId = $tuntutan->logPemandu->pemandu_id ?? null;
-            $driverName = $tuntutan->logPemandu->pemandu->risdaStaf->nama ?? 'N/A';
+            $driverName = ($tuntutan->logPemandu->pemandu->risdaStaf->nama_penuh ?? $tuntutan->logPemandu->pemandu->name) ?? 'N/A';
+            $programName = $tuntutan->logPemandu->program->nama_program ?? 'N/A';
 
             $tuntutan->delete(); // Soft delete
 
-            // Log activity
-            activity()
+            // Log activity (tuntutan)
+            activity('tuntutan')
                 ->causedBy(Auth::user())
                 ->withProperties([
                     'ip' => request()->ip(),
@@ -470,14 +490,21 @@ class TuntutanController extends Controller
                     'status' => $claimStatus,
                     'driver_id' => $driverId,
                     'driver_name' => $driverName,
+                    'program_name' => $programName,
+                    'delete_code' => $request->input('delete_code'),
                 ])
                 ->event('deleted')
                 ->log("Tuntutan {$claimCategory} sebanyak RM {$claimAmount} telah dipadam");
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Tuntutan berjaya dipadam'
-            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tuntutan berjaya dipadam'
+                ]);
+            }
+
+            return redirect()->route('laporan.laporan-tuntutan')
+                ->with('success', 'Tuntutan berjaya dipadam');
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -524,9 +551,9 @@ class TuntutanController extends Controller
         $total_diluluskan = $tuntutan->where('status', 'diluluskan')->sum('jumlah');
         $total_pending = $tuntutan->where('status', 'pending')->sum('jumlah');
 
-        // Log activity
+        // Log activity (tuntutan)
         $filename = 'laporan-tuntutan-' . now()->format('Y-m-d') . '.pdf';
-        activity()
+        activity('tuntutan')
             ->causedBy(Auth::user())
             ->withProperties([
                 'ip' => $request->ip(),

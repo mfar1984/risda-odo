@@ -82,8 +82,8 @@ class TetapanUmumController extends Controller
             }
         }
 
-        // Log activity
-        activity()
+        // Log activity (tetapan)
+        activity('tetapan')
             ->performedOn($tetapan)
             ->causedBy($user)
             ->withProperties([

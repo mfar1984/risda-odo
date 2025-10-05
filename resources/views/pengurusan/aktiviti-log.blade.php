@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Aktiviti Log">
     <div x-data="{ 
         showModal: false, 
@@ -44,7 +48,8 @@
             :reset-url="route('pengurusan.aktiviti-log')"
         />
 
-        <!-- Table -->
+        <!-- Desktop Table (Hidden on Mobile) -->
+        <div class="data-table-container">
         <x-ui.data-table
             :headers="[
                 ['label' => 'Pengguna', 'align' => 'text-left'],
@@ -151,6 +156,69 @@
             @empty
             @endforelse
         </x-ui.data-table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-table-card">
+            @forelse($activities as $activity)
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">{{ $activity->description }}</div>
+                        @if($activity->event)
+                        <div class="mobile-card-badge">
+                            <span class="inline-flex items-center h-5 px-2 text-[10px] font-medium rounded-sm"
+                                  style="font-family: Poppins, sans-serif !important;"
+                                  class="bg-gray-100 text-gray-800 border border-gray-200">
+                                {{ ucfirst($activity->event) }}
+                            </span>
+                        </div>
+                        @endif
+                    </div>
+                    <div class="mobile-card-body">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">person</span></span>
+                            <span class="mobile-card-value">{{ $activity->causer->name ?? 'Sistem' }}<div class="mobile-card-value-secondary">{{ $activity->causer->email ?? 'N/A' }}</div></span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">category</span></span>
+                            <span class="mobile-card-value">{{ class_basename($activity->subject_type ?? 'N/A') }}<div class="mobile-card-value-secondary">ID: {{ $activity->subject_id ?? 'N/A' }}</div></span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">today</span></span>
+                            <span class="mobile-card-value">{{ $activity->created_at->format('d/m/Y') }}<div class="mobile-card-value-secondary">{{ $activity->created_at->format('H:i:s') }}</div></span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">wifi</span></span>
+                            <span class="mobile-card-value">{{ $activity->properties['ip'] ?? 'N/A' }}</span>
+                        </div>
+                    </div>
+                    <div class="mobile-card-footer">
+                        <button type="button" @click="openModal({
+                            id: @js((string) $activity->id),
+                            causer_name: @js($activity->causer->name ?? 'Sistem'),
+                            causer_email: @js($activity->causer->email ?? 'N/A'),
+                            description: @js($activity->description),
+                            event: @js($activity->event ?? 'N/A'),
+                            subject_type: @js(class_basename($activity->subject_type ?? 'N/A')),
+                            subject_id: @js($activity->subject_id ?? 'N/A'),
+                            log_name: @js($activity->log_name ?? 'default'),
+                            ip: @js($activity->properties['ip'] ?? 'N/A'),
+                            user_agent: @js($activity->properties['user_agent'] ?? 'N/A'),
+                            created_at: @js($activity->created_at->format('d/m/Y H:i:s')), 
+                            properties: @js($activity->properties ?? [])
+                        })" class="mobile-card-action mobile-action-view">
+                            <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                            <span class="mobile-card-action-label">Butiran</span>
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <div class="mobile-empty-state">
+                    <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">article</span>
+                    <p>Tiada rekod aktiviti</p>
+                </div>
+            @endforelse
+        </div>
 
         <!-- Pagination (exactly like log-pemandu) -->
         <div class="mt-6">
@@ -255,34 +323,519 @@
                                         <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Email</div>
                                         <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.causer_email"></div>
                                     </div>
-                                    <div>
-                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Kategori Log</div>
-                                        <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.log_name"></div>
-                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Model Info Section (conditional) -->
-                            <template x-if="(selectedActivity.subject_type && selectedActivity.subject_type !== 'N/A') || (selectedActivity.subject_id && selectedActivity.subject_id !== 'N/A')">
+                            <!-- Context Info Section (Adaptive based on log_name) -->
+                            <template x-if="selectedActivity.properties && Object.keys(selectedActivity.properties).length > 2">
                             <div>
                                 <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
-                                    <span class="material-symbols-outlined text-gray-600 text-[16px]">category</span>
+                                    <span class="material-symbols-outlined text-gray-600 text-[16px]" 
+                                          x-text="selectedActivity.log_name === 'program' ? 'event' : 
+                                                  selectedActivity.log_name === 'kenderaan' ? 'directions_car' :
+                                                  selectedActivity.log_name === 'tuntutan' ? 'receipt_long' :
+                                                  selectedActivity.log_name === 'kumpulan' ? 'groups' :
+                                                  selectedActivity.log_name === 'pengguna' ? 'account_circle' :
+                                                  selectedActivity.log_name === 'integrasi' ? 'sync_alt' :
+                                                  selectedActivity.log_name === 'risda' ? 'apartment' :
+                                                  selectedActivity.log_name === 'log_pemandu' ? 'local_taxi' :
+                                                  selectedActivity.log_name === 'tetapan' ? 'settings' :
+                                                  selectedActivity.log_name === 'authentication' ? 'lock' :
+                                                  'info'"></span>
                                     <h4 class="text-[11px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">
-                                        Maklumat Model
+                                        Maklumat <span x-text="selectedActivity.log_name === 'program' ? 'Program' : 
+                                                            selectedActivity.log_name === 'kenderaan' ? 'Kenderaan' :
+                                                            selectedActivity.log_name === 'tuntutan' ? 'Tuntutan' :
+                                                            selectedActivity.log_name === 'kumpulan' ? 'Kumpulan' :
+                                                            selectedActivity.log_name === 'pengguna' ? 'Pengguna' :
+                                                            selectedActivity.log_name === 'integrasi' ? 'Integrasi' :
+                                                            selectedActivity.log_name === 'risda' ? 'RISDA' :
+                                                            selectedActivity.log_name === 'log_pemandu' ? 'Log Pemandu' :
+                                                            selectedActivity.log_name === 'tetapan' ? 'Tetapan' :
+                                                            selectedActivity.log_name === 'authentication' ? 'Akses' :
+                                                            'Tambahan'"></span>
                                     </h4>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4">
-
-                                    <template x-if="selectedActivity.subject_type && selectedActivity.subject_type !== 'N/A'">
-                                        <div>
-                                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Jenis Model</div>
-                                            <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.subject_type"></div>
+                                
+                                <!-- Adaptive Content based on log_name -->
+                                <div class="space-y-3">
+                                    <!-- Program specific fields -->
+                                    <template x-if="selectedActivity.log_name === 'program'">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <template x-if="selectedActivity.properties.program_name">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Nama Program</div>
+                                                    <div class="text-[11px] font-semibold text-indigo-700" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.program_name"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.pemohon_nama">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Pemohon</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.pemohon_nama"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.pemandu_nama">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Pemandu</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.pemandu_nama"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.kenderaan_plat">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Kenderaan</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.kenderaan_plat"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.lokasi">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Lokasi</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.lokasi"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.tarikh_mula">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Tarikh Mula</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.tarikh_mula"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.status">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Status</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.status"></div>
+                                                </div>
+                                            </template>
                                         </div>
                                     </template>
-                                    <template x-if="selectedActivity.subject_id && selectedActivity.subject_id !== 'N/A'">
-                                        <div>
-                                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">ID Model</div>
-                                            <div class="text-[11px] font-medium text-gray-900 font-mono" style="font-family: 'Courier New', monospace !important;" x-text="selectedActivity.subject_id"></div>
+
+                                    <!-- Tuntutan specific fields -->
+                                    <template x-if="selectedActivity.log_name === 'tuntutan'">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <template x-if="selectedActivity.properties.program_name">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Program</div>
+                                                    <div class="text-[11px] font-semibold text-indigo-700" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.program_name"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.category">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Kategori</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.category"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.amount">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Jumlah</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="'RM ' + Number(selectedActivity.properties.amount).toFixed(2)"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.driver_name">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Pemandu</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.driver_name"></div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Log Pemandu specific fields -->
+                                    <template x-if="selectedActivity.log_name === 'log_pemandu'">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <template x-if="selectedActivity.properties.program_name">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Program</div>
+                                                    <div class="text-[11px] font-semibold text-indigo-700" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.program_name"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.driver_name">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Pemandu</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.driver_name"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.vehicle_plate">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Kenderaan</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.vehicle_plate"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.tarikh_perjalanan">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Tarikh</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.tarikh_perjalanan"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.masa_keluar">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Masa Keluar</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.masa_keluar"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.masa_masuk">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Masa Masuk</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.masa_masuk"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.odometer_keluar">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Odometer Keluar</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.odometer_keluar"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.odometer_masuk">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Odometer Masuk</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.odometer_masuk"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.jarak">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Jarak</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.jarak + ' km'"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.liter_minyak">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Isi Minyak</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.liter_minyak + ' L'"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedActivity.properties.kos_minyak">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Kos Minyak</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="'RM ' + Number(selectedActivity.properties.kos_minyak).toFixed(2)"></div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Kumpulan specific fields -->
+                                    <template x-if="selectedActivity.log_name === 'kumpulan'">
+                                        <div class="space-y-4">
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <template x-if="selectedActivity.properties.group_name">
+                                                    <div>
+                                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Nama Kumpulan</div>
+                                                        <div class="text-[11px] font-semibold text-indigo-700" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.group_name"></div>
+                                                    </div>
+                                                </template>
+                                                <template x-if="selectedActivity.properties.new_status">
+                                                    <div>
+                                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Status</div>
+                                                        <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.new_status"></div>
+                                                    </div>
+                                                </template>
+                                            </div>
+
+                                            <!-- On created: list of granted permissions -->
+                                            <template x-if="selectedActivity.event === 'created' && selectedActivity.properties.permissions_granted_detailed && selectedActivity.properties.permissions_granted_detailed.length">
+                                                <div class="bg-green-50 border border-green-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-green-900 mb-2" style="font-family: Poppins, sans-serif !important;">Kebenaran Ditetapkan</div>
+                                                    <ul class="list-disc ml-5 space-y-1">
+                                                        <template x-for="perm in selectedActivity.properties.permissions_granted_detailed" :key="perm.module + '-' + perm.action">
+                                                            <li class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                                                <span class="font-medium" x-text="perm.module_label"></span>
+                                                                <span class="mx-1">•</span>
+                                                                <span x-text="perm.action_label"></span>
+                                                                <span class="ml-2 inline-flex items-center px-1.5 rounded-sm text-[10px] bg-green-100 text-green-800 border border-green-200">Grant</span>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                </div>
+                                            </template>
+
+                                            <!-- On updated: list of permission changes -->
+                                            <template x-if="selectedActivity.event === 'updated' && selectedActivity.properties.permission_changes_detailed && selectedActivity.properties.permission_changes_detailed.length">
+                                                <div class="bg-blue-50 border border-blue-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-blue-900 mb-2" style="font-family: Poppins, sans-serif !important;">Perubahan Kebenaran</div>
+                                                    <ul class="list-disc ml-5 space-y-1">
+                                                        <template x-for="chg in selectedActivity.properties.permission_changes_detailed" :key="chg.module + '-' + chg.action">
+                                                            <li class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                                                <span class="font-medium" x-text="chg.module_label"></span>
+                                                                <span class="mx-1">•</span>
+                                                                <span x-text="chg.action_label"></span>
+                                                                <span class="ml-2 inline-flex items-center px-1.5 rounded-sm text-[10px]" :class="chg.change === 'grant' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'" x-text="chg.change === 'grant' ? 'Grant' : 'Revoke'"></span>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                    <div class="mt-2 text-[10px] text-blue-900" style="font-family: Poppins, sans-serif !important;" x-show="selectedActivity.properties.granted_before !== undefined">
+                                                        Jumlah kebenaran: <span class="font-semibold" x-text="selectedActivity.properties.granted_before"></span> → <span class="font-semibold" x-text="selectedActivity.properties.granted_after"></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Pengguna specific fields -->
+                                    <template x-if="selectedActivity.log_name === 'pengguna'">
+                                        <div class="space-y-4">
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Nama</div>
+                                                    <div class="text-[11px] font-semibold text-indigo-700" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.user_name"></div>
+                                                </div>
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Email</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.user_email"></div>
+                                                </div>
+                                                <template x-if="selectedActivity.properties.group_name || selectedActivity.properties.group_name_after">
+                                                    <div>
+                                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Kumpulan</div>
+                                                        <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                                            <template x-if="selectedActivity.event === 'created'">
+                                                                <span x-text="selectedActivity.properties.group_name || '-' "></span>
+                                                            </template>
+                                                            <template x-if="selectedActivity.event === 'updated'">
+                                                                <span x-text="selectedActivity.properties.group_name_before || '-' "></span>
+                                                                <span class="mx-1 text-blue-600">→</span>
+                                                                <span class="font-semibold" x-text="selectedActivity.properties.group_name_after || '-' "></span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Status</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.status || selectedActivity.properties.changes?.status?.new"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Perubahan Medan -->
+                                            <template x-if="selectedActivity.event === 'updated' && selectedActivity.properties.total_fields_changed">
+                                                <div class="bg-blue-50 border border-blue-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-blue-900 mb-2" style="font-family: Poppins, sans-serif !important;">Perubahan Maklumat Pengguna</div>
+                                                    <div class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                                        <template x-if="selectedActivity.properties.changes?.name">
+                                                            <div>Nama: <span class="text-gray-600" x-text="selectedActivity.properties.changes.name.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.name.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.changes?.email">
+                                                            <div>Email: <span class="text-gray-600" x-text="selectedActivity.properties.changes.email.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.email.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.changes?.status">
+                                                            <div>Status: <span class="text-gray-600" x-text="selectedActivity.properties.changes.status.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.status.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.changes?.jenis_organisasi">
+                                                            <div>Jenis Organisasi: <span class="text-gray-600" x-text="selectedActivity.properties.changes.jenis_organisasi.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.jenis_organisasi.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.changes?.organisasi_id">
+                                                            <div>Organisasi ID: <span class="text-gray-600" x-text="selectedActivity.properties.changes.organisasi_id.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.organisasi_id.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.changes?.stesen_akses_ids">
+                                                            <div>Stesen Akses: <span class="text-gray-600" x-text="JSON.stringify(selectedActivity.properties.changes.stesen_akses_ids.old || [])"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="JSON.stringify(selectedActivity.properties.changes.stesen_akses_ids.new || [])"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.password_changed">
+                                                            <div class="text-red-700">Kata Laluan: Ditukar</div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Kenderaan specific fields -->
+                                    <template x-if="selectedActivity.log_name === 'kenderaan'">
+                                        <div class="space-y-4">
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">No. Plat</div>
+                                                    <div class="text-[11px] font-semibold text-indigo-700" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.no_plat"></div>
+                                                </div>
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Jenama/Model</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="(selectedActivity.properties.jenama || '') + ' ' + (selectedActivity.properties.model || '')"></div>
+                                                </div>
+                                                <template x-if="selectedActivity.properties.cukai_tamat_tempoh">
+                                                    <div>
+                                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Cukai Tamat Tempoh</div>
+                                                        <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.cukai_tamat_tempoh"></div>
+                                                    </div>
+                                                </template>
+                                                <template x-if="selectedActivity.properties.tarikh_pendaftaran">
+                                                    <div>
+                                                        <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Tarikh Pendaftaran</div>
+                                                        <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.tarikh_pendaftaran"></div>
+                                                    </div>
+                                                </template>
+                                            </div>
+
+                                            <!-- Perubahan Kenderaan -->
+                                            <template x-if="selectedActivity.event === 'updated' && selectedActivity.properties.changes">
+                                                <div class="bg-blue-50 border border-blue-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-blue-900 mb-2" style="font-family: Poppins, sans-serif !important;">Perubahan Kenderaan</div>
+                                                    <div class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                                        <template x-if="selectedActivity.properties.changes.no_plat">
+                                                            <div>No. Plat: <span class="text-gray-600" x-text="selectedActivity.properties.changes.no_plat.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.no_plat.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.changes.status">
+                                                            <div>Status: <span class="text-gray-600" x-text="selectedActivity.properties.changes.status.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.status.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.changes.cukai_tamat_tempoh">
+                                                            <div>Cukai Tamat Tempoh: <span class="text-gray-600" x-text="selectedActivity.properties.changes.cukai_tamat_tempoh.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.cukai_tamat_tempoh.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.new_documents && selectedActivity.properties.new_documents.length">
+                                                            <div>Dokumen Baharu: <span class="font-medium" x-text="selectedActivity.properties.new_documents.join(', ')"></span></div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Integrasi specific fields -->
+                                    <template x-if="selectedActivity.log_name === 'integrasi'">
+                                        <div class="space-y-4">
+                                            <!-- API Token generated -->
+                                            <template x-if="selectedActivity.event === 'generated_token'">
+                                                <div class="bg-purple-50 border border-purple-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-purple-900 mb-2" style="font-family: Poppins, sans-serif !important;">API Token Dijana</div>
+                                                    <div class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                                        <div>Token Lama: <span class="font-mono" x-text="selectedActivity.properties.old_token_masked || '-' "></span></div>
+                                                        <div>Token Baharu: <span class="font-mono" x-text="selectedActivity.properties.new_token_masked"></span></div>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- CORS updated -->
+                                            <template x-if="selectedActivity.event === 'updated_cors'">
+                                                <div class="bg-indigo-50 border border-indigo-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-indigo-900 mb-2" style="font-family: Poppins, sans-serif !important;">CORS Dikemaskini</div>
+                                                    <div class="text-[11px] text-gray-900 space-y-1" style="font-family: Poppins, sans-serif !important;">
+                                                        <div>Allow All: <span class="text-gray-600" x-text="selectedActivity.properties.old_allow_all"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.new_allow_all"></span></div>
+                                                        <div>Origins Lama: <span class="text-gray-600" x-text="JSON.stringify(selectedActivity.properties.old_origins || [])"></span></div>
+                                                        <div>Origins Baharu: <span class="font-semibold" x-text="JSON.stringify(selectedActivity.properties.new_origins || [])"></span></div>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Cuaca updated -->
+                                            <template x-if="selectedActivity.event === 'updated_weather'">
+                                                <div class="bg-sky-50 border border-sky-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-sky-900 mb-2" style="font-family: Poppins, sans-serif !important;">Konfigurasi Cuaca</div>
+                                                    <div class="text-[11px] text-gray-900 space-y-1" style="font-family: Poppins, sans-serif !important;">
+                                                        <template x-if="selectedActivity.properties.changes?.location">
+                                                            <div>Lokasi: <span class="text-gray-600" x-text="selectedActivity.properties.changes.location.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.location.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.changes?.units">
+                                                            <div>Unit: <span class="text-gray-600" x-text="selectedActivity.properties.changes.units.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.units.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.api_key_changed">
+                                                            <div class="text-amber-700">API Key: Ditukar</div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Email updated -->
+                                            <template x-if="selectedActivity.event === 'updated_email'">
+                                                <div class="bg-rose-50 border border-rose-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-rose-900 mb-2" style="font-family: Poppins, sans-serif !important;">Konfigurasi Email</div>
+                                                    <div class="text-[11px] text-gray-900 space-y-1" style="font-family: Poppins, sans-serif !important;">
+                                                        <template x-if="selectedActivity.properties.changes?.smtp_host">
+                                                            <div>SMTP Host: <span class="text-gray-600" x-text="selectedActivity.properties.changes.smtp_host.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.smtp_host.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.changes?.smtp_port">
+                                                            <div>SMTP Port: <span class="text-gray-600" x-text="selectedActivity.properties.changes.smtp_port.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.smtp_port.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.changes?.smtp_from_address">
+                                                            <div>From Address: <span class="text-gray-600" x-text="selectedActivity.properties.changes.smtp_from_address.old"></span> <span class="mx-1 text-blue-600">→</span> <span class="font-semibold" x-text="selectedActivity.properties.changes.smtp_from_address.new"></span></div>
+                                                        </template>
+                                                        <template x-if="selectedActivity.properties.password_changed">
+                                                            <div class="text-red-700">Kata Laluan SMTP: Ditukar</div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- RISDA (Bahagian/Stesen/Staf) specific fields -->
+                                    <template x-if="selectedActivity.log_name === 'risda'">
+                                        <div class="space-y-4">
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Entiti</div>
+                                                    <div class="text-[11px] font-semibold text-indigo-700" style="font-family: Poppins, sans-serif !important;" x-text="(selectedActivity.properties.entity || '').toUpperCase()"></div>
+                                                </div>
+                                                <div>
+                                                    <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Nama</div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.nama_bahagian || selectedActivity.properties.nama_stesen || selectedActivity.properties.nama_penuh || '-' "></div>
+                                                </div>
+                                            </div>
+
+                                            <template x-if="selectedActivity.event === 'updated' && selectedActivity.properties.changes && Object.keys(selectedActivity.properties.changes).length">
+                                                <div class="bg-blue-50 border border-blue-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-blue-900 mb-2" style="font-family: Poppins, sans-serif !important;">Perubahan Butiran</div>
+                                                    <div class="text-[11px] text-gray-900 space-y-1" style="font-family: Poppins, sans-serif !important;">
+                                                        <template x-for="(chg, key) in selectedActivity.properties.changes" :key="key">
+                                                            <div>
+                                                                <span class="capitalize" x-text="key.replace(/_/g,' ')"></span>:
+                                                                <span class="text-gray-600" x-text="String(chg.old)"></span>
+                                                                <span class="mx-1 text-blue-600">→</span>
+                                                                <span class="font-semibold" x-text="String(chg.new)"></span>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Tetapan Umum specific fields -->
+                                    <template x-if="selectedActivity.log_name === 'tetapan'">
+                                        <div class="space-y-3">
+                                            <div>
+                                                <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Nama Sistem</div>
+                                                <div class="text-[11px] font-semibold text-indigo-700" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.system_name"></div>
+                                            </div>
+                                            <template x-if="selectedActivity.properties.total_fields_changed !== undefined">
+                                                <div class="bg-yellow-50 border border-yellow-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-yellow-900 mb-1" style="font-family: Poppins, sans-serif !important;">Medan Dikemaskini</div>
+                                                    <div class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.total_fields_changed + ' medan ditukar'"></div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Show status change for update/approve/reject events -->
+                                    <template x-if="(selectedActivity.event === 'updated' || selectedActivity.event === 'approved' || selectedActivity.event === 'rejected') && selectedActivity.properties.old_status && selectedActivity.properties.new_status">
+                                        <div class="bg-blue-50 border border-blue-200 rounded-sm p-3">
+                                            <div class="text-[10px] font-semibold text-blue-900 mb-2" style="font-family: Poppins, sans-serif !important;">
+                                                📝 Perubahan Status
+                                            </div>
+                                            <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                                <span class="text-gray-600" x-text="selectedActivity.properties.old_status"></span>
+                                                <span class="mx-2 text-blue-600">→</span>
+                                                <span class="text-blue-700 font-semibold" x-text="selectedActivity.properties.new_status"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Show approval code -->
+                                    <template x-if="selectedActivity.event === 'approved' && selectedActivity.properties.approval_code">
+                                        <div class="bg-green-50 border border-green-200 rounded-sm p-3">
+                                            <div class="text-[10px] font-semibold text-green-900 mb-2" style="font-family: Poppins, sans-serif !important;">
+                                                ✅ Kod Kelulusan
+                                            </div>
+                                            <div class="text-[14px] font-bold text-green-700 font-mono tracking-widest" style="font-family: 'Courier New', monospace !important;" x-text="selectedActivity.properties.approval_code"></div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Show rejection code -->
+                                    <template x-if="selectedActivity.event === 'rejected' && selectedActivity.properties.reject_code">
+                                        <div class="bg-orange-50 border border-orange-200 rounded-sm p-3">
+                                            <div class="text-[10px] font-semibold text-orange-900 mb-2" style="font-family: Poppins, sans-serif !important;">
+                                                ❌ Kod Penolakan
+                                            </div>
+                                            <div class="text-[14px] font-bold text-orange-700 font-mono tracking-widest" style="font-family: 'Courier New', monospace !important;" x-text="selectedActivity.properties.reject_code"></div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Show delete code -->
+                                    <template x-if="selectedActivity.event === 'deleted' && selectedActivity.properties.delete_code">
+                                        <div class="bg-gray-100 border border-gray-300 rounded-sm p-3">
+                                            <div class="text-[10px] font-semibold text-gray-900 mb-2" style="font-family: Poppins, sans-serif !important;">
+                                                🗑️ Kod Pemadaman
+                                            </div>
+                                            <div class="text-[14px] font-bold text-gray-700 font-mono tracking-widest" style="font-family: 'Courier New', monospace !important;" x-text="selectedActivity.properties.delete_code"></div>
                                         </div>
                                     </template>
                                 </div>

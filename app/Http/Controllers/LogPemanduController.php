@@ -225,21 +225,80 @@ class LogPemanduController extends Controller
             'lokasi_checkout_long' => 'nullable|numeric',
         ]);
 
+        $oldStatus = $logPemandu->status;
+
         $logPemandu->fill($data);
         $logPemandu->dikemaskini_oleh = $user->id;
         $logPemandu->save();
+
+        // Activity log: updated
+        $logPemandu->load(['pemandu', 'kenderaan', 'program']);
+        activity('log_pemandu')
+            ->performedOn($logPemandu)
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'log_id' => $logPemandu->id,
+                'driver_name' => $logPemandu->pemandu->name ?? 'N/A',
+                'vehicle_plate' => $logPemandu->kenderaan->no_plat ?? 'N/A',
+                'program_name' => $logPemandu->program->nama_program ?? 'N/A',
+                'tarikh_perjalanan' => optional($logPemandu->tarikh_perjalanan)->format('d/m/Y'),
+                'masa_keluar' => $logPemandu->masa_keluar?->format('H:i'),
+                'masa_masuk' => $logPemandu->masa_masuk?->format('H:i'),
+                'odometer_keluar' => $logPemandu->odometer_keluar,
+                'odometer_masuk' => $logPemandu->odometer_masuk,
+                'jarak' => $logPemandu->jarak,
+                'liter_minyak' => $logPemandu->liter_minyak,
+                'kos_minyak' => $logPemandu->kos_minyak,
+                'stesen_minyak' => $logPemandu->stesen_minyak,
+                'lokasi_checkin_lat' => $logPemandu->lokasi_checkin_lat,
+                'lokasi_checkin_long' => $logPemandu->lokasi_checkin_long,
+                'lokasi_checkout_lat' => $logPemandu->lokasi_checkout_lat,
+                'lokasi_checkout_long' => $logPemandu->lokasi_checkout_long,
+                'old_status' => $oldStatus,
+                'new_status' => $logPemandu->status,
+            ])
+            ->event('updated')
+            ->log("Log pemandu {$logPemandu->id} dikemaskini");
 
         return redirect()->route('log-pemandu.index', ['tab' => $logPemandu->status === 'dalam_perjalanan' ? 'aktif' : ($logPemandu->status === 'selesai' ? 'selesai' : 'tertunda')])
             ->with('success', 'Log pemandu berjaya dikemaskini.');
     }
 
-    public function destroy(LogPemandu $logPemandu)
+    public function destroy(Request $request, LogPemandu $logPemandu)
     {
         $user = request()->user();
         $this->ensurePermission($user, 'padam', $logPemandu);
         $this->ensureLogAccessible($logPemandu, $user);
 
+        $logId = $logPemandu->id;
+        $vehiclePlate = optional($logPemandu->kenderaan)->no_plat;
+        $programName = optional($logPemandu->program)->nama_program;
+        $deleteCode = $request->input('delete_code');
+
         $logPemandu->delete();
+
+        // Activity log: deleted
+        activity('log_pemandu')
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'log_id' => $logId,
+                'vehicle_plate' => $vehiclePlate,
+                'program_name' => $programName,
+                'delete_code' => $deleteCode,
+            ])
+            ->event('deleted')
+            ->log("Log pemandu {$logId} dipadam");
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Log pemandu berjaya dipadam.'
+            ]);
+        }
 
         return redirect()->route('log-pemandu.index')
             ->with('success', 'Log pemandu berjaya dipadam.');

@@ -124,14 +124,21 @@ class ProgramController extends Controller
         $program = Program::create($data);
 
         // Log activity
-        activity()
+        activity('program')
             ->performedOn($program)
             ->causedBy($currentUser)
             ->withProperties([
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'program_name' => $program->nama_program,
+                'pemohon_nama' => $program->pemohon->nama_penuh ?? 'N/A',
+                'pemandu_nama' => $program->pemandu->nama_penuh ?? 'N/A',
+                'kenderaan_plat' => $program->kenderaan ? $program->kenderaan->no_plat : 'N/A',
+                'lokasi' => $program->lokasi_program,
+                'tarikh_mula' => $program->tarikh_mula?->format('d/m/Y H:i'),
+                'tarikh_selesai' => $program->tarikh_selesai?->format('d/m/Y H:i'),
                 'status' => $program->status,
+                'anggaran_km' => $program->jarak_anggaran,
             ])
             ->event('created')
             ->log("Program '{$program->nama_program}' telah dicipta");
@@ -285,16 +292,25 @@ class ProgramController extends Controller
         $program->delete();
 
         // Log activity
-        activity()
+        activity('program')
             ->causedBy(auth()->user())
             ->withProperties([
                 'ip' => request()->ip(),
                 'user_agent' => request()->userAgent(),
                 'program_id' => $programId,
                 'program_name' => $programName,
+                'delete_code' => request()->input('delete_code'),
             ])
             ->event('deleted')
             ->log("Program '{$programName}' telah dipadam");
+
+        // Return JSON for AJAX, redirect for normal form
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Program berjaya dipadam.'
+            ]);
+        }
 
         return redirect()->route('program.index')
             ->with('success', 'Program berjaya dipadam.');
@@ -392,7 +408,7 @@ class ProgramController extends Controller
     /**
      * Approve a program (change status from 'draf' to 'lulus').
      */
-    public function approve(Program $program)
+    public function approve(Request $request, Program $program)
     {
         // Check access permission
         $this->checkProgramAccess($program);
@@ -444,19 +460,33 @@ class ProgramController extends Controller
         }
 
         // Log activity
-        activity()
+        activity('program')
             ->performedOn($program)
             ->causedBy(auth()->user())
             ->withProperties([
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
                 'program_name' => $program->nama_program,
+                'pemohon_nama' => $program->pemohon->nama_penuh ?? 'N/A',
+                'pemandu_nama' => $program->pemandu->nama_penuh ?? 'N/A',
+                'kenderaan_plat' => $program->kenderaan ? $program->kenderaan->no_plat : 'N/A',
+                'lokasi' => $program->lokasi_program,
+                'tarikh_mula' => $program->tarikh_mula?->format('d/m/Y H:i'),
                 'old_status' => 'draf',
                 'new_status' => 'lulus',
-                'approved_at' => $program->tarikh_kelulusan,
+                'approval_code' => $request->input('approval_code'),
+                'approved_at' => $program->tarikh_kelulusan?->format('d/m/Y H:i'),
             ])
             ->event('approved')
             ->log("Program '{$program->nama_program}' telah diluluskan");
+
+        // Return JSON for AJAX, redirect for normal form
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Program '{$program->nama_program}' berjaya diluluskan."
+            ]);
+        }
 
         return redirect()->route('program.index')
             ->with('success', "Program '{$program->nama_program}' berjaya diluluskan.");
@@ -465,7 +495,7 @@ class ProgramController extends Controller
     /**
      * Reject a program (change status from 'draf' to 'tolak').
      */
-    public function reject(Program $program)
+    public function reject(Request $request, Program $program)
     {
         // Check access permission
         $this->checkProgramAccess($program);
@@ -482,18 +512,29 @@ class ProgramController extends Controller
         ]);
 
         // Log activity
-        activity()
+        activity('program')
             ->performedOn($program)
             ->causedBy(auth()->user())
             ->withProperties([
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
                 'program_name' => $program->nama_program,
+                'pemohon_nama' => $program->pemohon->nama_penuh ?? 'N/A',
+                'lokasi' => $program->lokasi_program,
                 'old_status' => 'draf',
                 'new_status' => 'tolak',
+                'reject_code' => $request->input('reject_code'),
             ])
             ->event('rejected')
             ->log("Program '{$program->nama_program}' telah ditolak");
+
+        // Return JSON for AJAX, redirect for normal form
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Program '{$program->nama_program}' berjaya ditolak."
+            ]);
+        }
 
         return redirect()->route('program.index')
             ->with('success', "Program '{$program->nama_program}' berjaya ditolak.");

@@ -209,6 +209,20 @@ class PemanduController extends Controller
 
         $filename = 'laporan-pemandu-' . str($driver->name)->slug('-') . '.pdf';
 
+        // Log activity (export driver report)
+        activity('pemandu')
+            ->performedOn($driver)
+            ->causedBy($request->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'driver_name' => $driver->name,
+                'filename' => $filename,
+                'format' => 'pdf',
+            ])
+            ->event('exported')
+            ->log("Laporan pemandu '{$driver->name}' dieksport ke PDF");
+
         return $pdf->download($filename);
     }
 

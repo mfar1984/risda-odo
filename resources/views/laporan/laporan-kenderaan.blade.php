@@ -17,6 +17,10 @@
     ], $overallStats ?? []);
 @endphp
 
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Laporan Kenderaan">
     <x-ui.page-header
         title="Laporan Kenderaan"
@@ -91,6 +95,8 @@
             :reset-url="route('laporan.laporan-kenderaan')"
         />
 
+        <!-- Desktop Table (Hidden on Mobile) -->
+        <div class="data-table-container">
         <x-ui.data-table
             :headers="[
                 ['label' => 'Kenderaan', 'align' => 'text-left'],
@@ -168,6 +174,88 @@
                 </tr>
             @endforelse
         </x-ui.data-table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-table-card">
+            @forelse($vehiclesCollection as $vehicle)
+                @php
+                    $stats = $vehicleData->get($vehicle->id);
+                @endphp
+
+                <div class="mobile-card">
+                    <!-- Header: No. Plat + Status -->
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">
+                            {{ $vehicle->no_plat }}
+                            <div class="mobile-card-value-secondary">{{ trim(($vehicle->jenama ?? '') . ' ' . ($vehicle->model ?? '')) }}</div>
+                        </div>
+                        <div class="mobile-card-badge">
+                            <x-ui.status-badge :status="$vehicle->status" />
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="mobile-card-body">
+                        <!-- Lokasi -->
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">location_on</span></span>
+                            <span class="mobile-card-value">
+                                {{ $vehicle->bahagian->nama_bahagian ?? '-' }}
+                                <div class="mobile-card-value-secondary">{{ $vehicle->stesen->nama_stesen ?? 'Semua Stesen' }}</div>
+                            </span>
+                        </div>
+
+                        <!-- Bahan Api -->
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">local_gas_station</span></span>
+                            <span class="mobile-card-value">{{ ucfirst($vehicle->jenis_bahan_api_label ?? '-') }}</span>
+                        </div>
+
+                        <!-- Statistik Log -->
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">history</span></span>
+                            <span class="mobile-card-value">
+                                Jumlah Log: <strong>{{ number_format($stats['jumlah_log'] ?? 0) }}</strong>
+                                <div class="mobile-card-value-secondary">Aktif / Selesai / Tertunda: {{ number_format($stats['jumlah_aktif'] ?? 0) }} / {{ number_format($stats['jumlah_selesai'] ?? 0) }} / {{ number_format($stats['jumlah_tertunda'] ?? 0) }}</div>
+                                <div class="mobile-card-value-secondary">Check-in / Check-out: {{ number_format($stats['jumlah_checkin'] ?? 0) }} / {{ number_format($stats['jumlah_checkout'] ?? 0) }}</div>
+                            </span>
+                        </div>
+
+                        <!-- Jarak & Kos -->
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">straighten</span></span>
+                            <span class="mobile-card-value">Jarak: <strong>{{ number_format($stats['jumlah_jarak'] ?? 0, 1) }}</strong> km</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
+                            <span class="mobile-card-value">Kos: <strong>RM {{ number_format($stats['jumlah_kos'] ?? 0, 2) }}</strong></span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">event</span></span>
+                            <span class="mobile-card-value">Program: {{ number_format($stats['jumlah_program'] ?? 0) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div class="mobile-card-footer">
+                        <a href="{{ route('laporan.laporan-kenderaan.show', $vehicle) }}" class="mobile-card-action mobile-action-view">
+                            <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                            <span class="mobile-card-action-label">Lihat</span>
+                        </a>
+                        <a href="{{ route('laporan.laporan-kenderaan.pdf', $vehicle) }}" class="mobile-card-action" style="color:#dc2626;">
+                            <span class="material-symbols-outlined mobile-card-action-icon">picture_as_pdf</span>
+                            <span class="mobile-card-action-label">PDF</span>
+                        </a>
+                    </div>
+                </div>
+            @empty
+                <div class="mobile-empty-state">
+                    <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">directions_car</span>
+                    <p>Tiada kenderaan ditemui</p>
+                </div>
+            @endforelse
+        </div>
 
         <x-ui.pagination :paginator="$vehicles" record-label="kenderaan" />
     </x-ui.page-header>

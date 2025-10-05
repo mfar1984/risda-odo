@@ -25,15 +25,7 @@ class FirebaseService
     public function sendToUser($userId, $title, $body, $data = [])
     {
         try {
-            // Get user's FCM tokens
-            $tokens = FcmToken::where('user_id', $userId)->pluck('token')->toArray();
-
-            if (empty($tokens)) {
-                Log::info("No FCM tokens found for user {$userId}");
-                return false;
-            }
-
-            // Create notification in database
+            // Create notification in database (always create DB record)
             $notification = AppNotification::create([
                 'user_id' => $userId,
                 'type' => $data['type'] ?? 'general',
@@ -41,6 +33,19 @@ class FirebaseService
                 'body' => $body,
                 'data' => $data,
             ]);
+
+            // If FCM is disabled via config, skip sending to Firebase
+            if (!config('services.firebase.enabled', false)) {
+                return true;
+            }
+
+            // Get user's FCM tokens
+            $tokens = FcmToken::where('user_id', $userId)->pluck('token')->toArray();
+
+            if (empty($tokens)) {
+                Log::info("No FCM tokens found for user {$userId}");
+                return true;
+            }
 
             // Prepare Firebase notification
             $firebaseNotification = FirebaseNotification::create($title, $body);
@@ -86,8 +91,26 @@ class FirebaseService
      */
     public function sendToMultipleUsers(array $userIds, $title, $body, $data = [])
     {
+        // If FCM is disabled, still create database notifications but skip Firebase sending
+        $fcmEnabled = config('services.firebase.enabled', false);
+
         foreach ($userIds as $userId) {
-            $this->sendToUser($userId, $title, $body, $data);
+            if ($fcmEnabled) {
+                $this->sendToUser($userId, $title, $body, $data);
+            } else {
+                // Create DB notification only
+                try {
+                    AppNotification::create([
+                        'user_id' => $userId,
+                        'type' => $data['type'] ?? 'general',
+                        'title' => $title,
+                        'body' => $body,
+                        'data' => $data,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error("DB Notification Error (bulk): " . $e->getMessage());
+                }
+            }
         }
     }
 

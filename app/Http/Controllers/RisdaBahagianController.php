@@ -144,7 +144,23 @@ class RisdaBahagianController extends Controller
         $data = $request->all();
         $data['status'] = $request->status_dropdown;
 
-        RisdaBahagian::create($data);
+        $bahagian = RisdaBahagian::create($data);
+
+        // Log activity
+        activity('risda')
+            ->performedOn($bahagian)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'entity' => 'bahagian',
+                'nama_bahagian' => $bahagian->nama_bahagian,
+                'email' => $bahagian->email,
+                'no_telefon' => $bahagian->no_telefon,
+                'status' => $bahagian->status,
+            ])
+            ->event('created')
+            ->log("Bahagian '{$bahagian->nama_bahagian}' telah ditambah");
 
         return redirect()->route('pengurusan.senarai-risda')
             ->with('success', 'RISDA Bahagian berjaya ditambah!');
@@ -195,7 +211,28 @@ class RisdaBahagianController extends Controller
         $data = $request->all();
         $data['status'] = $request->status_dropdown;
 
+        $old = $risdaBahagian->only(['nama_bahagian','email','no_telefon','status']);
         $risdaBahagian->update($data);
+
+        $changes = [];
+        foreach ($old as $k => $v) {
+            if ($v != $risdaBahagian->$k) {
+                $changes[$k] = ['old' => $v, 'new' => $risdaBahagian->$k];
+            }
+        }
+
+        activity('risda')
+            ->performedOn($risdaBahagian)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'entity' => 'bahagian',
+                'nama_bahagian' => $risdaBahagian->nama_bahagian,
+                'changes' => $changes,
+            ])
+            ->event('updated')
+            ->log("Bahagian '{$risdaBahagian->nama_bahagian}' telah dikemaskini (" . count($changes) . " medan diubah)");
 
         return redirect()->route('pengurusan.senarai-risda')
             ->with('success', 'RISDA Bahagian berjaya dikemaskini!');
@@ -206,7 +243,21 @@ class RisdaBahagianController extends Controller
      */
     public function destroy(RisdaBahagian $risdaBahagian)
     {
+        $name = $risdaBahagian->nama_bahagian;
+        $id = $risdaBahagian->id;
         $risdaBahagian->delete();
+
+        activity('risda')
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'entity' => 'bahagian',
+                'bahagian_id' => $id,
+                'nama_bahagian' => $name,
+            ])
+            ->event('deleted')
+            ->log("Bahagian '{$name}' telah dipadam");
 
         return redirect()->route('pengurusan.senarai-risda')
             ->with('success', 'RISDA Bahagian berjaya dipadam!');

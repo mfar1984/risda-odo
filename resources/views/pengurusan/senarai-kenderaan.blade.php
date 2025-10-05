@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Senarai Kenderaan">
     <x-ui.page-header
         title="Senarai Kenderaan"
@@ -75,7 +79,8 @@
             :reset-url="route('pengurusan.senarai-kenderaan')"
         />
 
-        <!-- Table -->
+        <!-- Desktop Table (Hidden on Mobile) -->
+        <div class="data-table-container">
         <x-ui.data-table
             :headers="[
                 ['label' => 'No. Plat', 'align' => 'text-left'],
@@ -131,8 +136,7 @@
                     <x-ui.action-buttons
                         :show-url="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'lihat') ? route('pengurusan.show-kenderaan', $kenderaan) : ''"
                         :edit-url="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'kemaskini') ? route('pengurusan.edit-kenderaan', $kenderaan) : ''"
-                        :delete-url="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'padam') ? route('pengurusan.delete-kenderaan', $kenderaan) : ''"
-                        :delete-confirm-message="'Adakah anda pasti untuk memadam ' . $kenderaan->no_plat . '?'"
+                        :delete-onclick="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'padam') ? 'deleteKenderaanItem(' . $kenderaan->id . ')' : ''"
                         :show-view="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'lihat')"
                         :show-edit="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'kemaskini')"
                         :show-delete="$currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'padam')"
@@ -148,8 +152,72 @@
             </tr>
             @endforelse
         </x-ui.data-table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-table-card">
+            @forelse($kenderaans as $kenderaan)
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">{{ $kenderaan->no_plat }}</div>
+                        <div class="mobile-card-badge"><x-ui.status-badge :status="$kenderaan->status" /></div>
+                    </div>
+                    <div class="mobile-card-body">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">directions_car</span></span>
+                            <span class="mobile-card-value">{{ $kenderaan->jenama }}<div class="mobile-card-value-secondary">{{ $kenderaan->model }}</div></span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">calendar_month</span></span>
+                            <span class="mobile-card-value">Tahun: {{ $kenderaan->tahun ?? '-' }}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">local_gas_station</span></span>
+                            <span class="mobile-card-value">{{ $kenderaan->jenis_bahan_api_label }}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">receipt_long</span></span>
+                            <span class="mobile-card-value">Cukai Tamat: {{ $kenderaan->cukai_tamat_tempoh->format('d/m/Y') }}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label"><span class="material-symbols-outlined">person</span></span>
+                            <span class="mobile-card-value">{{ $kenderaan->pencipta->name ?? 'Unknown' }}</span>
+                        </div>
+                    </div>
+                    <div class="mobile-card-footer">
+                        <a href="{{ route('pengurusan.show-kenderaan', $kenderaan) }}" class="mobile-card-action mobile-action-view">
+                            <span class="material-symbols-outlined mobile-card-action-icon">visibility</span>
+                            <span class="mobile-card-action-label">Lihat</span>
+                        </a>
+                        @if($currentUser && $currentUser->adaKebenaran('senarai_kenderaan', 'kemaskini'))
+                        <a href="{{ route('pengurusan.edit-kenderaan', $kenderaan) }}" class="mobile-card-action mobile-action-edit">
+                            <span class="material-symbols-outlined mobile-card-action-icon">edit</span>
+                            <span class="mobile-card-action-label">Edit</span>
+                        </a>
+                        @endif
+                        @if($currentUser && $currentUser->adaKebenaran('selenggara_kenderaan', 'tambah'))
+                        <a href="{{ route('pengurusan.tambah-selenggara', ['kenderaan_id' => $kenderaan->id]) }}" class="mobile-card-action mobile-action-approve">
+                            <span class="material-symbols-outlined mobile-card-action-icon">build</span>
+                            <span class="mobile-card-action-label">Selenggara</span>
+                        </a>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div class="mobile-empty-state">
+                    <span class="material-symbols-outlined" style="font-size:48px; color:#9ca3af;">directions_car</span>
+                    <p>Tiada kenderaan</p>
+                </div>
+            @endforelse
+        </div>
 
         <!-- Pagination -->
         <x-ui.pagination :paginator="$kenderaans" record-label="kenderaan" />
     </x-ui.page-header>
+
+    {{-- Centralized Delete Modal --}}
+    <x-modals.delete-confirmation-modal />
+
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>

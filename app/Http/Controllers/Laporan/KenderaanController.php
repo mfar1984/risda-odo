@@ -246,6 +246,20 @@ class KenderaanController extends Controller
 
         $filename = 'laporan-kenderaan-' . str($kenderaan->no_plat)->slug('-') . '.pdf';
 
+        // Log activity (export vehicle report)
+        activity('kenderaan')
+            ->performedOn($kenderaan)
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'vehicle_plate' => $kenderaan->no_plat,
+                'filename' => $filename,
+                'format' => 'pdf',
+            ])
+            ->event('exported')
+            ->log("Laporan kenderaan {$kenderaan->no_plat} dieksport ke PDF");
+
         return $pdf->download($filename);
     }
 

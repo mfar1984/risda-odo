@@ -57,7 +57,23 @@ class RisdaStesenController extends Controller
         $data = $request->all();
         $data['status'] = $request->status_dropdown;
 
-        RisdaStesen::create($data);
+        $stesen = RisdaStesen::create($data);
+
+        activity('risda')
+            ->performedOn($stesen)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'entity' => 'stesen',
+                'nama_stesen' => $stesen->nama_stesen,
+                'bahagian' => optional($stesen->risdaBahagian)->nama_bahagian,
+                'email' => $stesen->email,
+                'no_telefon' => $stesen->no_telefon,
+                'status' => $stesen->status,
+            ])
+            ->event('created')
+            ->log("Stesen '{$stesen->nama_stesen}' telah ditambah");
 
         return redirect()->route('pengurusan.senarai-risda')
             ->with('success', 'RISDA Stesen berjaya ditambah!');
@@ -112,7 +128,27 @@ class RisdaStesenController extends Controller
         $data = $request->all();
         $data['status'] = $request->status_dropdown;
 
+        $old = $risdaStesen->only(['risda_bahagian_id','nama_stesen','email','no_telefon','status']);
         $risdaStesen->update($data);
+        $changes = [];
+        foreach ($old as $k => $v) {
+            if ($v != $risdaStesen->$k) {
+                $changes[$k] = ['old' => $v, 'new' => $risdaStesen->$k];
+            }
+        }
+
+        activity('risda')
+            ->performedOn($risdaStesen)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'entity' => 'stesen',
+                'nama_stesen' => $risdaStesen->nama_stesen,
+                'changes' => $changes,
+            ])
+            ->event('updated')
+            ->log("Stesen '{$risdaStesen->nama_stesen}' telah dikemaskini (" . count($changes) . " medan diubah)");
 
         return redirect()->route('pengurusan.senarai-risda')
             ->with('success', 'RISDA Stesen berjaya dikemaskini!');
@@ -123,7 +159,21 @@ class RisdaStesenController extends Controller
      */
     public function destroy(RisdaStesen $risdaStesen)
     {
+        $name = $risdaStesen->nama_stesen;
+        $id = $risdaStesen->id;
         $risdaStesen->delete();
+
+        activity('risda')
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'entity' => 'stesen',
+                'stesen_id' => $id,
+                'nama_stesen' => $name,
+            ])
+            ->event('deleted')
+            ->log("Stesen '{$name}' telah dipadam");
 
         return redirect()->route('pengurusan.senarai-risda')
             ->with('success', 'RISDA Stesen berjaya dipadam!');

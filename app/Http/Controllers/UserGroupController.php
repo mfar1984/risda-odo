@@ -95,17 +95,37 @@ class UserGroupController extends Controller
 
         $userGroup = UserGroup::create($data);
 
+        // Build granted permissions details for logging
+        $grantedDetailed = [];
+        $moduleLabels = UserGroup::getModuleLabels();
+        $permissionLabels = UserGroup::getPermissionLabels();
+        foreach (($userGroup->kebenaran_matrix ?? []) as $module => $actions) {
+            foreach (($actions ?? []) as $action => $granted) {
+                if ($granted) {
+                    $grantedDetailed[] = [
+                        'module' => $module,
+                        'module_label' => $moduleLabels[$module] ?? $module,
+                        'action' => $action,
+                        'action_label' => $permissionLabels[$action] ?? $action,
+                    ];
+                }
+            }
+        }
+
         // Log activity
-        activity()
+        activity('kumpulan')
             ->performedOn($userGroup)
             ->causedBy(auth()->user())
             ->withProperties([
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
+                'group_id' => $userGroup->id,
                 'group_name' => $userGroup->nama_kumpulan,
                 'status' => $userGroup->status,
                 'description' => $userGroup->keterangan,
                 'permissions_count' => count($userGroup->kebenaran_matrix ?? []),
+                'permissions_granted_count' => count($grantedDetailed),
+                'permissions_granted_detailed' => $grantedDetailed,
             ])
             ->event('created')
             ->log("Kumpulan pengguna '{$userGroup->nama_kumpulan}' telah dicipta");
@@ -200,19 +220,37 @@ class UserGroupController extends Controller
             }
         }
 
+        // Build detailed permission change labels
+        $moduleLabels = UserGroup::getModuleLabels();
+        $permissionLabels = UserGroup::getPermissionLabels();
+        $permissionChangesDetailed = array_map(function ($change) use ($moduleLabels, $permissionLabels) {
+            $change['module_label'] = $moduleLabels[$change['module']] ?? $change['module'];
+            $change['action_label'] = $permissionLabels[$change['action']] ?? $change['action'];
+            $change['change'] = ($change['new'] ? 'grant' : 'revoke');
+            return $change;
+        }, $permissionChanges);
+
+        // Count before/after grants
+        $grantedBefore = 0; foreach (($oldPermissions ?? []) as $m => $acts) { foreach (($acts ?? []) as $a => $v) { if ($v) { $grantedBefore++; } } }
+        $grantedAfter = 0; foreach (($newPermissions ?? []) as $m => $acts) { foreach (($acts ?? []) as $a => $v) { if ($v) { $grantedAfter++; } } }
+
         // Log activity
-        activity()
+        activity('kumpulan')
             ->performedOn($userGroup)
             ->causedBy(auth()->user())
             ->withProperties([
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
+                'group_id' => $userGroup->id,
                 'group_name' => $userGroup->nama_kumpulan,
                 'old_name' => $oldName,
                 'old_status' => $oldStatus,
                 'new_status' => $userGroup->status,
                 'permission_changes' => $permissionChanges,
+                'permission_changes_detailed' => $permissionChangesDetailed,
                 'total_permission_changes' => count($permissionChanges),
+                'granted_before' => $grantedBefore,
+                'granted_after' => $grantedAfter,
             ])
             ->event('updated')
             ->log("Kumpulan pengguna '{$userGroup->nama_kumpulan}' telah dikemaskini (" . count($permissionChanges) . " kebenaran diubah)");
@@ -240,11 +278,12 @@ class UserGroupController extends Controller
         $userGroup->delete();
 
         // Log activity
-        activity()
+        activity('kumpulan')
             ->causedBy(auth()->user())
             ->withProperties([
                 'ip' => request()->ip(),
                 'user_agent' => request()->userAgent(),
+                'group_id' => $groupId,
                 'group_id' => $groupId,
                 'group_name' => $groupName,
                 'status' => $groupStatus,

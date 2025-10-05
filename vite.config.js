@@ -4,7 +4,14 @@ import laravel from 'laravel-vite-plugin';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: [
+                'resources/css/app.css', 
+                'resources/css/mobile.css', 
+                'resources/js/app.js',
+                'resources/js/tuntutan-actions.js',
+                'resources/js/program-actions.js',
+                'resources/js/delete-actions.js'
+            ],
             refresh: true,
         }),
     ],
@@ -72,5 +79,8 @@ export default defineConfig({
         // CSS optimization
         cssMinify: true,
         cssCodeSplit: true,
+    },
+    css: {
+        devSourcemap: false,
     },
 });

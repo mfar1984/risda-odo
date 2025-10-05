@@ -173,6 +173,25 @@ class LogPemanduController extends Controller
             'status' => 'dalam_perjalanan',
         ]);
 
+        // Activity: journey started
+        activity('log_pemandu')
+            ->performedOn($log)
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'log_id' => $log->id,
+                'driver_name' => $user->name,
+                'vehicle_plate' => $log->kenderaan->no_plat ?? 'N/A',
+                'program_name' => $program->nama_program,
+                'tarikh_perjalanan' => $log->tarikh_perjalanan,
+                'masa_keluar' => $log->masa_keluar,
+                'odometer_keluar' => $log->odometer_keluar,
+                'status' => $log->status,
+            ])
+            ->event('created')
+            ->log("Perjalanan bermula untuk program '{$program->nama_program}'");
+
         // Auto-update Program status: LULUS → AKTIF (when first journey starts)
         if ($program->status === 'lulus') {
             $program->update([
@@ -286,6 +305,31 @@ class LogPemanduController extends Controller
             'resit_minyak' => $resitMinyak,
             'status' => 'selesai',
         ]);
+
+        // Activity: journey ended
+        activity('log_pemandu')
+            ->performedOn($log)
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'log_id' => $log->id,
+                'driver_name' => $user->name,
+                'vehicle_plate' => optional($log->kenderaan)->no_plat,
+                'program_name' => optional($log->program)->nama_program,
+                'masa_masuk' => $log->masa_masuk,
+                'odometer_keluar' => $log->odometer_keluar,
+                'odometer_masuk' => $log->odometer_masuk,
+                'jarak' => $log->jarak,
+                'liter_minyak' => $log->liter_minyak,
+                'kos_minyak' => $log->kos_minyak,
+                'stesen_minyak' => $log->stesen_minyak,
+                'status' => 'selesai',
+                'old_status' => 'dalam_perjalanan',
+                'new_status' => 'selesai',
+            ])
+            ->event('updated')
+            ->log('Perjalanan ditamatkan');
 
         // Reload relationships
         $log->refresh();

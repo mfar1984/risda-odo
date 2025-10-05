@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout title="Program">
     <x-ui.page-header
         title="Program"
@@ -110,23 +114,15 @@
 
                             <!-- Approve/Reject Icons - Only show for 'draf' status and users with permission -->
                             @if($program->status === 'draf' && auth()->user()->adaKebenaran('program', 'terima'))
-                                <form action="{{ route('approve-program', $program) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk meluluskan {{ $program->nama_program }}?')">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="text-green-600 hover:text-green-900">
-                                        <span class="material-symbols-outlined" style="font-size: 18px;">check_circle</span>
-                                    </button>
-                                </form>
+                                <button onclick="approveProgramItem({{ $program->id }})" class="text-green-600 hover:text-green-900">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">check_circle</span>
+                                </button>
                             @endif
 
                             @if($program->status === 'draf' && auth()->user()->adaKebenaran('program', 'tolak'))
-                                <form action="{{ route('reject-program', $program) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk menolak {{ $program->nama_program }}?')">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="text-red-600 hover:text-red-900">
-                                        <span class="material-symbols-outlined" style="font-size: 18px;">cancel</span>
-                                    </button>
-                                </form>
+                                <button onclick="rejectProgramItem({{ $program->id }})" class="text-red-600 hover:text-red-900">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">cancel</span>
+                                </button>
                             @endif
 
                             <!-- Edit Icon - Show for all programs with permission -->
@@ -138,13 +134,9 @@
 
                             <!-- Delete Icon - Show for all programs with permission -->
                             @if(auth()->user()->adaKebenaran('program', 'padam'))
-                                <form action="{{ route('delete-program', $program) }}" method="POST" class="inline" onsubmit="return confirm('Adakah anda pasti untuk memadam {{ $program->nama_program }}?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900">
-                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
-                                    </button>
-                                </form>
+                                <button onclick="deleteProgramItem({{ $program->id }})" class="text-red-600 hover:text-red-900">
+                                    <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                                </button>
                             @endif
                         </div>
                     </td>
@@ -209,26 +201,18 @@
 
                         <!-- Approve (conditional) -->
                         @if($program->status === 'draf' && auth()->user()->adaKebenaran('program', 'terima'))
-                            <form action="{{ route('approve-program', $program) }}" method="POST" onsubmit="return confirm('Lulus {{ $program->nama_program }}?')">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="mobile-card-action mobile-action-approve">
-                                    <span class="material-symbols-outlined mobile-card-action-icon">check_circle</span>
-                                    <span class="mobile-card-action-label">Lulus</span>
-                                </button>
-                            </form>
+                            <button onclick="approveProgramItem({{ $program->id }})" class="mobile-card-action mobile-action-approve">
+                                <span class="material-symbols-outlined mobile-card-action-icon">check_circle</span>
+                                <span class="mobile-card-action-label">Lulus</span>
+                            </button>
                         @endif
 
                         <!-- Reject (conditional) -->
                         @if($program->status === 'draf' && auth()->user()->adaKebenaran('program', 'tolak'))
-                            <form action="{{ route('reject-program', $program) }}" method="POST" onsubmit="return confirm('Tolak {{ $program->nama_program }}?')">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="mobile-card-action mobile-action-reject">
-                                    <span class="material-symbols-outlined mobile-card-action-icon">cancel</span>
-                                    <span class="mobile-card-action-label">Tolak</span>
-                                </button>
-                            </form>
+                            <button onclick="rejectProgramItem({{ $program->id }})" class="mobile-card-action mobile-action-reject">
+                                <span class="material-symbols-outlined mobile-card-action-icon">cancel</span>
+                                <span class="mobile-card-action-label">Tolak</span>
+                            </button>
                         @endif
 
                         <!-- Edit (conditional) -->
@@ -241,14 +225,10 @@
 
                         <!-- Delete (conditional) -->
                         @if(auth()->user()->adaKebenaran('program', 'padam'))
-                            <form action="{{ route('delete-program', $program) }}" method="POST" onsubmit="return confirm('Padam {{ $program->nama_program }}?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="mobile-card-action mobile-action-delete">
-                                    <span class="material-symbols-outlined mobile-card-action-icon">delete</span>
-                                    <span class="mobile-card-action-label">Padam</span>
-                                </button>
-                            </form>
+                            <button onclick="deleteProgramItem({{ $program->id }})" class="mobile-card-action mobile-action-delete">
+                                <span class="material-symbols-outlined mobile-card-action-icon">delete</span>
+                                <span class="mobile-card-action-label">Padam</span>
+                            </button>
                         @endif
                     </div>
                 </div>
@@ -262,4 +242,13 @@
         <!-- Pagination -->
         <x-ui.pagination :paginator="$programs" record-label="program" />
     </x-ui.page-header>
+
+    {{-- Centralized Program Modals --}}
+    <x-modals.approve-program-modal />
+    <x-modals.reject-program-modal />
+    <x-modals.delete-confirmation-modal />
+
+    {{-- Centralized JavaScript --}}
+    @vite('resources/js/program-actions.js')
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>

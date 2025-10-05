@@ -47,7 +47,7 @@ class IntegrasiController extends Controller
         $newTokenMasked = substr($integrasi->api_token, 0, 10) . '...' . substr($integrasi->api_token, -10);
 
         // Log activity
-        activity()
+        activity('integrasi')
             ->performedOn($integrasi)
             ->causedBy(auth()->user())
             ->withProperties([
@@ -107,7 +107,7 @@ class IntegrasiController extends Controller
         ]);
 
         // Log activity
-        activity()
+        activity('integrasi')
             ->performedOn($integrasi)
             ->causedBy(auth()->user())
             ->withProperties([
@@ -191,7 +191,7 @@ class IntegrasiController extends Controller
         $apiKeyChanged = $oldApiKey != $weatherConfig->weather_api_key;
 
         // Log activity
-        activity()
+        activity('integrasi')
             ->performedOn($weatherConfig)
             ->causedBy($user)
             ->withProperties([
@@ -287,7 +287,7 @@ class IntegrasiController extends Controller
         }
 
         // Log activity (NEVER log actual password!)
-        activity()
+        activity('integrasi')
             ->performedOn($emailConfig)
             ->causedBy($user)
             ->withProperties([

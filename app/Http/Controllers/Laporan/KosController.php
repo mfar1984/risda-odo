@@ -198,6 +198,20 @@ class KosController extends Controller
 
         $filename = 'laporan-kos-' . str($program->nama_program)->slug('-') . '.pdf';
 
+        // Log activity (export cost report)
+        activity('program')
+            ->performedOn($program)
+            ->causedBy($user)
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'program_name' => $program->nama_program,
+                'filename' => $filename,
+                'format' => 'pdf',
+            ])
+            ->event('exported')
+            ->log("Laporan kos '{$program->nama_program}' dieksport ke PDF");
+
         return $pdf->download($filename);
     }
 

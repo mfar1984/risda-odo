@@ -1,3 +1,7 @@
+@push('styles')
+    @vite('resources/css/mobile.css')
+@endpush
+
 <x-dashboard-layout 
     title="Tambah RISDA Bahagian"
     description="Tambah maklumat RISDA Bahagian baru"
