@@ -19,11 +19,34 @@ class SupportMessage extends Model
         'location',
         'latitude',
         'longitude',
+        'read_by',
     ];
 
     protected $casts = [
         'attachments' => 'array',
+        'read_by' => 'array',
     ];
+
+    /**
+     * Check if message is read by user
+     */
+    public function isReadBy($userId)
+    {
+        if (!$this->read_by) return false;
+        return in_array($userId, $this->read_by);
+    }
+
+    /**
+     * Mark message as read by user
+     */
+    public function markAsReadBy($userId)
+    {
+        $readBy = $this->read_by ?? [];
+        if (!in_array($userId, $readBy)) {
+            $readBy[] = $userId;
+            $this->update(['read_by' => $readBy]);
+        }
+    }
 
     /**
      * Get the ticket this message belongs to

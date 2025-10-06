@@ -182,6 +182,20 @@ class FirebaseService {
           // navigationService.navigateTo('/program/$programId');
         }
         break;
+      case 'support_reply':
+      case 'support_ticket':
+      case 'support_assigned':
+      case 'support_escalated':
+      case 'support_closed':
+        // Navigate to support ticket detail
+        int? ticketId = int.tryParse(message.data['ticket_id']?.toString() ?? '');
+        String? ticketNumber = message.data['ticket_number']?.toString();
+        if (ticketId != null) {
+          developer.log('Navigate to support ticket: $ticketId ($ticketNumber)');
+          // TODO: Navigate to SupportTicketDetailScreen
+          // navigationService.navigateTo('/support/tickets/$ticketId');
+        }
+        break;
       default:
         developer.log('Unknown notification type: $type');
     }

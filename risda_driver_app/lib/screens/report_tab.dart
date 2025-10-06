@@ -4,6 +4,8 @@ import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../core/api_client.dart';
 import '../services/api_service.dart';
+import 'support_create_ticket_screen.dart';
+import 'support_ticket_detail_screen.dart';
 
 class ReportTab extends StatefulWidget {
   const ReportTab({super.key});
@@ -19,11 +21,17 @@ class _ReportTabState extends State<ReportTab> {
   List<Map<String, dynamic>>? vehicleData;
   List<Map<String, dynamic>>? costData;
   List<Map<String, dynamic>>? driverData;
+  List<Map<String, dynamic>>? supportTickets;
   
   // Loading states
   bool isLoadingVehicle = false;
   bool isLoadingCost = false;
   bool isLoadingDriver = false;
+  bool isLoadingSupport = false;
+
+  // Support ticket filters
+  String _supportSearchQuery = '';
+  String? _supportStatusFilter;
 
   // Pagination state
   int vehicleShown = 10;
@@ -45,6 +53,30 @@ class _ReportTabState extends State<ReportTab> {
     _loadVehicleReport();
     _loadCostReport();
     _loadDriverReport();
+    _loadSupportTickets();
+  }
+
+  Future<void> _loadSupportTickets() async {
+    if (!mounted) return;
+    setState(() => isLoadingSupport = true);
+
+    try {
+      final response = await _apiService.getSupportTickets();
+
+      if (mounted && response['success'] == true) {
+        setState(() {
+          supportTickets = List<Map<String, dynamic>>.from(response['data'] ?? []);
+          isLoadingSupport = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          supportTickets = [];
+          isLoadingSupport = false;
+        });
+      }
+    }
   }
 
   Future<void> _loadVehicleReport() async {
@@ -1632,6 +1664,503 @@ class _ReportTabState extends State<ReportTab> {
   }
 
   Widget _buildHelpTab() {
+    // REDESIGNED: Help tab is now Support Ticketing
+    return Container(
+      color: const Color(0xFFF5F5F5),
+      child: Column(
+        children: [
+          // Header with Create Ticket button
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.white,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Support Tickets',
+                      style: AppTextStyles.h2.copyWith(color: PastelColors.primary),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CreateSupportTicketScreen(),
+                          ),
+                        );
+                        // Refresh list if ticket created
+                        if (result == true) {
+                          _loadSupportTickets();
+                        }
+                      },
+                      icon: const Icon(Icons.add, size: 20),
+                      label: const Text('Create'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: PastelColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Search Bar
+                TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _supportSearchQuery = value.toLowerCase();
+                    });
+                  },
+                  style: AppTextStyles.bodyMedium,
+                  decoration: InputDecoration(
+                    hintText: 'Search tickets...',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    filled: true,
+                    fillColor: Colors.grey.shade100,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // Status Filter Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip('All', null),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('New', 'baru'),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('In Progress', 'dalam_proses'),
+                      const SizedBox(width: 8),
+                      _buildFilterChip('Resolved', 'ditutup'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Ticket List (Real API data)
+          Expanded(
+            child: isLoadingSupport
+                ? const Center(child: CircularProgressIndicator())
+                : supportTickets == null || supportTickets!.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.inbox, size: 64, color: Colors.grey.shade400),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No tickets yet',
+                              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _loadSupportTickets,
+                        child: Builder(
+                          builder: (context) {
+                            // Apply filters
+                            var filtered = supportTickets!.where((ticket) {
+                              // Search filter
+                              if (_supportSearchQuery.isNotEmpty) {
+                                final subject = (ticket['subject'] ?? '').toString().toLowerCase();
+                                final ticketNum = (ticket['ticket_number'] ?? '').toString().toLowerCase();
+                                if (!subject.contains(_supportSearchQuery) && 
+                                    !ticketNum.contains(_supportSearchQuery)) {
+                                  return false;
+                                }
+                              }
+                              
+                              // Status filter
+                              if (_supportStatusFilter != null) {
+                                if (ticket['status'] != _supportStatusFilter) {
+                                  return false;
+                                }
+                              }
+                              
+                              return true;
+                            }).toList();
+
+                            if (filtered.isEmpty) {
+                              return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.search_off, size: 64, color: Colors.grey.shade400),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No tickets found',
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            return ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: filtered.length,
+                              itemBuilder: (context, index) {
+                                final ticket = filtered[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: _buildTicketCardFromData(ticket),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String? filterValue) {
+    final isSelected = _supportStatusFilter == filterValue;
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        setState(() {
+          _supportStatusFilter = selected ? filterValue : null;
+        });
+      },
+      backgroundColor: Colors.white,
+      selectedColor: PastelColors.primary.withOpacity(0.2),
+      checkmarkColor: PastelColors.primary,
+      labelStyle: TextStyle(
+        fontSize: 12,
+        color: isSelected ? PastelColors.primary : Colors.grey.shade700,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: isSelected ? PastelColors.primary : Colors.grey.shade300,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTicketCardFromData(Map<String, dynamic> ticketData) {
+    final ticketNumber = ticketData['ticket_number'] ?? 'N/A';
+    final subject = ticketData['subject'] ?? 'No subject';
+    final status = ticketData['status_label'] ?? ticketData['status'] ?? 'Unknown';
+    final priority = ticketData['priority_label'] ?? ticketData['priority'] ?? 'Medium';
+    final messageCount = ticketData['message_count'] ?? 0;
+    final unreadCount = ticketData['unread_count'] ?? 0;
+    final createdAt = ticketData['created_at'] != null 
+        ? DateTime.parse(ticketData['created_at'])
+        : DateTime.now();
+    
+    final timeAgo = _formatTimeAgo(createdAt);
+    final statusColor = _getStatusColor(ticketData['status']);
+    final priorityColor = _getPriorityColor(ticketData['priority']);
+    
+    return _buildTicketCard(
+      ticketId: ticketData['id'],
+      ticketNumber: ticketNumber,
+      subject: subject,
+      status: status,
+      statusColor: statusColor,
+      priority: priority,
+      priorityColor: priorityColor,
+      messageCount: messageCount,
+      timeAgo: timeAgo,
+      hasUnread: unreadCount > 0,
+      unreadCount: unreadCount,
+    );
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'baru':
+        return Colors.green;
+      case 'dalam_proses':
+      case 'dijawab':
+        return Colors.blue;
+      case 'escalated':
+        return Colors.red;
+      case 'ditutup':
+        return Colors.grey;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Color _getPriorityColor(String? priority) {
+    switch (priority) {
+      case 'kritikal':
+        return Colors.red;
+      case 'tinggi':
+        return Colors.orange;
+      case 'sederhana':
+        return Colors.yellow.shade700;
+      case 'rendah':
+        return Colors.green.shade400;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _formatTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    }
+  }
+
+  Widget _buildTicketCard({
+    int? ticketId,
+    required String ticketNumber,
+    required String subject,
+    required String status,
+    required Color statusColor,
+    required String priority,
+    required Color priorityColor,
+    required int messageCount,
+    required String timeAgo,
+    bool hasUnread = false,
+    int unreadCount = 0,
+  }) {
+    // Only allow swipe delete for 'baru' status
+    final canDelete = status.toLowerCase() == 'new' || status.toLowerCase() == 'baru';
+    
+    final cardWidget = Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header: Ticket number + badges
+            Row(
+              children: [
+                const Icon(Icons.confirmation_number, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(
+                  ticketNumber,
+                  style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: priorityColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: priorityColor),
+                  ),
+                  child: Text(
+                    priority,
+                    style: TextStyle(fontSize: 10, color: priorityColor, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    status,
+                    style: TextStyle(fontSize: 10, color: statusColor, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Subject
+            Text(
+              subject,
+              style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            
+            // Meta info
+            Row(
+              children: [
+                const Icon(Icons.access_time, size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text(timeAgo, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                const SizedBox(width: 16),
+                const Icon(Icons.chat_bubble_outline, size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text('$messageCount messages', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                if (hasUnread && unreadCount > 0) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$unreadCount new',
+                      style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Action button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) => 
+                        SupportTicketDetailScreen(
+                          ticketId: ticketId ?? 1,
+                          ticketNumber: ticketNumber,
+                        ),
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(1.0, 0.0);
+                        const end = Offset.zero;
+                        const curve = Curves.easeInOut;
+                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                        return SlideTransition(
+                          position: animation.drive(tween),
+                          child: child,
+                        );
+                      },
+                    ),
+                  );
+                  // Refresh if message was sent
+                  if (result == true) {
+                    _loadSupportTickets();
+                  }
+                },
+                icon: const Icon(Icons.visibility, size: 18),
+                label: const Text('View & Reply'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: PastelColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    
+    // Wrap with Dismissible for swipe-to-delete (only for 'baru' status)
+    if (canDelete && ticketId != null) {
+      return Dismissible(
+        key: Key('ticket_$ticketId'),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.delete, color: Colors.white, size: 32),
+              SizedBox(height: 4),
+              Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+        confirmDismiss: (direction) async {
+          return await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Delete Ticket'),
+              content: Text('Delete ticket $ticketNumber?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            ),
+          );
+        },
+        onDismissed: (direction) async {
+          try {
+            await _apiService.deleteSupportTicket(ticketId);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Ticket deleted'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            _loadSupportTickets(); // Refresh list
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        child: cardWidget,
+      );
+    }
+    
+    return cardWidget;
+  }
+
+  // OLD HELP TAB CONTENT - REMOVED
+  Widget _buildOldHelpTab() {
     return Container(
       color: const Color(0xFFF5F5F5),
       child: Padding(

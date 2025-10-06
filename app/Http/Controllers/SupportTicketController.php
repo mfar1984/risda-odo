@@ -159,6 +159,13 @@ class SupportTicketController extends Controller
                 ->log('Tiket Android auto-assigned kepada staff yang pertama membuka');
         }
 
+        // Mark all messages as read by current user
+        foreach ($ticket->messages as $message) {
+            if ($message->user_id !== $currentUser->id) {
+                $message->markAsReadBy($currentUser->id);
+            }
+        }
+
         // Mark ticket as 'dalam_proses' if admin is viewing for first time
         if ($currentUser->jenis_organisasi === 'semua' && $ticket->status === 'baru') {
             $ticket->update(['status' => 'dalam_proses']);

@@ -179,6 +179,26 @@
                                     <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">privacy_tip</span>
                                     <span class="truncate">/privacy-policy</span>
                                 </button>
+                                <button onclick="showSection('support-tickets')" id="menu-support-tickets" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">support_agent</span>
+                                    <span class="truncate">/support/tickets</span>
+                                </button>
+                                <button onclick="showSection('support-ticket-detail')" id="menu-support-ticket-detail" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">confirmation_number</span>
+                                    <span class="truncate">/support/tickets/{id}</span>
+                                </button>
+                                <button onclick="showSection('support-messages')" id="menu-support-messages" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">chat</span>
+                                    <span class="truncate">/support/tickets/{id}/messages</span>
+                                </button>
+                                <button onclick="showSection('support-status')" id="menu-support-status" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">info</span>
+                                    <span class="truncate">/support/tickets/{id}/status</span>
+                                </button>
+                                <button onclick="showSection('support-attachment-download')" id="menu-support-attachment-download" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">download</span>
+                                    <span class="truncate">/support/attachments/{path}</span>
+                                </button>
                                 <button onclick="showSection('chart-overview')" id="menu-chart-overview" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
                                     <span class="material-symbols-outlined text-base mr-2 text-green-600 flex-shrink-0">show_chart</span>
                                     <span class="truncate">/chart/overview</span>
@@ -226,6 +246,22 @@
                                     <span class="material-symbols-outlined text-base mr-2 text-blue-600 flex-shrink-0">add_circle</span>
                                     <span class="truncate">/tuntutan</span>
                                 </button>
+                                <button onclick="showSection('create-support-ticket')" id="menu-create-support-ticket" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-blue-600 flex-shrink-0">add_circle</span>
+                                    <span class="truncate">/support/tickets</span>
+                                </button>
+                                <button onclick="showSection('support-send-message')" id="menu-support-send-message" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-blue-600 flex-shrink-0">send</span>
+                                    <span class="truncate">/support/tickets/{id}/messages</span>
+                                </button>
+                                <button onclick="showSection('support-upload-attachment')" id="menu-support-upload-attachment" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-blue-600 flex-shrink-0">upload_file</span>
+                                    <span class="truncate">/support/tickets/{id}/attachments</span>
+                                </button>
+                                <button onclick="showSection('support-reopen')" id="menu-support-reopen" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-blue-600 flex-shrink-0">refresh</span>
+                                    <span class="truncate">/support/tickets/{id}/reopen</span>
+                                </button>
                             </nav>
                         </div>
                     </div>
@@ -271,6 +307,10 @@
                                 <button onclick="showSection('delete-profile')" id="menu-delete-profile" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
                                     <span class="material-symbols-outlined text-base mr-2 text-red-600 flex-shrink-0">delete</span>
                                     <span class="truncate">/user/profile-picture</span>
+                                </button>
+                                <button onclick="showSection('delete-support-ticket')" id="menu-delete-support-ticket" class="menu-item w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                                    <span class="material-symbols-outlined text-base mr-2 text-red-600 flex-shrink-0">delete</span>
+                                    <span class="truncate">/support/tickets/{id}</span>
                                 </button>
                             </nav>
                         </div>
@@ -2885,6 +2925,270 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
                                     <strong style="font-weight: 600;">Activity Tracking:</strong> Use for Do tab trip activity analytics. Track journey completion rates over time.
                                 </p>
                             </div>
+                        </div>
+                    </div>
+
+                    {{-- Support Ticketing - GET /support/tickets --}}
+                    <div id="content-support-tickets" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-green-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-green-600" style="font-size: 24px;">support_agent</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">
+                                    GET /api/support/tickets
+                                </h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">
+                                    Dapatkan senarai tiket sokongan untuk pemandu
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <h4 style="font-family: Poppins, sans-serif; font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">Request</h4>
+                                <div class="bg-slate-900 rounded-sm p-4">
+<pre style="font-family: 'Courier New', monospace; font-size: 11px; color: #e2e8f0; margin: 0;">GET /api/support/tickets?status=baru
+Authorization: Bearer {token}
+X-API-Key: {your_api_key}</pre>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 style="font-family: Poppins, sans-serif; font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">Query Parameters (Optional)</h4>
+                                <div class="bg-slate-900 rounded-sm p-4">
+<pre style="font-family: 'Courier New', monospace; font-size: 11px; color: #e2e8f0; margin: 0;"><span style="color: #60a5fa;">status</span>: <span style="color: #fbbf24;">baru|dalam_proses|escalated|ditutup</span></pre>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 style="font-family: Poppins, sans-serif; font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">Success Response (200)</h4>
+                                <div class="bg-slate-900 rounded-sm p-4">
+<pre style="font-family: 'Courier New', monospace; font-size: 11px; color: #e2e8f0; margin: 0; white-space: pre-wrap;">{
+  <span style="color: #60a5fa;">"success"</span>: <span style="color: #34d399;">true</span>,
+  <span style="color: #60a5fa;">"data"</span>: [
+    {
+      <span style="color: #60a5fa;">"id"</span>: <span style="color: #fbbf24;">1</span>,
+      <span style="color: #60a5fa;">"ticket_number"</span>: <span style="color: #34d399;">"TKT-ABC12345"</span>,
+      <span style="color: #60a5fa;">"subject"</span>: <span style="color: #34d399;">"GPS tidak berfungsi"</span>,
+      <span style="color: #60a5fa;">"category"</span>: <span style="color: #34d399;">"teknikal"</span>,
+      <span style="color: #60a5fa;">"priority"</span>: <span style="color: #34d399;">"tinggi"</span>,
+      <span style="color: #60a5fa;">"status"</span>: <span style="color: #34d399;">"baru"</span>,
+      <span style="color: #60a5fa;">"message_count"</span>: <span style="color: #fbbf24;">1</span>,
+      <span style="color: #60a5fa;">"created_at"</span>: <span style="color: #34d399;">"2025-10-06T10:30:00Z"</span>,
+      <span style="color: #60a5fa;">"creator"</span>: {
+        <span style="color: #60a5fa;">"name"</span>: <span style="color: #34d399;">"Fairiz Bin Rahman"</span>
+      }
+    }
+  ],
+  <span style="color: #60a5fa;">"meta"</span>: {
+    <span style="color: #60a5fa;">"total"</span>: <span style="color: #fbbf24;">5</span>
+  }
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Support Ticketing - GET /support/tickets/{id} --}}
+                    <div id="content-support-ticket-detail" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-green-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-green-600" style="font-size: 24px;">confirmation_number</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">GET /api/support/tickets/{id}</h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">Dapatkan butiran lengkap tiket dengan messages</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 rounded-sm p-4">
+<pre style="font-family: 'Courier New', monospace; font-size: 11px; color: #e2e8f0; margin: 0; white-space: pre-wrap;">{
+  <span style="color: #60a5fa;">"success"</span>: <span style="color: #34d399;">true</span>,
+  <span style="color: #60a5fa;">"data"</span>: {
+    <span style="color: #60a5fa;">"ticket_number"</span>: <span style="color: #34d399;">"TKT-ABC12345"</span>,
+    <span style="color: #60a5fa;">"subject"</span>: <span style="color: #34d399;">"GPS Error"</span>,
+    <span style="color: #60a5fa;">"messages"</span>: [
+      {
+        <span style="color: #60a5fa;">"message"</span>: <span style="color: #34d399;">"GPS tak detect lokasi"</span>,
+        <span style="color: #60a5fa;">"user"</span>: { <span style="color: #60a5fa;">"name"</span>: <span style="color: #34d399;">"Driver"</span> },
+        <span style="color: #60a5fa;">"created_at"</span>: <span style="color: #34d399;">"2025-10-06T10:30:00Z"</span>
+      }
+    ]
+  }
+}</pre>
+                        </div>
+                    </div>
+
+                    {{-- Support - GET /support/tickets/{id}/messages --}}
+                    <div id="content-support-messages" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-green-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-green-600" style="font-size: 24px;">chat</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">GET /api/support/tickets/{id}/messages</h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">Real-time sync messages</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 rounded-sm p-4">
+<pre style="font-family: 'Courier New', monospace; font-size: 11px; color: #e2e8f0; margin: 0; white-space: pre-wrap;">{
+  <span style="color: #60a5fa;">"success"</span>: <span style="color: #34d399;">true</span>,
+  <span style="color: #60a5fa;">"data"</span>: [
+    {
+      <span style="color: #60a5fa;">"message"</span>: <span style="color: #34d399;">"Tolong check GPS setting"</span>,
+      <span style="color: #60a5fa;">"role"</span>: <span style="color: #34d399;">"admin"</span>,
+      <span style="color: #60a5fa;">"attachments"</span>: [],
+      <span style="color: #60a5fa;">"location"</span>: <span style="color: #34d399;">"Sibu, Sarawak"</span>
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+
+                    {{-- Support - GET /support/tickets/{id}/status --}}
+                    <div id="content-support-status" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-green-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-green-600" style="font-size: 24px;">info</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">GET /api/support/tickets/{id}/status</h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">Check ticket status (polling)</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 rounded-sm p-4">
+<pre style="font-family: 'Courier New', monospace; font-size: 11px; color: #e2e8f0; margin: 0; white-space: pre-wrap;">{
+  <span style="color: #60a5fa;">"success"</span>: <span style="color: #34d399;">true</span>,
+  <span style="color: #60a5fa;">"data"</span>: {
+    <span style="color: #60a5fa;">"status"</span>: <span style="color: #34d399;">"dalam_proses"</span>,
+    <span style="color: #60a5fa;">"message_count"</span>: <span style="color: #fbbf24;">3</span>,
+    <span style="color: #60a5fa;">"unread_count"</span>: <span style="color: #fbbf24;">1</span>
+  }
+}</pre>
+                        </div>
+                    </div>
+
+                    {{-- Support - GET /support/attachments/{path} --}}
+                    <div id="content-support-attachment-download" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-green-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-green-600" style="font-size: 24px;">download</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">GET /api/support/attachments/{path}</h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">Download attachment file</p>
+                            </div>
+                        </div>
+                        <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #475569;">Returns file download. Use attachment path from message data.</p>
+                    </div>
+
+                    {{-- Support - POST /support/tickets (Create) --}}
+                    <div id="content-create-support-ticket" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-blue-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 24px;">add_circle</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">POST /api/support/tickets</h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">Buat tiket sokongan baru</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 style="font-family: Poppins, sans-serif; font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">Request Body</h4>
+                                <div class="bg-slate-900 rounded-sm p-4">
+<pre style="font-family: 'Courier New', monospace; font-size: 11px; color: #e2e8f0; margin: 0; white-space: pre-wrap;">{
+  <span style="color: #60a5fa;">"subject"</span>: <span style="color: #34d399;">"GPS tidak berfungsi"</span>,
+  <span style="color: #60a5fa;">"category"</span>: <span style="color: #34d399;">"teknikal"</span>,
+  <span style="color: #60a5fa;">"priority"</span>: <span style="color: #34d399;">"tinggi"</span>,
+  <span style="color: #60a5fa;">"message"</span>: <span style="color: #34d399;">"GPS tak dapat detect lokasi saya"</span>,
+  <span style="color: #60a5fa;">"latitude"</span>: <span style="color: #fbbf24;">1.5535</span>,
+  <span style="color: #60a5fa;">"longitude"</span>: <span style="color: #fbbf24;">103.7578</span>
+}</pre>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 style="font-family: Poppins, sans-serif; font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">Response (201)</h4>
+                                <div class="bg-slate-900 rounded-sm p-4">
+<pre style="font-family: 'Courier New', monospace; font-size: 11px; color: #e2e8f0; margin: 0; white-space: pre-wrap;">{
+  <span style="color: #60a5fa;">"success"</span>: <span style="color: #34d399;">true</span>,
+  <span style="color: #60a5fa;">"message"</span>: <span style="color: #34d399;">"Tiket berjaya dicipta"</span>,
+  <span style="color: #60a5fa;">"data"</span>: {
+    <span style="color: #60a5fa;">"ticket_number"</span>: <span style="color: #34d399;">"TKT-XYZ789"</span>,
+    <span style="color: #60a5fa;">"status"</span>: <span style="color: #34d399;">"baru"</span>
+  }
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Support - POST /support/tickets/{id}/messages --}}
+                    <div id="content-support-send-message" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-blue-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 24px;">send</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">POST /api/support/tickets/{id}/messages</h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">Hantar balasan dalam tiket</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 rounded-sm p-4">
+<pre style="font-family: 'Courier New', monospace; font-size: 11px; color: #e2e8f0; margin: 0; white-space: pre-wrap;">{
+  <span style="color: #60a5fa;">"message"</span>: <span style="color: #34d399;">"Saya dah restart phone, masih sama"</span>,
+  <span style="color: #60a5fa;">"latitude"</span>: <span style="color: #fbbf24;">1.5535</span>,
+  <span style="color: #60a5fa;">"longitude"</span>: <span style="color: #fbbf24;">103.7578</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    {{-- Support - POST /support/tickets/{id}/attachments --}}
+                    <div id="content-support-upload-attachment" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-blue-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 24px;">upload_file</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">POST /api/support/tickets/{id}/attachments</h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">Upload file attachment (multipart/form-data)</p>
+                            </div>
+                        </div>
+                        <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #475569;">Send file as multipart/form-data with key "file". Max 5MB.</p>
+                    </div>
+
+                    {{-- Support - POST /support/tickets/{id}/reopen --}}
+                    <div id="content-support-reopen" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-blue-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-blue-600" style="font-size: 24px;">refresh</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">POST /api/support/tickets/{id}/reopen</h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">Buka semula tiket yang ditutup</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 rounded-sm p-4">
+<pre style="font-family: 'Courier New', monospace; font-size: 11px; color: #e2e8f0; margin: 0; white-space: pre-wrap;">{
+  <span style="color: #60a5fa;">"success"</span>: <span style="color: #34d399;">true</span>,
+  <span style="color: #60a5fa;">"message"</span>: <span style="color: #34d399;">"Tiket berjaya dibuka semula"</span>
+}</pre>
+                        </div>
+                    </div>
+
+                    {{-- Support - DELETE /support/tickets/{id} --}}
+                    <div id="content-delete-support-ticket" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                            <div class="w-10 h-10 rounded-sm bg-red-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-red-600" style="font-size: 24px;">delete</span>
+                            </div>
+                            <div>
+                                <h3 style="font-family: Poppins, sans-serif; font-size: 14px; font-weight: 700; color: #1e293b;">DELETE /api/support/tickets/{id}</h3>
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">Padam tiket (status baru sahaja)</p>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-sm">
+                            <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #92400e;"><strong>Nota:</strong> Hanya creator boleh delete, dan hanya bila status masih "baru".</p>
                         </div>
                     </div>
 

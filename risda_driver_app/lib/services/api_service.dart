@@ -731,4 +731,155 @@ class ApiService {
       rethrow;
     }
   }
+
+  // ============================================
+  // SUPPORT TICKETING ENDPOINTS
+  // ============================================
+
+  /// Get all support tickets for driver
+  Future<Map<String, dynamic>> getSupportTickets({String? status}) async {
+    try {
+      final queryParams = status != null ? {'status': status} : null;
+      final response = await _apiClient.dio.get(
+        '/support/tickets',
+        queryParameters: queryParams,
+      );
+      return response.data;
+    } catch (e) {
+      developer.log('Get support tickets error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get single ticket details with messages
+  Future<Map<String, dynamic>> getSupportTicketDetail(int ticketId) async {
+    try {
+      final response = await _apiClient.dio.get('/support/tickets/$ticketId');
+      return response.data;
+    } catch (e) {
+      developer.log('Get ticket detail error: $e');
+      rethrow;
+    }
+  }
+
+  /// Create new support ticket
+  Future<Map<String, dynamic>> createSupportTicket({
+    required String subject,
+    required String category,
+    required String priority,
+    required String message,
+    double? latitude,
+    double? longitude,
+    List<File>? attachments,
+  }) async {
+    try {
+      FormData formData = FormData.fromMap({
+        'subject': subject,
+        'category': category,
+        'priority': priority,
+        'message': message,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+      });
+
+      // Add attachments if any
+      if (attachments != null && attachments.isNotEmpty) {
+        for (var file in attachments) {
+          formData.files.add(MapEntry(
+            'attachments[]',
+            await MultipartFile.fromFile(file.path),
+          ));
+        }
+      }
+
+      final response = await _apiClient.dio.post(
+        '/support/tickets',
+        data: formData,
+      );
+      return response.data;
+    } catch (e) {
+      developer.log('Create ticket error: $e');
+      rethrow;
+    }
+  }
+
+  /// Send message/reply to ticket
+  Future<Map<String, dynamic>> sendSupportMessage({
+    required int ticketId,
+    required String message,
+    double? latitude,
+    double? longitude,
+    List<File>? attachments,
+  }) async {
+    try {
+      FormData formData = FormData.fromMap({
+        'message': message,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+      });
+
+      if (attachments != null && attachments.isNotEmpty) {
+        for (var file in attachments) {
+          formData.files.add(MapEntry(
+            'attachments[]',
+            await MultipartFile.fromFile(file.path),
+          ));
+        }
+      }
+
+      final response = await _apiClient.dio.post(
+        '/support/tickets/$ticketId/messages',
+        data: formData,
+      );
+      return response.data;
+    } catch (e) {
+      developer.log('Send message error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get messages for a ticket (for real-time sync)
+  Future<Map<String, dynamic>> getSupportMessages(int ticketId) async {
+    try {
+      final response = await _apiClient.dio.get('/support/tickets/$ticketId/messages');
+      return response.data;
+    } catch (e) {
+      developer.log('Get messages error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get ticket status (for polling)
+  Future<Map<String, dynamic>> getSupportTicketStatus(int ticketId) async {
+    try {
+      final response = await _apiClient.dio.get('/support/tickets/$ticketId/status');
+      return response.data;
+    } catch (e) {
+      developer.log('Get ticket status error: $e');
+      rethrow;
+    }
+  }
+
+  /// Reopen closed ticket
+  Future<Map<String, dynamic>> reopenSupportTicket(int ticketId) async {
+    try {
+      final response = await _apiClient.dio.post('/support/tickets/$ticketId/reopen');
+      return response.data;
+    } catch (e) {
+      developer.log('Reopen ticket error: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete ticket (only if status is 'baru')
+  Future<Map<String, dynamic>> deleteSupportTicket(int ticketId) async {
+    try {
+      final response = await _apiClient.dio.delete('/support/tickets/$ticketId');
+      return response.data;
+    } catch (e) {
+      developer.log('Delete ticket error: $e');
+      rethrow;
+    }
+  }
 }
+

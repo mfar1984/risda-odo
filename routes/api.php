@@ -101,5 +101,25 @@ Route::middleware(['api.token', 'api.cors', 'auth:sanctum'])->group(function () 
         Route::post('/register-token', [\App\Http\Controllers\Api\NotificationController::class, 'registerToken']); // Register FCM token
         Route::post('/remove-token', [\App\Http\Controllers\Api\NotificationController::class, 'removeToken']); // Remove FCM token
     });
+
+    // Support Ticketing (Android App)
+    Route::prefix('support')->group(function () {
+        Route::get('/tickets', [\App\Http\Controllers\Api\SupportTicketController::class, 'index']); // Get driver's tickets
+        Route::get('/tickets/{id}', [\App\Http\Controllers\Api\SupportTicketController::class, 'show']); // Get ticket details
+        Route::post('/tickets', [\App\Http\Controllers\Api\SupportTicketController::class, 'store']); // Create ticket
+        Route::delete('/tickets/{id}', [\App\Http\Controllers\Api\SupportTicketController::class, 'destroy']); // Delete ticket (baru only)
+        
+        // Messages
+        Route::post('/tickets/{id}/messages', [\App\Http\Controllers\Api\SupportTicketController::class, 'sendMessage']); // Send message/reply
+        Route::get('/tickets/{id}/messages', [\App\Http\Controllers\Api\SupportTicketController::class, 'getMessages']); // Get messages (real-time)
+        
+        // Attachments
+        Route::post('/tickets/{id}/attachments', [\App\Http\Controllers\Api\SupportTicketController::class, 'uploadAttachment']); // Upload file
+        Route::get('/attachments/{path}', [\App\Http\Controllers\Api\SupportTicketController::class, 'downloadAttachment'])->where('path', '.*'); // Download file
+        
+        // Status & Actions
+        Route::get('/tickets/{id}/status', [\App\Http\Controllers\Api\SupportTicketController::class, 'getStatus']); // Check status
+        Route::post('/tickets/{id}/reopen', [\App\Http\Controllers\Api\SupportTicketController::class, 'reopen']); // Reopen ticket
+    });
 });
 
