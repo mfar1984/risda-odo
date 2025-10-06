@@ -80,9 +80,10 @@ class _CreateSupportTicketScreenState extends State<CreateSupportTicketScreen> {
         return;
       }
 
-      // Get current position
+      // Get current position with timeout
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10), // Add timeout
       );
 
       if (mounted) {
@@ -93,9 +94,17 @@ class _CreateSupportTicketScreenState extends State<CreateSupportTicketScreen> {
         });
       }
     } catch (e) {
-      developer.log('Get location error: $e');
+      developer.log('Get location error (Support Ticket): $e');
       if (mounted) {
         setState(() => _isGettingLocation = false);
+        
+        // Show error to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mendapatkan lokasi GPS: ${e.toString().substring(0, 50)}...'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

@@ -55,8 +55,8 @@ class UserProfileController extends Controller
             'success' => true,
             'message' => 'Gambar profil berjaya dikemaskini',
             'data' => [
-                'profile_picture' => $path,
-                'profile_picture_url' => Storage::url($path),
+                'profile_picture' => $path, // Return relative path only
+                'profile_picture_url' => $path, // Return relative path only (for backward compatibility)
             ],
         ], 200);
     }

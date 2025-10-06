@@ -313,6 +313,8 @@ Route::middleware('auth')->group(function () {
         Route::middleware('permission:sokongan,lihat')->group(function () {
             Route::get('/tickets/{id}', [App\Http\Controllers\SupportTicketController::class, 'show'])->name('tickets.show');
             Route::get('/tickets/{id}/export', [App\Http\Controllers\SupportTicketController::class, 'export'])->name('tickets.export');
+            Route::post('/tickets/{id}/typing', [App\Http\Controllers\SupportTicketController::class, 'updateTypingStatus'])->name('tickets.typing.update');
+            Route::get('/tickets/{id}/typing', [App\Http\Controllers\SupportTicketController::class, 'getTypingStatus'])->name('tickets.typing.get');
         });
 
         Route::middleware('permission:sokongan,balas')->group(function () {

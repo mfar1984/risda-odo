@@ -120,6 +120,10 @@ Route::middleware(['api.token', 'api.cors', 'auth:sanctum'])->group(function () 
         // Status & Actions
         Route::get('/tickets/{id}/status', [\App\Http\Controllers\Api\SupportTicketController::class, 'getStatus']); // Check status
         Route::post('/tickets/{id}/reopen', [\App\Http\Controllers\Api\SupportTicketController::class, 'reopen']); // Reopen ticket
+        
+        // Typing Indicator
+        Route::post('/tickets/{id}/typing', [\App\Http\Controllers\Api\SupportTicketController::class, 'updateTypingStatus']); // Update typing
+        Route::get('/tickets/{id}/typing', [\App\Http\Controllers\Api\SupportTicketController::class, 'getTypingStatus']); // Get who's typing
     });
 });
 

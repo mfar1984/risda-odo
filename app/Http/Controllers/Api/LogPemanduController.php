@@ -426,12 +426,12 @@ class LogPemanduController extends Controller
             'lokasi_checkout_long' => $log->lokasi_checkout_long,
             'lokasi_checkin_lat' => $log->lokasi_checkin_lat,
             'lokasi_checkin_long' => $log->lokasi_checkin_long,
-            'foto_odometer_keluar' => $log->foto_odometer_keluar ? Storage::url($log->foto_odometer_keluar) : null,
-            'foto_odometer_masuk' => $log->foto_odometer_masuk ? Storage::url($log->foto_odometer_masuk) : null,
+            'foto_odometer_keluar' => $log->foto_odometer_keluar, // Return relative path only
+            'foto_odometer_masuk' => $log->foto_odometer_masuk, // Return relative path only
             'liter_minyak' => $log->liter_minyak,
             'kos_minyak' => $log->kos_minyak,
             'stesen_minyak' => $log->stesen_minyak,
-            'resit_minyak' => $log->resit_minyak ? Storage::url($log->resit_minyak) : null,
+            'resit_minyak' => $log->resit_minyak, // Return relative path only
             'catatan' => $log->catatan,
             'created_at' => $log->created_at?->toISOString(),
             'updated_at' => $log->updated_at?->toISOString(),

@@ -61,6 +61,7 @@ window.createTicket = function() {
 // Track polling interval for real-time message updates
 let messagePollingInterval = null;
 let lastMessageCount = 0;
+let typingTimeout = null;
 
 window.viewTicket = function(ticketId) {
     window.currentTicketId = ticketId;
@@ -194,6 +195,9 @@ function startMessagePolling(ticketId) {
                         playNotificationSound();
                     }
                 }
+                
+                // Also check typing status
+                checkTypingStatus();
             }
         })
         .catch(error => {
@@ -860,6 +864,61 @@ window.exportChatHistory = function() {
     // Open export URL in new tab
     window.open(`/help/tickets/${window.currentTicketId}/export`, '_blank');
 };
+
+/**
+ * Send typing status to server
+ */
+window.sendTypingStatus = function() {
+    if (!window.currentTicketId) return;
+    
+    clearTimeout(typingTimeout);
+    
+    // Send typing status
+    fetch(`/help/tickets/${window.currentTicketId}/typing`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+        }
+    }).catch(e => console.log('Typing status error:', e));
+    
+    typingTimeout = setTimeout(() => {
+        // Typing stopped after 3 seconds
+    }, 3000);
+};
+
+/**
+ * Check typing status (called by polling)
+ */
+function checkTypingStatus() {
+    if (!window.currentTicketId) return;
+    
+    fetch(`/help/tickets/${window.currentTicketId}/typing`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const indicator = document.getElementById('typing-indicator');
+        const userName = document.getElementById('typing-user-name');
+        
+        if (data.success && data.typing_users && data.typing_users.length > 0) {
+            // Show typing indicator
+            if (indicator && userName) {
+                userName.textContent = data.typing_users[0].user_name;
+                indicator.style.display = 'block';
+            }
+        } else {
+            // Hide typing indicator
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
+    })
+    .catch(e => console.log('Check typing error:', e));
+}
 
 /**
  * View attachment in modal

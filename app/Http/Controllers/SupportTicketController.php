@@ -1026,6 +1026,63 @@ class SupportTicketController extends Controller
     }
 
     /**
+     * Update typing status
+     */
+    public function updateTypingStatus($id)
+    {
+        $currentUser = Auth::user();
+        $cacheKey = "ticket_{$id}_typing_{$currentUser->id}";
+        
+        \Cache::put($cacheKey, [
+            'user_id' => $currentUser->id,
+            'user_name' => $currentUser->name,
+        ], 5);
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Get typing status
+     */
+    public function getTypingStatus($id)
+    {
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::find($id);
+        
+        if (!$ticket) {
+            return response()->json(['success' => false], 404);
+        }
+        
+        $typingUsers = [];
+        
+        // Get all possible users who can access this ticket
+        $possibleUsers = collect([
+            $ticket->created_by,
+            $ticket->assigned_to,
+        ])
+        ->merge($ticket->participants->pluck('id'))
+        ->merge(User::where('jenis_organisasi', 'semua')->pluck('id')) // Admins
+        ->unique()
+        ->filter(fn($id) => $id && $id !== $currentUser->id)
+        ->values();
+        
+        // Check each user's typing status in cache
+        foreach ($possibleUsers as $userId) {
+            $cacheKey = "ticket_{$id}_typing_{$userId}";
+            $typingData = \Cache::get($cacheKey);
+            
+            if ($typingData) {
+                $typingUsers[] = $typingData;
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'typing_users' => $typingUsers,
+        ]);
+    }
+
+    /**
      * Get location from IP address using ip-api.com
      */
     private function getLocationFromIP($ip)

@@ -7,6 +7,7 @@ import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
 import '../core/api_client.dart';
+import '../core/constants.dart';
 import '../models/support_ticket.dart';
 import 'dart:developer' as developer;
 
@@ -36,6 +37,9 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
   bool _isLoading = true;
   bool _isSending = false;
   Timer? _pollingTimer;
+  Timer? _typingTimer;
+  Timer? _typingCheckTimer;
+  List<Map<String, dynamic>> _typingUsers = [];
 
   @override
   void initState() {
@@ -43,6 +47,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
     // Load real data from API
     _loadTicketDetail();
     _startPolling();
+    _startTypingCheck();
     
     // For mockup testing only:
     // _loadMockupData();
@@ -107,7 +112,44 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
     _messageController.dispose();
     _scrollController.dispose();
     _pollingTimer?.cancel();
+    _typingTimer?.cancel();
+    _typingCheckTimer?.cancel();
     super.dispose();
+  }
+
+  // Send typing status
+  void _onTextChanged(String text) {
+    _typingTimer?.cancel();
+    
+    if (text.isNotEmpty) {
+      // Send typing status
+      _apiService.updateTypingStatus(widget.ticketId).catchError((e) {
+        developer.log('Typing status error: $e');
+      });
+      
+      // Auto-clear after 3 seconds of inactivity
+      _typingTimer = Timer(const Duration(seconds: 3), () {
+        // Typing stopped
+      });
+    }
+  }
+
+  // Check who is typing (poll every 2 seconds)
+  void _startTypingCheck() {
+    _typingCheckTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+      try {
+        final response = await _apiService.getTypingStatus(widget.ticketId);
+        if (mounted && response['success'] == true) {
+          final typingList = List<Map<String, dynamic>>.from(response['typing_users'] ?? []);
+          developer.log('Typing users: ${typingList.length} - $typingList');
+          setState(() {
+            _typingUsers = typingList;
+          });
+        }
+      } catch (e) {
+        developer.log('Typing check error: $e');
+      }
+    });
   }
 
   // Load ticket details with messages
@@ -292,6 +334,27 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
                   ),
                 ),
 
+                // Typing Indicator
+                if (_typingUsers.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    color: Colors.grey.shade50,
+                    child: Row(
+                      children: [
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${_typingUsers.first['user_name']} is typing...',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 // Reply Input (sticky bottom)
                 Container(
                   decoration: BoxDecoration(
@@ -371,6 +434,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
                           Expanded(
                             child: TextField(
                               controller: _messageController,
+                              onChanged: _onTextChanged,
                               style: AppTextStyles.bodyMedium,
                               maxLines: null,
                               decoration: InputDecoration(
@@ -580,10 +644,8 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
   }
 
   void _showImagePreview(BuildContext context, String imagePath) {
-    // Build full URL
-    final imageUrl = imagePath.startsWith('http') 
-        ? imagePath 
-        : 'http://your-server.com/storage/$imagePath'; // TODO: Use actual base URL
+    // Build full URL using centralized constant
+    final imageUrl = ApiConstants.buildStorageUrl(imagePath);
 
     showDialog(
       context: context,

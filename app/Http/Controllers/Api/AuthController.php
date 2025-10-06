@@ -67,7 +67,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'profile_picture_url' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
+                    'profile_picture_url' => $user->profile_picture, // Return relative path only
                     'no_telefon' => $user->staf?->no_telefon ?? $user->no_telefon,
                     'jenis_organisasi' => $user->jenis_organisasi,
                     'organisasi_id' => $user->organisasi_id,
@@ -122,7 +122,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'profile_picture_url' => $user->profile_picture ? Storage::url($user->profile_picture) : null,
+                'profile_picture_url' => $user->profile_picture, // Return relative path only
                 'no_telefon' => $user->staf?->no_telefon ?? $user->no_telefon,
                 'jenis_organisasi' => $user->jenis_organisasi,
                 'organisasi_id' => $user->organisasi_id,

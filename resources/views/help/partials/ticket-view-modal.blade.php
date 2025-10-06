@@ -129,11 +129,19 @@
                             @csrf
                             <textarea 
                                 name="message"
+                                id="reply-message-textarea"
                                 rows="4"
                                 required
                                 placeholder="Taip balasan anda di sini..."
+                                oninput="sendTypingStatus()"
                                 class="w-full px-3 py-2 text-[11px] border border-gray-300 rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                 style="font-family: Poppins, sans-serif !important;"></textarea>
+                            
+                            {{-- Typing indicator --}}
+                            <div id="typing-indicator" class="mt-2 text-[10px] text-gray-500 italic" style="font-family: Poppins, sans-serif; display: none;">
+                                <span class="inline-block w-2 h-2 bg-gray-400 rounded-full mr-1 animate-pulse"></span>
+                                <span id="typing-user-name">Someone</span> is typing...
+                            </div>
                             
                             {{-- Hidden file input --}}
                             <input 

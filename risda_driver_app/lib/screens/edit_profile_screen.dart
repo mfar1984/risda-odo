@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../core/api_client.dart';
+import '../core/constants.dart';
 import '../theme/pastel_colors.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -266,9 +267,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildProfilePictureSection(String? currentProfileUrl, String? userName) {
+  Widget _buildProfilePictureSection(String? currentProfilePath, String? userName) {
+    // Build full URL from relative path
+    final imageUrl = currentProfilePath != null ? ApiConstants.buildStorageUrl(currentProfilePath) : null;
+    
     return GestureDetector(
-      onTap: () => _showImageSourceDialog(currentProfileUrl),
+      onTap: () => _showImageSourceDialog(currentProfilePath),
       child: Stack(
         children: [
           CircleAvatar(
@@ -276,10 +280,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             backgroundColor: Colors.white,
             backgroundImage: _profileImage != null
                 ? FileImage(_profileImage!)
-                : (currentProfileUrl != null
-                    ? NetworkImage(currentProfileUrl)
+                : (imageUrl != null
+                    ? NetworkImage(imageUrl)
                     : null) as ImageProvider?,
-            child: (_profileImage == null && currentProfileUrl == null)
+            child: (_profileImage == null && currentProfilePath == null)
                 ? Text(
                     (userName ?? '').isNotEmpty ? userName![0].toUpperCase() : 'U',
                     style: const TextStyle(

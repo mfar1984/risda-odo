@@ -4,6 +4,7 @@ import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
 import '../core/api_client.dart';
+import '../core/constants.dart';
 import 'claim_screen.dart';
 
 class ClaimMainTab extends StatefulWidget {
@@ -280,6 +281,64 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
                       ),
                     ],
                     
+                    // Receipt Image Section
+                    if (claim['resit'] != null && claim['resit'].toString().isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildSectionTitle('Resit'),
+                      GestureDetector(
+                        onTap: () => _showImagePreview(context, claim['resit']),
+                        child: Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!, width: 1),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              ApiConstants.buildStorageUrl(claim['resit']),
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
+                                      const SizedBox(height: 8),
+                                      Text('Gagal memuatkan gambar', style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[600])),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.touch_app, size: 14, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Tap untuk lihat penuh',
+                            style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[600], fontStyle: FontStyle.italic),
+                          ),
+                        ],
+                      ),
+                    ],
+                    
                     // Action buttons for rejected claims
                     if (claim['status'] == 'ditolak') ...[
                       const SizedBox(height: 24),
@@ -345,6 +404,70 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
     } catch (e) {
       return dateTimeStr; // Return original if parsing fails
     }
+  }
+
+  void _showImagePreview(BuildContext context, String imagePath) {
+    final imageUrl = ApiConstants.buildStorageUrl(imagePath);
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                panEnabled: true,
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(Icons.error, color: Colors.white, size: 64),
+                    );
+                  },
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 16,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 32),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    imagePath.split('/').last,
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildSectionTitle(String title) {

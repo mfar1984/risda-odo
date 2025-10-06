@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../core/api_client.dart';
+import '../core/constants.dart';
 import '../services/api_service.dart';
 import 'support_create_ticket_screen.dart';
 import 'support_ticket_detail_screen.dart';
@@ -1609,8 +1610,11 @@ class _ReportTabState extends State<ReportTab> {
     );
   }
 
-  Widget _buildImagePreview(String label, String? imageUrl) {
-    if (imageUrl == null) return const SizedBox.shrink();
+  Widget _buildImagePreview(String label, String? imagePath) {
+    if (imagePath == null) return const SizedBox.shrink();
+    
+    // Build full URL from relative path
+    final imageUrl = ApiConstants.buildStorageUrl(imagePath);
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),

@@ -81,11 +81,11 @@ class ReportController extends Controller
                         'stesen_minyak' => $log->stesen_minyak,
                     ],
                     
-                    // IMAGES
+                    // IMAGES (Return relative paths only)
                     'images' => [
-                        'foto_odometer_keluar' => $log->foto_odometer_keluar ? Storage::url($log->foto_odometer_keluar) : null,
-                        'foto_odometer_masuk' => $log->foto_odometer_masuk ? Storage::url($log->foto_odometer_masuk) : null,
-                        'resit_minyak' => $log->resit_minyak ? Storage::url($log->resit_minyak) : null,
+                        'foto_odometer_keluar' => $log->foto_odometer_keluar,
+                        'foto_odometer_masuk' => $log->foto_odometer_masuk,
+                        'resit_minyak' => $log->resit_minyak,
                     ],
                 ];
             });
@@ -173,14 +173,14 @@ class ReportController extends Controller
                         'kos_minyak' => (float) $log->kos_minyak,
                         'liter_minyak' => (float) $log->liter_minyak,
                         'stesen_minyak' => $log->stesen_minyak,
-                        'resit_minyak' => $log->resit_minyak ? Storage::url($log->resit_minyak) : null,
+                        'resit_minyak' => $log->resit_minyak, // Return relative path only
                     ],
                     
-                    // IMAGES
+                    // IMAGES (Return relative paths only)
                     'images' => [
-                        'foto_odometer_keluar' => $log->foto_odometer_keluar ? Storage::url($log->foto_odometer_keluar) : null,
-                        'foto_odometer_masuk' => $log->foto_odometer_masuk ? Storage::url($log->foto_odometer_masuk) : null,
-                        'resit_minyak' => $log->resit_minyak ? Storage::url($log->resit_minyak) : null,
+                        'foto_odometer_keluar' => $log->foto_odometer_keluar,
+                        'foto_odometer_masuk' => $log->foto_odometer_masuk,
+                        'resit_minyak' => $log->resit_minyak,
                     ],
                 ];
             });

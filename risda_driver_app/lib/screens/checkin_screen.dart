@@ -166,9 +166,10 @@ class _CheckInScreenState extends State<CheckInScreen> {
         return;
       }
 
-      // Get current position
+      // Get current position with timeout
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10), // Add timeout
       );
 
       setState(() {
@@ -178,8 +179,10 @@ class _CheckInScreenState extends State<CheckInScreen> {
       });
     } catch (e) {
       setState(() {
-        currentLocation = 'Error getting location';
+        // Show more specific error for debugging
+        currentLocation = 'Error getting location: ${e.toString().substring(0, 50)}...';
       });
+      print('GPS Error: $e'); // Log full error
     }
   }
 

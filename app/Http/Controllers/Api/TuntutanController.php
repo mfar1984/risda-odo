@@ -319,7 +319,7 @@ class TuntutanController extends Controller
             'kategori_label' => $tuntutan->kategori_label,
             'jumlah' => (float) $tuntutan->jumlah,
             'keterangan' => $tuntutan->keterangan,
-            'resit' => $tuntutan->resit ? Storage::url($tuntutan->resit) : null,
+            'resit' => $tuntutan->resit, // Return relative path only (without full URL)
             'status' => $tuntutan->status,
             'status_label' => $tuntutan->status_label,
             'status_badge_color' => $tuntutan->status_badge_color,

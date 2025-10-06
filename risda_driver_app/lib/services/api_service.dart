@@ -881,5 +881,27 @@ class ApiService {
       rethrow;
     }
   }
+
+  /// Update typing status
+  Future<Map<String, dynamic>> updateTypingStatus(int ticketId) async {
+    try {
+      final response = await _apiClient.dio.post('/support/tickets/$ticketId/typing');
+      return response.data;
+    } catch (e) {
+      developer.log('Update typing status error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get typing status
+  Future<Map<String, dynamic>> getTypingStatus(int ticketId) async {
+    try {
+      final response = await _apiClient.dio.get('/support/tickets/$ticketId/typing');
+      return response.data;
+    } catch (e) {
+      developer.log('Get typing status error: $e');
+      rethrow;
+    }
+  }
 }
 

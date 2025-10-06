@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/auth_service.dart';
+import '../core/constants.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -44,7 +45,7 @@ class ProfileScreen extends StatelessWidget {
                         radius: 50,
                         backgroundColor: Colors.white,
                         backgroundImage: user['user']?['profile_picture_url'] != null
-                            ? NetworkImage(user['user']!['profile_picture_url']!)
+                            ? NetworkImage(ApiConstants.buildStorageUrl(user['user']!['profile_picture_url']!))
                             : null,
                         child: user['user']?['profile_picture_url'] == null
                             ? Text(

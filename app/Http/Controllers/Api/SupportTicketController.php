@@ -544,6 +544,72 @@ class SupportTicketController extends Controller
     }
 
     /**
+     * Update typing status
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateTypingStatus(Request $request, $id)
+    {
+        $user = $request->user();
+        $ticket = SupportTicket::find($id);
+
+        if (!$ticket || !$ticket->canBeAccessedBy($user)) {
+            return response()->json(['success' => false], 403);
+        }
+
+        // Store typing status in cache (expires after 5 seconds)
+        $cacheKey = "ticket_{$id}_typing_{$user->id}";
+        \Cache::put($cacheKey, [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'timestamp' => now()->toIso8601String(),
+        ], 5); // 5 seconds TTL
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Get typing status for ticket
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getTypingStatus(Request $request, $id)
+    {
+        $user = $request->user();
+        $ticket = SupportTicket::find($id);
+
+        if (!$ticket || !$ticket->canBeAccessedBy($user)) {
+            return response()->json(['success' => false], 403);
+        }
+
+        // Get all typing users (except current user)
+        $typingUsers = [];
+        $pattern = "ticket_{$id}_typing_*";
+        
+        // Get all cache keys for this ticket
+        $allKeys = \Cache::get("ticket_{$id}_typing_users", []);
+        
+        foreach ($allKeys as $userId) {
+            if ($userId != $user->id) {
+                $cacheKey = "ticket_{$id}_typing_{$userId}";
+                $typingData = \Cache::get($cacheKey);
+                if ($typingData) {
+                    $typingUsers[] = $typingData;
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'typing_users' => $typingUsers,
+        ]);
+    }
+
+    /**
      * Reopen closed ticket (driver can request reopening)
      * 
      * @param Request $request

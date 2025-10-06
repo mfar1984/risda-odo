@@ -1,13 +1,21 @@
 /// API Configuration
 class ApiConstants {
-  // Base URL - Update this to your Laravel backend URL
-  static const String baseUrl = 'http://localhost:8000/api';
+  // Base URL - UPDATE THIS WHEN DEPLOYING
+  // For Development (Android Emulator): 'http://10.0.2.2:8000'
+  // For Production: 'https://jara.my' or your domain
+  static const String serverUrl = 'http://10.0.2.2:8000';
+  
+  // API Base URL
+  static String get baseUrl => '$serverUrl/api';
+  
+  // Storage Base URL (for images/files)
+  static String get storageUrl => '$serverUrl/storage';
   
   // Global API Key (from backend Integrasi config)
   static const String apiKey = 'rsk_xhitYqr9tsRDiyUHvr3keN9v82R7LxEvFbqPv5W1RuWMl2nlu1qvLEPmfsXcxdY4';
   
   // Origin (for CORS)
-  static const String origin = 'http://localhost';
+  static String get origin => serverUrl;
   
   // API Endpoints
   static const String login = '/auth/login';
@@ -25,6 +33,17 @@ class ApiConstants {
   // Timeouts
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 10);
+  
+  /// Build full URL for storage files (images, receipts, etc)
+  /// Returns full URL if path already starts with http/https
+  /// Otherwise, prepends storageUrl
+  static String buildStorageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path; // Already full URL
+    }
+    return '$storageUrl/$path';
+  }
 }
 
 /// App Configuration
