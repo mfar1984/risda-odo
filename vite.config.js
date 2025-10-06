@@ -10,7 +10,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/tuntutan-actions.js',
                 'resources/js/program-actions.js',
-                'resources/js/delete-actions.js'
+                'resources/js/delete-actions.js',
+                'resources/js/support-actions.js'
             ],
             refresh: true,
         }),

@@ -2,300 +2,781 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SupportTicket;
+use App\Models\SupportMessage;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class SupportTicketController extends Controller
 {
     /**
-     * Display support tickets list (UI Mockup with dummy data)
+     * Display a listing of tickets (filtered by user role/scope)
      */
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $currentUser = Auth::user();
+        $user = $currentUser; // For blade compatibility
         
-        // Pagination: 5 tickets per page
-        $perPage = 5;
-        
-        // Dummy data for UI showcase with pagination
-        $driverTickets = $this->getDummyDriverTicketsPaginated($request, $perPage);
-        $myTickets = $this->getDummyMyTicketsPaginated($request, $perPage);
-        $allTickets = $this->getDummyAllTicketsPaginated($request, $perPage);
-        
-        $stats = [
-            'baru' => 3,
-            'dalam_proses' => 5,
-            'urgent' => 2,
-            'selesai' => 45,
-        ];
-        
-        $adminStats = [
-            'escalated' => 8,
-            'staff' => 3,
-            'driver' => 156,
-            'today_resolved' => 23,
-        ];
-        
-        return view('help.hubungi-sokongan', compact(
-            'user',
-            'driverTickets',
-            'myTickets',
-            'allTickets',
-            'stats',
-            'adminStats'
-        ));
+        $query = SupportTicket::with(['creator', 'assignedAdmin', 'messages', 'participants']);
+
+        // Multi-tenancy filtering based on NEW access control
+        if ($currentUser->jenis_organisasi === 'semua') {
+            // Administrator can see:
+            // 1. Tickets assigned to them
+            // 2. Tickets where they are participant
+            // 3. Escalated tickets
+            // 4. Tickets created by staff (NOT from Android/driver)
+            // 5. Closed tickets
+            $query->where(function ($q) use ($currentUser) {
+                $q->where('assigned_to', $currentUser->id)
+                  ->orWhereHas('participants', function($pq) use ($currentUser) {
+                      $pq->where('user_id', $currentUser->id);
+                  })
+                  ->orWhere('status', 'escalated')
+                  ->orWhere(function ($subQ) {
+                      $subQ->whereIn('jenis_organisasi', ['bahagian', 'stesen'])
+                           ->where('source', '!=', 'android');
+                  })
+                  ->orWhere('status', 'ditutup');
+            });
+            
+            // Calculate admin stats
+            $adminStats = [
+                'escalated' => SupportTicket::where('status', 'escalated')->count(),
+                'staff' => SupportTicket::whereIn('jenis_organisasi', ['bahagian', 'stesen'])
+                    ->where('source', '!=', 'android')
+                    ->where('status', '!=', 'escalated')
+                    ->where('status', '!=', 'ditutup')->count(),
+                'today_resolved' => SupportTicket::where('status', 'ditutup')
+                    ->whereDate('closed_at', today())->count(),
+            ];
+        } elseif ($currentUser->jenis_organisasi === 'bahagian') {
+            // Bahagian staff can see tickets where they are:
+            // 1. Creator
+            // 2. Assigned to them
+            // 3. Participant
+            // 4. Android tickets in their organization (not yet assigned)
+            $query->where(function ($q) use ($currentUser) {
+                $q->where('created_by', $currentUser->id)
+                  ->orWhere('assigned_to', $currentUser->id)
+                  ->orWhereHas('participants', function($pq) use ($currentUser) {
+                      $pq->where('user_id', $currentUser->id);
+                  })
+                  ->orWhere(function ($orgQ) use ($currentUser) {
+                      $orgQ->where('jenis_organisasi', 'bahagian')
+                           ->where('organisasi_id', $currentUser->organisasi_id)
+                           ->where('source', 'android')
+                           ->whereNull('assigned_to'); // Only unassigned Android tickets
+                  });
+            });
+            
+            $adminStats = null;
+        } elseif ($currentUser->jenis_organisasi === 'stesen') {
+            // Stesen staff can see tickets where they are:
+            // 1. Creator
+            // 2. Assigned to them
+            // 3. Participant
+            // 4. Android tickets in their organization (not yet assigned)
+            $query->where(function ($q) use ($currentUser) {
+                $q->where('created_by', $currentUser->id)
+                  ->orWhere('assigned_to', $currentUser->id)
+                  ->orWhereHas('participants', function($pq) use ($currentUser) {
+                      $pq->where('user_id', $currentUser->id);
+                  })
+                  ->orWhere(function ($orgQ) use ($currentUser) {
+                      $orgQ->where('jenis_organisasi', 'stesen')
+                           ->where('organisasi_id', $currentUser->organisasi_id)
+                           ->where('source', 'android')
+                           ->whereNull('assigned_to'); // Only unassigned Android tickets
+                  });
+            });
+            
+            $adminStats = null;
+        }
+
+        // Filter by status
+        if ($request->has('status') && $request->status !== '') {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by priority
+        if ($request->has('priority') && $request->priority !== '') {
+            $query->where('priority', $request->priority);
+        }
+
+        // Filter by category
+        if ($request->has('category') && $request->category !== '') {
+            $query->where('category', $request->category);
+        }
+
+        // Search
+        if ($request->has('search') && $request->search !== '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('ticket_number', 'like', "%{$search}%")
+                  ->orWhere('subject', 'like', "%{$search}%");
+            });
+        }
+
+        $tickets = $query->orderBy('created_at', 'desc')->get();
+
+        return view('help.hubungi-sokongan', compact('tickets', 'user', 'adminStats'));
     }
-    
+
     /**
-     * Get dummy driver tickets (for staff view)
+     * Show a single ticket thread
      */
-    private function getDummyDriverTickets()
+    public function show($id)
     {
-        return [
-            (object)[
-                'ticket_number' => 'TICKET-0001',
-                'subject' => 'Tak boleh login di aplikasi mobile',
-                'status' => 'baru',
-                'priority' => 'tinggi',
-                'category' => 'Teknikal',
-                'created_by' => 'fairiz@jara.my',
-                'created_by_name' => 'Fairiz Ahmad',
-                'created_by_role' => 'Pemandu',
-                'organization' => 'Stesen A',
-                'created_ago' => '2 jam lalu',
-                'message_count' => 3,
-                'is_escalated' => false,
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::with(['creator', 'assignedAdmin', 'messages.user', 'participants'])->findOrFail($id);
+
+        // Check access using new access control
+        if (!$ticket->canBeAccessedBy($currentUser)) {
+            abort(403, 'Unauthorized access to this ticket.');
+        }
+
+        // AUTO-ASSIGN: If Android ticket and staff is viewing for first time
+        if ($ticket->source === 'android' && 
+            $ticket->assigned_to === null && 
+            $currentUser->jenis_organisasi !== 'semua') {
+            
+            $ticket->update(['assigned_to' => $currentUser->id]);
+            
+            // Log activity
+            activity('support')
+                ->performedOn($ticket)
+                ->causedBy($currentUser)
+                ->withProperties([
+                    'ticket_number' => $ticket->ticket_number,
+                    'assigned_to' => $currentUser->name,
+                ])
+                ->event('auto_assigned')
+                ->log('Tiket Android auto-assigned kepada staff yang pertama membuka');
+        }
+
+        // Mark ticket as 'dalam_proses' if admin is viewing for first time
+        if ($currentUser->jenis_organisasi === 'semua' && $ticket->status === 'baru') {
+            $ticket->update(['status' => 'dalam_proses']);
+        }
+
+        // Build serialized payload with labels/colors to avoid undefined in frontend
+        $ticketData = [
+            'id' => $ticket->id,
+            'ticket_number' => $ticket->ticket_number,
+            'subject' => $ticket->subject,
+            'category' => $ticket->category,
+            'priority' => $ticket->priority,
+            'priority_label' => $ticket->priority_label,
+            'priority_color' => $ticket->priority_color,
+            'status' => $ticket->status,
+            'status_label' => $ticket->status_label,
+            'status_color' => $ticket->status_color,
+            'source' => $ticket->source,
+            'organization_name' => $ticket->organization_name,
+            'opened_ago' => optional($ticket->created_at)->diffForHumans(),
+            'message_count' => $ticket->messages->count(),
+            'ip_address' => $ticket->ip_address,
+            'device' => $ticket->device,
+            'platform' => $ticket->platform,
+            'latitude' => $ticket->latitude,
+            'longitude' => $ticket->longitude,
+            'creator' => [
+                'name' => $ticket->creator?->name ?? 'N/A',
+                'email' => $ticket->creator?->email ?? null,
             ],
-            (object)[
-                'ticket_number' => 'TICKET-0002',
-                'subject' => 'Tuntutan tidak keluar dalam senarai',
-                'status' => 'dalam_proses',
-                'priority' => 'sederhana',
-                'category' => 'Tuntutan',
-                'created_by' => 'abu@jara.my',
-                'created_by_name' => 'Abu Bakar',
-                'created_by_role' => 'Pemandu',
-                'organization' => 'Stesen A',
-                'created_ago' => '30 min lalu',
-                'message_count' => 5,
-                'is_escalated' => false,
-            ],
-            (object)[
-                'ticket_number' => 'TICKET-0003',
-                'subject' => 'Apps crash bila buka program',
-                'status' => 'baru',
-                'priority' => 'tinggi',
-                'category' => 'Teknikal',
-                'created_by' => 'siti@jara.my',
-                'created_by_name' => 'Siti Aminah',
-                'created_by_role' => 'Pemandu',
-                'organization' => 'Stesen A',
-                'created_ago' => '1 jam lalu',
-                'message_count' => 1,
-                'is_escalated' => false,
-            ],
+            'assigned_to' => $ticket->assigned_to,
+            'assigned_admin' => $ticket->assignedAdmin ? [
+                'id' => $ticket->assignedAdmin->id,
+                'name' => $ticket->assignedAdmin->name,
+                'email' => $ticket->assignedAdmin->email,
+            ] : null,
+            'participants' => $ticket->participants->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'email' => $p->email,
+                    'role' => $p->pivot->role,
+                    'added_at' => optional($p->pivot->added_at)->diffForHumans(),
+                ];
+            })->values(),
+            'messages' => $ticket->messages->map(function ($m) {
+                return [
+                    'id' => $m->id,
+                    'message' => $m->message,
+                    'role' => $m->role,
+                    'role_label' => $m->role_label,
+                    'created_at' => optional($m->created_at)->toISOString(),
+                    'user' => $m->user ? [ 'name' => $m->user->name ] : null,
+                ];
+            })->values(),
         ];
-    }
-    
-    /**
-     * Get dummy my tickets (staff to admin)
-     */
-    private function getDummyMyTickets()
-    {
-        return [
-            (object)[
-                'ticket_number' => 'TICKET-0010',
-                'subject' => 'Perlukan akses ke sistem billing',
-                'status' => 'escalated',
-                'priority' => 'rendah',
-                'category' => 'Pentadbiran',
-                'created_by' => 'faizan@jara.my',
-                'created_by_name' => 'Faizan Abdullah',
-                'created_by_role' => 'Staff',
-                'organization' => 'Stesen A',
-                'created_ago' => '1 hari lalu',
-                'message_count' => 2,
-                'is_escalated' => true,
-            ],
-        ];
-    }
-    
-    /**
-     * Get dummy all tickets (for admin view)
-     */
-    private function getDummyAllTickets()
-    {
-        return array_merge($this->getDummyDriverTickets(), $this->getDummyMyTickets());
-    }
-    
-    /**
-     * Get paginated dummy driver tickets
-     */
-    private function getDummyDriverTicketsPaginated($request, $perPage)
-    {
-        $allData = collect([
-            (object)[
-                'ticket_number' => 'TICKET-0001',
-                'subject' => 'Tak boleh login di aplikasi mobile',
-                'status' => 'baru',
-                'priority' => 'tinggi',
-                'category' => 'Teknikal',
-                'created_by' => 'fairiz@jara.my',
-                'created_by_name' => 'Fairiz Ahmad',
-                'created_by_role' => 'Pemandu',
-                'organization' => 'Stesen A',
-                'created_ago' => '2 jam lalu',
-                'message_count' => 3,
-                'is_escalated' => false,
-            ],
-            (object)[
-                'ticket_number' => 'TICKET-0002',
-                'subject' => 'Tuntutan tidak keluar dalam senarai',
-                'status' => 'dalam_proses',
-                'priority' => 'sederhana',
-                'category' => 'Tuntutan',
-                'created_by' => 'abu@jara.my',
-                'created_by_name' => 'Abu Bakar',
-                'created_by_role' => 'Pemandu',
-                'organization' => 'Stesen A',
-                'created_ago' => '30 min lalu',
-                'message_count' => 5,
-                'is_escalated' => false,
-            ],
-            (object)[
-                'ticket_number' => 'TICKET-0003',
-                'subject' => 'Apps crash bila buka program',
-                'status' => 'baru',
-                'priority' => 'tinggi',
-                'category' => 'Teknikal',
-                'created_by' => 'siti@jara.my',
-                'created_by_name' => 'Siti Aminah',
-                'created_by_role' => 'Pemandu',
-                'organization' => 'Stesen A',
-                'created_ago' => '1 jam lalu',
-                'message_count' => 1,
-                'is_escalated' => false,
-            ],
-            (object)[
-                'ticket_number' => 'TICKET-0004',
-                'subject' => 'Lupa password sistem',
-                'status' => 'selesai',
-                'priority' => 'rendah',
-                'category' => 'Akaun',
-                'created_by' => 'ali@jara.my',
-                'created_by_name' => 'Ali Hassan',
-                'created_by_role' => 'Pemandu',
-                'organization' => 'Stesen A',
-                'created_ago' => '3 jam lalu',
-                'message_count' => 2,
-                'is_escalated' => false,
-            ],
-            (object)[
-                'ticket_number' => 'TICKET-0005',
-                'subject' => 'Data perjalanan tak sync',
-                'status' => 'dalam_proses',
-                'priority' => 'sederhana',
-                'category' => 'Teknikal',
-                'created_by' => 'ahmad@jara.my',
-                'created_by_name' => 'Ahmad Yusof',
-                'created_by_role' => 'Pemandu',
-                'organization' => 'Stesen A',
-                'created_ago' => '4 jam lalu',
-                'message_count' => 7,
-                'is_escalated' => false,
-            ],
-            (object)[
-                'ticket_number' => 'TICKET-0006',
-                'subject' => 'Error masa submit tuntutan',
-                'status' => 'baru',
-                'priority' => 'tinggi',
-                'category' => 'Tuntutan',
-                'created_by' => 'rahim@jara.my',
-                'created_by_name' => 'Abdul Rahim',
-                'created_by_role' => 'Pemandu',
-                'organization' => 'Stesen A',
-                'created_ago' => '5 jam lalu',
-                'message_count' => 4,
-                'is_escalated' => false,
-            ],
-            (object)[
-                'ticket_number' => 'TICKET-0007',
-                'subject' => 'GPS tidak accurate',
-                'status' => 'dalam_proses',
-                'priority' => 'sederhana',
-                'category' => 'Teknikal',
-                'created_by' => 'nurul@jara.my',
-                'created_by_name' => 'Nurul Huda',
-                'created_by_role' => 'Pemandu',
-                'organization' => 'Stesen A',
-                'created_ago' => '1 hari lalu',
-                'message_count' => 9,
-                'is_escalated' => false,
+
+        return response()->json([
+            'success' => true,
+            'ticket' => $ticketData,
+            'current_user' => [
+                'jenis_organisasi' => $currentUser->jenis_organisasi,
             ],
         ]);
-        
-        $currentPage = $request->get('driver_page', 1);
-        
-        return new \Illuminate\Pagination\LengthAwarePaginator(
-            $allData->forPage($currentPage, $perPage),
-            $allData->count(),
-            $perPage,
-            $currentPage,
-            ['path' => $request->url(), 'pageName' => 'driver_page']
-        );
     }
-    
+
     /**
-     * Get paginated dummy my tickets
+     * Store a new ticket
      */
-    private function getDummyMyTicketsPaginated($request, $perPage)
+    public function store(Request $request)
     {
-        $allData = collect([
-            (object)[
-                'ticket_number' => 'TICKET-0010',
-                'subject' => 'Perlukan akses ke sistem billing',
-                'status' => 'escalated',
-                'priority' => 'rendah',
-                'category' => 'Pentadbiran',
-                'created_by' => 'faizan@jara.my',
-                'created_by_name' => 'Faizan Abdullah',
-                'created_by_role' => 'Staff',
-                'organization' => 'Stesen A',
-                'created_ago' => '1 hari lalu',
-                'message_count' => 2,
-                'is_escalated' => true,
-            ],
+        $request->validate([
+            'subject' => 'required|string|max:255',
+            'category' => 'required|string',
+            'priority' => 'required|in:rendah,sederhana,tinggi,kritikal',
+            'message' => 'required|string',
+            'attachments.*' => 'nullable|file|max:5120', // 5MB max
         ]);
-        
-        $currentPage = $request->get('my_page', 1);
-        
-        return new \Illuminate\Pagination\LengthAwarePaginator(
-            $allData->forPage($currentPage, $perPage),
-            $allData->count(),
-            $perPage,
-            $currentPage,
-            ['path' => $request->url(), 'pageName' => 'my_page']
-        );
+
+        $currentUser = Auth::user();
+
+        // Handle file uploads
+        $attachments = [];
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('support-attachments', 'public');
+                $attachments[] = $path;
+            }
+        }
+
+        // Create ticket
+        $ticket = SupportTicket::create([
+            'ticket_number' => SupportTicket::generateTicketNumber(),
+            'subject' => $request->subject,
+            'category' => $request->category,
+            'priority' => $request->priority,
+            'status' => 'baru',
+            'jenis_organisasi' => $currentUser->jenis_organisasi,
+            'organisasi_id' => $currentUser->organisasi_id,
+            'created_by' => $currentUser->id,
+            'assigned_to' => $currentUser->id, // Auto-assign web tickets to creator
+            'source' => 'web',
+            'ip_address' => $request->ip(),
+            'device' => substr($request->userAgent() ?? '', 0, 190),
+            'platform' => $request->header('X-Platform') ?? 'web',
+            // latitude/longitude could be posted later by apps
+        ]);
+
+        // Create initial message
+        SupportMessage::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => $currentUser->id,
+            'role' => $currentUser->jenis_organisasi === 'semua' ? 'admin' : 'pengguna',
+            'message' => $request->message,
+            'attachments' => $attachments,
+        ]);
+
+        // Update last_reply_at
+        $ticket->update(['last_reply_at' => now()]);
+
+        // Log activity
+        activity('support')
+            ->performedOn($ticket)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ticket_number' => $ticket->ticket_number,
+                'subject' => $ticket->subject,
+                'category' => $ticket->category,
+                'priority' => $ticket->priority,
+                'organization' => $ticket->organization_name,
+            ])
+            ->event('created')
+            ->log('Tiket sokongan baru telah dicipta');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tiket sokongan berjaya dicipta.',
+            'ticket' => $ticket,
+        ]);
     }
-    
+
     /**
-     * Get paginated dummy all tickets (admin)
+     * Reply to a ticket
      */
-    private function getDummyAllTicketsPaginated($request, $perPage)
+    public function reply(Request $request, $id)
     {
-        // Combine driver and my tickets for admin
-        $driverData = $this->getDummyDriverTicketsPaginated($request, 999)->items();
-        $myData = $this->getDummyMyTicketsPaginated($request, 999)->items();
-        $allData = collect(array_merge($driverData, $myData));
+        $request->validate([
+            'message' => 'required|string',
+            'attachments.*' => 'nullable|file|max:5120',
+        ]);
+
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::findOrFail($id);
+
+        // Check access using new access control
+        if (!$ticket->canBeAccessedBy($currentUser)) {
+            abort(403, 'Unauthorized access to this ticket.');
+        }
+
+        // Handle file uploads
+        $attachments = [];
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('support-attachments', 'public');
+                $attachments[] = $path;
+            }
+        }
+
+        // Create message
+        $message = SupportMessage::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => $currentUser->id,
+            'role' => $currentUser->jenis_organisasi === 'semua' ? 'admin' : 'pengguna',
+            'message' => $request->message,
+            'attachments' => $attachments,
+        ]);
+
+        // Update ticket status and last_reply_at
+        $newStatus = $currentUser->jenis_organisasi === 'semua' ? 'dijawab' : 'dalam_proses';
+        $ticket->update([
+            'status' => $newStatus,
+            'last_reply_at' => now(),
+        ]);
+
+        // Log activity
+        activity('support')
+            ->performedOn($ticket)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ticket_number' => $ticket->ticket_number,
+                'subject' => $ticket->subject,
+                'reply_role' => $message->role,
+            ])
+            ->event('replied')
+            ->log('Balasan baru ditambah ke tiket sokongan');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Balasan berjaya dihantar.',
+            'reply' => $message,
+        ]);
+    }
+
+    /**
+     * Assign ticket to an admin
+     */
+    public function assign(Request $request, $id)
+    {
+        $request->validate([
+            'assigned_to' => 'required|exists:users,id',
+        ]);
+
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::findOrFail($id);
+
+        // Only administrators can assign tickets
+        if ($currentUser->jenis_organisasi !== 'semua') {
+            abort(403, 'Only administrators can assign tickets.');
+        }
+
+        $oldAssignee = $ticket->assignedAdmin;
+        $newAssignee = User::find($request->assigned_to);
+
+        $ticket->update([
+            'assigned_to' => $request->assigned_to,
+            'status' => 'dalam_proses',
+        ]);
+
+        // Create system message
+        $systemMessage = "Tiket ini telah ditugaskan kepada {$newAssignee->name}.";
+        if ($oldAssignee) {
+            $systemMessage = "Tiket ini telah dipindahkan dari {$oldAssignee->name} kepada {$newAssignee->name}.";
+        }
+
+        SupportMessage::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => null,
+            'role' => 'sistem',
+            'message' => $systemMessage,
+        ]);
+
+        // Log activity
+        activity('support')
+            ->performedOn($ticket)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ticket_number' => $ticket->ticket_number,
+                'subject' => $ticket->subject,
+                'old_assignee' => $oldAssignee?->name ?? 'Tiada',
+                'new_assignee' => $newAssignee->name,
+            ])
+            ->event('assigned')
+            ->log('Tiket sokongan telah ditugaskan');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tiket berjaya ditugaskan.',
+        ]);
+    }
+
+    /**
+     * Escalate ticket priority
+     */
+    public function escalate(Request $request, $id)
+    {
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::findOrFail($id);
+
+        // Allow both admin and staff to escalate, but enforce org scope for staff
+        if ($currentUser->jenis_organisasi !== 'semua') {
+            if ($ticket->jenis_organisasi !== $currentUser->jenis_organisasi || $ticket->organisasi_id !== $currentUser->organisasi_id) {
+                abort(403, 'Unauthorized');
+            }
+        }
+
+        $oldPriority = $ticket->priority;
+        $oldStatus = $ticket->status;
+
+        // Ensure organisasi_id is set (for tickets that might have NULL)
+        // This allows staff to still see the ticket after escalation
+        $updateData = [
+            'priority' => 'kritikal',
+            'status' => 'escalated',
+        ];
         
-        $currentPage = $request->get('all_page', 1);
-        
-        return new \Illuminate\Pagination\LengthAwarePaginator(
-            $allData->forPage($currentPage, $perPage),
-            $allData->count(),
-            $perPage,
-            $currentPage,
-            ['path' => $request->url(), 'pageName' => 'all_page']
-        );
+        // If organisasi_id is NULL, set it from current user (staff who escalated)
+        if (!$ticket->organisasi_id && $currentUser->jenis_organisasi !== 'semua') {
+            $updateData['organisasi_id'] = $currentUser->organisasi_id;
+            $updateData['jenis_organisasi'] = $currentUser->jenis_organisasi;
+        }
+
+        $ticket->update($updateData);
+
+        // Create system message
+        SupportMessage::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => null,
+            'role' => 'sistem',
+            'message' => "Tiket ini telah di-escalate kepada prioriti KRITIKAL oleh {$currentUser->name}.",
+        ]);
+
+        // Log activity
+        activity('support')
+            ->performedOn($ticket)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ticket_number' => $ticket->ticket_number,
+                'subject' => $ticket->subject,
+                'old_priority' => $oldPriority,
+                'new_priority' => 'kritikal',
+                'old_status' => $oldStatus,
+                'new_status' => 'escalated',
+            ])
+            ->event('escalated')
+            ->log('Tiket sokongan telah di-escalate');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tiket berjaya di-escalate.',
+        ]);
+    }
+
+    /**
+     * Close ticket
+     */
+    public function close(Request $request, $id)
+    {
+        $request->validate([
+            'resolution_note' => 'nullable|string',
+        ]);
+
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::findOrFail($id);
+
+        // Only administrators can close tickets
+        if ($currentUser->jenis_organisasi !== 'semua') {
+            abort(403, 'Only administrators can close tickets.');
+        }
+
+        $ticket->update([
+            'status' => 'ditutup',
+            'closed_at' => now(),
+        ]);
+
+        // Create system message
+        $systemMessage = "Tiket ini telah ditutup oleh {$currentUser->name}.";
+        if ($request->resolution_note) {
+            $systemMessage .= "\n\nNota: {$request->resolution_note}";
+        }
+
+        SupportMessage::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => null,
+            'role' => 'sistem',
+            'message' => $systemMessage,
+        ]);
+
+        // Log activity
+        activity('support')
+            ->performedOn($ticket)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ticket_number' => $ticket->ticket_number,
+                'subject' => $ticket->subject,
+                'resolution_note' => $request->resolution_note ?? 'Tiada nota',
+            ])
+            ->event('closed')
+            ->log('Tiket sokongan telah ditutup');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tiket berjaya ditutup.',
+        ]);
+    }
+
+    /**
+     * Reopen a closed ticket
+     */
+    public function reopen($id)
+    {
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::findOrFail($id);
+
+        // Check access
+        if ($currentUser->jenis_organisasi !== 'semua') {
+            if ($ticket->jenis_organisasi !== $currentUser->jenis_organisasi || 
+                $ticket->organisasi_id !== $currentUser->organisasi_id) {
+                abort(403, 'Unauthorized access to this ticket.');
+            }
+        }
+
+        $ticket->update([
+            'status' => 'dalam_proses',
+            'closed_at' => null,
+        ]);
+
+        // Create system message
+        SupportMessage::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => null,
+            'role' => 'sistem',
+            'message' => "Tiket ini telah dibuka semula oleh {$currentUser->name}.",
+        ]);
+
+        // Log activity
+        activity('support')
+            ->performedOn($ticket)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ticket_number' => $ticket->ticket_number,
+                'subject' => $ticket->subject,
+            ])
+            ->event('reopened')
+            ->log('Tiket sokongan telah dibuka semula');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tiket berjaya dibuka semula.',
+        ]);
+    }
+
+    /**
+     * Delete a ticket (soft delete or hard delete)
+     */
+    public function destroy($id)
+    {
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::findOrFail($id);
+
+        // Only administrators can delete tickets
+        if ($currentUser->jenis_organisasi !== 'semua') {
+            abort(403, 'Only administrators can delete tickets.');
+        }
+
+        // Log before delete
+        activity('support')
+            ->performedOn($ticket)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ticket_number' => $ticket->ticket_number,
+                'subject' => $ticket->subject,
+                'category' => $ticket->category,
+                'priority' => $ticket->priority,
+                'status' => $ticket->status,
+            ])
+            ->event('deleted')
+            ->log('Tiket sokongan telah dipadam');
+
+        // Delete all messages first
+        $ticket->messages()->delete();
+
+        // Delete ticket
+        $ticket->delete();
+
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tiket berjaya dipadam.',
+            ]);
+        }
+
+        return redirect()->route('help.hubungi-sokongan')
+            ->with('success', 'Tiket berjaya dipadam.');
+    }
+
+    /**
+     * Assign/Reassign ticket to a user
+     */
+    public function assignUser(Request $request, $id)
+    {
+        $request->validate([
+            'assigned_to' => 'nullable|exists:users,id', // Now optional
+        ]);
+
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::findOrFail($id);
+
+        // Check access
+        if (!$ticket->canBeAccessedBy($currentUser)) {
+            abort(403, 'Unauthorized access to this ticket.');
+        }
+
+        $message = 'Changes saved successfully';
+
+        // Only update assignment if assigned_to is provided
+        if ($request->filled('assigned_to')) {
+            // Check permission: Admin can assign to anyone, Staff can only assign within their org
+            $newAssignee = User::findOrFail($request->assigned_to);
+            
+            if ($currentUser->jenis_organisasi !== 'semua') {
+                // Staff can only assign to users in same organization
+                if ($newAssignee->jenis_organisasi !== $currentUser->jenis_organisasi ||
+                    $newAssignee->organisasi_id !== $currentUser->organisasi_id) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda hanya boleh assign kepada staff dalam organisasi yang sama.',
+                    ], 403);
+                }
+            }
+
+            $oldAssignee = $ticket->assignedAdmin;
+
+            // Update assigned_to
+            $ticket->update(['assigned_to' => $request->assigned_to]);
+
+            // Log activity
+            activity('support')
+                ->performedOn($ticket)
+                ->causedBy($currentUser)
+                ->withProperties([
+                    'ticket_number' => $ticket->ticket_number,
+                    'old_assignee' => $oldAssignee ? $oldAssignee->name : 'Tiada',
+                    'new_assignee' => $newAssignee->name,
+                ])
+                ->event('assigned')
+                ->log('Tiket telah di-assign kepada ' . $newAssignee->name);
+
+            $message = 'Tiket berjaya di-assign kepada ' . $newAssignee->name;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
+    }
+
+    /**
+     * Add participant to ticket discussion
+     */
+    public function addParticipant(Request $request, $id)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::findOrFail($id);
+
+        // Check access
+        if (!$ticket->canBeAccessedBy($currentUser)) {
+            abort(403, 'Unauthorized access to this ticket.');
+        }
+
+        $participant = User::findOrFail($request->user_id);
+
+        // Check permission: Admin can add anyone, Staff can only add from their org
+        if ($currentUser->jenis_organisasi !== 'semua') {
+            if ($participant->jenis_organisasi !== $currentUser->jenis_organisasi ||
+                $participant->organisasi_id !== $currentUser->organisasi_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda hanya boleh add participant dari organisasi yang sama.',
+                ], 403);
+            }
+        }
+
+        // Check if already participant
+        if ($ticket->participants()->where('user_id', $request->user_id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => $participant->name . ' sudah menjadi participant.',
+            ], 400);
+        }
+
+        // Add participant
+        $ticket->participants()->attach($request->user_id, [
+            'role' => 'viewer',
+            'added_by' => $currentUser->id,
+            'added_at' => now(),
+        ]);
+
+        // Log activity
+        activity('support')
+            ->performedOn($ticket)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ticket_number' => $ticket->ticket_number,
+                'participant' => $participant->name,
+            ])
+            ->event('participant_added')
+            ->log('Participant ditambah: ' . $participant->name);
+
+        return response()->json([
+            'success' => true,
+            'message' => $participant->name . ' berjaya ditambah sebagai participant.',
+        ]);
+    }
+
+    /**
+     * Remove participant from ticket discussion
+     */
+    public function removeParticipant(Request $request, $id, $userId)
+    {
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::findOrFail($id);
+
+        // Check access
+        if (!$ticket->canBeAccessedBy($currentUser)) {
+            abort(403, 'Unauthorized access to this ticket.');
+        }
+
+        $participant = User::findOrFail($userId);
+
+        // Remove participant
+        $ticket->participants()->detach($userId);
+
+        // Log activity
+        activity('support')
+            ->performedOn($ticket)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ticket_number' => $ticket->ticket_number,
+                'participant' => $participant->name,
+            ])
+            ->event('participant_removed')
+            ->log('Participant dibuang: ' . $participant->name);
+
+        return response()->json([
+            'success' => true,
+            'message' => $participant->name . ' berjaya dibuang dari participant.',
+        ]);
     }
 }
-

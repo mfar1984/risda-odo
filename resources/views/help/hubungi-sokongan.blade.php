@@ -11,4 +11,8 @@
             @include('help.partials.support-tickets-staff')
         @endif
     </x-ui.page-header>
+
+    {{-- Include Support Actions JS --}}
+    @vite('resources/js/support-actions.js')
+    @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>

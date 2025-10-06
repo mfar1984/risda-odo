@@ -21,10 +21,10 @@
                     <span class="material-symbols-outlined text-white text-[20px]">confirmation_number</span>
                     <div>
                         <h3 class="text-white font-semibold" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">
-                            TICKET-0001
+                            <span id="ticket-number-display">-</span>
                         </h3>
                         <p class="text-blue-100" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
-                            Dibuka: 2 jam lalu
+                            <span id="ticket-opened-ago">&nbsp;</span>
                         </p>
                     </div>
                 </div>
@@ -38,39 +38,72 @@
                 
                 {{-- Ticket Info --}}
                 <div class="p-6 border-b border-gray-200">
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
                             <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Subjek</div>
-                            <div class="text-[12px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">
-                                Tak boleh login di aplikasi mobile
-                            </div>
+                            <div id="ticket-subject-display" class="text-[12px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">-</div>
                         </div>
                         <div>
                             <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Status</div>
-                            <span class="inline-flex items-center h-5 px-2 text-[10px] font-medium rounded-sm bg-blue-100 text-blue-800 border border-blue-200">
-                                Baru
-                            </span>
+                            <span id="ticket-status-badge" class="inline-flex items-center h-5 px-2 text-[10px] font-medium rounded-sm bg-blue-100 text-blue-800 border border-blue-200">-</span>
                         </div>
                         <div>
                             <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Keutamaan</div>
-                            <span class="inline-flex items-center h-5 px-2 text-[10px] font-medium rounded-sm bg-red-100 text-red-800 border border-red-200">
-                                <span class="material-symbols-outlined text-[12px] mr-1">circle</span>
-                                Tinggi
-                            </span>
+                            <span id="ticket-priority-badge" class="inline-flex items-center h-5 px-2 text-[10px] font-medium rounded-sm bg-gray-100 text-gray-800 border border-gray-200">-</span>
                         </div>
                         <div>
                             <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Kategori</div>
-                            <div class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">Teknikal</div>
+                            <div id="ticket-category-display" class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">-</div>
                         </div>
                         <div>
                             <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Dibuka Oleh</div>
                             <div class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">
-                                fairiz@jara.my (Pemandu, Stesen A)
+                                <span id="ticket-creator-name">-</span>
+                                <span class="text-gray-500"> · </span>
+                                <span id="ticket-organization-display" class="text-gray-700">-</span>
                             </div>
                         </div>
                         <div>
                             <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Mesej</div>
-                            <div class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">3 mesej</div>
+                            <div id="ticket-message-count" class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">-</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">IP Address</div>
+                            <div id="ticket-ip-display" class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">-</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Peranti / Platform</div>
+                            <div class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                <span id="ticket-device-display">-</span>
+                                <span class="text-gray-500"> · </span>
+                                <span id="ticket-platform-display">-</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Lokasi</div>
+                            <div class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                <span id="ticket-location-display">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Original Message/Issue --}}
+                <div id="original-message-section" class="p-6 bg-blue-50 border-b border-blue-200" style="display: none;">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-blue-600 text-[18px]">description</span>
+                        <h3 class="text-[12px] font-semibold text-blue-900" style="font-family: Poppins, sans-serif !important;">📋 Aduan / Masalah Asal</h3>
+                    </div>
+                    <div class="bg-white rounded-sm p-4 border border-blue-300">
+                        <div id="original-message-content" class="text-[11px] text-gray-900 leading-relaxed" style="font-family: Poppins, sans-serif !important; white-space: pre-line;"></div>
+                        <div class="mt-3 pt-3 border-t border-gray-200">
+                            <div class="text-[9px] text-gray-500" style="font-family: Poppins, sans-serif !important;">
+                                <span class="material-symbols-outlined text-[12px] align-middle mr-1">person</span>
+                                <span id="original-message-author">-</span> · 
+                                <span id="original-message-time">-</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -82,119 +115,65 @@
                         Thread Mesej
                     </h4>
 
-                    {{-- Message 1 (Original from Driver) --}}
-                    <div class="flex gap-3">
-                        <div class="flex-shrink-0">
-                            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-purple-600 text-[18px]">person</span>
-                            </div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="bg-gray-50 rounded-sm p-4 border border-gray-200">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div>
-                                        <div class="text-[11px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">
-                                            Fairiz Ahmad
-                                        </div>
-                                        <div class="text-[9px] text-gray-500" style="font-family: Poppins, sans-serif !important;">
-                                            fairiz@jara.my · Pemandu · 2 jam lalu
-                                        </div>
-                                    </div>
-                                    <span class="inline-flex items-center h-4 px-2 text-[9px] font-medium rounded-sm bg-purple-100 text-purple-800">
-                                        PEMANDU
-                                    </span>
-                                </div>
-                                <div class="text-[11px] text-gray-700 leading-relaxed" style="font-family: Poppins, sans-serif !important;">
-                                    Assalamualaikum, saya ada masalah login di aplikasi mobile. Bila masukkan email dan password, keluar error "Invalid credentials". Tapi saya pasti password saya betul sebab baru tukar semalam. Tolong bantu saya.
-                                </div>
-                            </div>
-                        </div>
+                    <div id="ticket-messages-container" class="space-y-3 mb-6">
+                        <div class="text-[11px] text-gray-500" style="font-family: Poppins, sans-serif !important;">Tiada mesej.</div>
                     </div>
 
-                    {{-- Message 2 (Reply from Staff) --}}
-                    <div class="flex gap-3">
-                        <div class="flex-shrink-0">
-                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-blue-600 text-[18px]">support_agent</span>
-                            </div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="bg-blue-50 rounded-sm p-4 border border-blue-200">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div>
-                                        <div class="text-[11px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">
-                                            Faizan Abdullah
-                                        </div>
-                                        <div class="text-[9px] text-gray-500" style="font-family: Poppins, sans-serif !important;">
-                                            faizan@jara.my · Staff · 1 jam lalu
-                                        </div>
-                                    </div>
-                                    <span class="inline-flex items-center h-4 px-2 text-[9px] font-medium rounded-sm bg-blue-600 text-white">
-                                        STAFF
-                                    </span>
+                    {{-- Inline Reply Form --}}
+                    <div class="border-t border-gray-200 pt-4">
+                        <h5 class="text-[11px] font-semibold text-gray-900 mb-3 flex items-center gap-2" style="font-family: Poppins, sans-serif !important;">
+                            <span class="material-symbols-outlined text-[16px]">reply</span>
+                            Balas Tiket
+                        </h5>
+                        <form id="inline-reply-ticket-form">
+                            @csrf
+                            <textarea 
+                                name="message"
+                                rows="4"
+                                required
+                                placeholder="Taip balasan anda di sini..."
+                                class="w-full px-3 py-2 text-[11px] border border-gray-300 rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                style="font-family: Poppins, sans-serif !important;"></textarea>
+                            
+                            <div class="flex justify-between items-center mt-3">
+                                <div class="text-[10px] text-gray-500" style="font-family: Poppins, sans-serif !important;">
+                                    <span class="material-symbols-outlined text-[12px] align-middle mr-1">info</span>
+                                    Balasan akan dihantar kepada pemandu
                                 </div>
-                                <div class="text-[11px] text-gray-700 leading-relaxed" style="font-family: Poppins, sans-serif !important;">
-                                    Waalaikumussalam En. Fairiz. Terima kasih atas laporan. Saya akan semak akaun anda. Boleh cuba reset password sekali lagi?
-                                </div>
+                                <button type="submit" class="h-8 px-4 text-[11px] font-medium rounded-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors inline-flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[16px]">send</span>
+                                    Hantar Respons
+                                </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
-
-                    {{-- Message 3 (Reply from Driver) --}}
-                    <div class="flex gap-3">
-                        <div class="flex-shrink-0">
-                            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-purple-600 text-[18px]">person</span>
-                            </div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="bg-gray-50 rounded-sm p-4 border border-gray-200">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div>
-                                        <div class="text-[11px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">
-                                            Fairiz Ahmad
-                                        </div>
-                                        <div class="text-[9px] text-gray-500" style="font-family: Poppins, sans-serif !important;">
-                                            fairiz@jara.my · Pemandu · 30 min lalu
-                                        </div>
-                                    </div>
-                                    <span class="inline-flex items-center h-4 px-2 text-[9px] font-medium rounded-sm bg-purple-100 text-purple-800">
-                                        PEMANDU
-                                    </span>
-                                </div>
-                                <div class="text-[11px] text-gray-700 leading-relaxed" style="font-family: Poppins, sans-serif !important;">
-                                    Dah cuba reset tapi masih tak boleh login juga. Ada cara lain tak?
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
 
             {{-- Footer Actions --}}
             <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-between items-center">
                 <div class="flex gap-2">
-                    <button @click="replyTicketModal = true; viewTicketModal = false" 
-                            class="h-8 px-4 text-[11px] font-medium rounded-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors inline-flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-[16px]">reply</span>
-                        Balas
+                    {{-- Escalate button (for staff viewing Android tickets only) --}}
+                    <button id="btn-escalate" onclick="escalateTicket()" class="h-8 px-4 text-[11px] rounded-sm border border-red-300 text-red-700 hover:bg-red-50 transition-colors inline-flex items-center gap-1.5" style="display: none; font-family: Poppins, sans-serif !important;">
+                        <span class="material-symbols-outlined text-[16px]">trending_up</span>
+                        Escalate to Administrator
                     </button>
-                    <button class="h-8 px-4 text-[11px] rounded-sm border border-yellow-300 text-yellow-700 hover:bg-yellow-50 transition-colors inline-flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-[16px]">flag</span>
-                        Tandakan Urgent
+                    
+                    {{-- Admin-only buttons --}}
+                    <button id="btn-assign" onclick="openAssignModal()" class="h-8 px-4 text-[11px] rounded-sm border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors inline-flex items-center gap-1.5" style="display: none; font-family: Poppins, sans-serif !important;">
+                        <span class="material-symbols-outlined text-[16px]">person_add</span>
+                        Tugaskan
                     </button>
-                </div>
-                <div class="flex gap-2">
-                    <button class="h-8 px-4 text-[11px] rounded-sm border border-green-300 text-green-700 hover:bg-green-50 transition-colors inline-flex items-center gap-1.5">
+                    
+                    <button id="btn-close" onclick="closeTicket()" class="h-8 px-4 text-[11px] rounded-sm border border-green-300 text-green-700 hover:bg-green-50 transition-colors inline-flex items-center gap-1.5" style="display: none; font-family: Poppins, sans-serif !important;">
                         <span class="material-symbols-outlined text-[16px]">check_circle</span>
                         Selesaikan
                     </button>
-                    <button @click="viewTicketModal = false" 
-                            class="h-8 px-4 text-[11px] rounded-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
-                        Tutup
-                    </button>
                 </div>
+                <button @click="viewTicketModal = false" 
+                        class="h-8 px-4 text-[11px] rounded-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+                    Tutup
+                </button>
             </div>
 
         </div>

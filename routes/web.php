@@ -305,6 +305,37 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/hubungi-sokongan', [App\Http\Controllers\SupportTicketController::class, 'index'])->name('hubungi-sokongan');
 
+        // Support Ticket Routes (Permission-based)
+        Route::middleware('permission:sokongan,tambah')->group(function () {
+            Route::post('/tickets', [App\Http\Controllers\SupportTicketController::class, 'store'])->name('tickets.store');
+        });
+
+        Route::middleware('permission:sokongan,lihat')->group(function () {
+            Route::get('/tickets/{id}', [App\Http\Controllers\SupportTicketController::class, 'show'])->name('tickets.show');
+        });
+
+        Route::middleware('permission:sokongan,balas')->group(function () {
+            Route::post('/tickets/{id}/reply', [App\Http\Controllers\SupportTicketController::class, 'reply'])->name('tickets.reply');
+        });
+
+        Route::middleware('permission:sokongan,tugaskan')->group(function () {
+            Route::post('/tickets/{id}/assign', [App\Http\Controllers\SupportTicketController::class, 'assignUser'])->name('tickets.assign');
+            Route::post('/tickets/{id}/participants', [App\Http\Controllers\SupportTicketController::class, 'addParticipant'])->name('tickets.addParticipant');
+            Route::delete('/tickets/{id}/participants/{userId}', [App\Http\Controllers\SupportTicketController::class, 'removeParticipant'])->name('tickets.removeParticipant');
+        });
+
+        // Escalate: allow staff to escalate Android tickets to Admin (checked in controller)
+        Route::post('/tickets/{id}/escalate', [App\Http\Controllers\SupportTicketController::class, 'escalate'])->name('tickets.escalate');
+
+        Route::middleware('permission:sokongan,tutup')->group(function () {
+            Route::post('/tickets/{id}/close', [App\Http\Controllers\SupportTicketController::class, 'close'])->name('tickets.close');
+            Route::post('/tickets/{id}/reopen', [App\Http\Controllers\SupportTicketController::class, 'reopen'])->name('tickets.reopen');
+        });
+
+        Route::middleware('permission:sokongan,padam')->group(function () {
+            Route::delete('/tickets/{id}', [App\Http\Controllers\SupportTicketController::class, 'destroy'])->name('tickets.destroy');
+        });
+
         Route::get('/status-sistem', function () {
             return view('help.status-sistem');
         })->name('status-sistem');
@@ -313,6 +344,11 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/api-doc', [App\Http\Controllers\ApiDokumentasiController::class, 'index'])->name('api-dokumentasi');
         Route::get('/api-doc/{module}/{endpoint}', [App\Http\Controllers\ApiDokumentasiController::class, 'show'])->name('api-endpoint-detail');
+    });
+
+    // Internal API routes (for AJAX calls)
+    Route::prefix('api')->middleware('auth')->group(function () {
+        Route::get('/users/list', [App\Http\Controllers\Api\UserController::class, 'list'])->name('api.users.list');
     });
 });
 

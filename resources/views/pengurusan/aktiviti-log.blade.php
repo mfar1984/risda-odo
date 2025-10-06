@@ -795,6 +795,110 @@
                                         </div>
                                     </template>
 
+                                    <!-- Support Ticket specific fields -->
+                                    <template x-if="selectedActivity.log_name === 'support'">
+                                        <div class="space-y-4">
+                                            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-sm p-3">
+                                                <div class="text-[10px] font-semibold text-purple-900 mb-3" style="font-family: Poppins, sans-serif !important;">
+                                                    🎫 Maklumat Tiket Sokongan
+                                                </div>
+                                                <div class="grid grid-cols-2 gap-4">
+                                                    <template x-if="selectedActivity.properties.ticket_number">
+                                                        <div>
+                                                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">No. Tiket</div>
+                                                            <div class="text-[12px] font-bold text-purple-700 font-mono" style="font-family: 'Courier New', monospace !important;" x-text="selectedActivity.properties.ticket_number"></div>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="selectedActivity.properties.subject">
+                                                        <div>
+                                                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Subjek</div>
+                                                            <div class="text-[11px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.subject"></div>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="selectedActivity.properties.category">
+                                                        <div>
+                                                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Kategori</div>
+                                                            <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.category"></div>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="selectedActivity.properties.priority">
+                                                        <div>
+                                                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Keutamaan</div>
+                                                            <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.priority.toUpperCase()"></div>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="selectedActivity.properties.organization">
+                                                        <div>
+                                                            <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Organisasi</div>
+                                                            <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.organization"></div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+
+                                            <!-- Show assignee info for 'assigned' event -->
+                                            <template x-if="selectedActivity.event === 'assigned'">
+                                                <div class="bg-blue-50 border border-blue-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-blue-900 mb-2" style="font-family: Poppins, sans-serif !important;">
+                                                        👤 Tugasan
+                                                    </div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                                        <template x-if="selectedActivity.properties.old_assignee && selectedActivity.properties.old_assignee !== 'Tiada'">
+                                                            <span>
+                                                                <span class="text-gray-600" x-text="selectedActivity.properties.old_assignee"></span>
+                                                                <span class="mx-2 text-blue-600">→</span>
+                                                            </span>
+                                                        </template>
+                                                        <span class="text-blue-700 font-semibold" x-text="selectedActivity.properties.new_assignee"></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Show reply info for 'replied' event -->
+                                            <template x-if="selectedActivity.event === 'replied' && selectedActivity.properties.reply_role">
+                                                <div class="bg-green-50 border border-green-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-green-900 mb-2" style="font-family: Poppins, sans-serif !important;">
+                                                        💬 Balasan Oleh
+                                                    </div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.reply_role === 'admin' ? 'Administrator' : 'Pengguna'"></div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Show resolution note for 'closed' event -->
+                                            <template x-if="selectedActivity.event === 'closed' && selectedActivity.properties.resolution_note">
+                                                <div class="bg-gray-50 border border-gray-300 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-gray-900 mb-2" style="font-family: Poppins, sans-serif !important;">
+                                                        📝 Nota Penyelesaian
+                                                    </div>
+                                                    <div class="text-[11px] text-gray-700 leading-relaxed" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.resolution_note"></div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Show escalation info for 'escalated' event -->
+                                            <template x-if="selectedActivity.event === 'escalated'">
+                                                <div class="bg-red-50 border border-red-200 rounded-sm p-3">
+                                                    <div class="text-[10px] font-semibold text-red-900 mb-2" style="font-family: Poppins, sans-serif !important;">
+                                                        ⚠️ Escalation
+                                                    </div>
+                                                    <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;">
+                                                        <div class="flex items-center gap-2 mb-1">
+                                                            <span class="text-gray-600">Keutamaan:</span>
+                                                            <span class="text-gray-700" x-text="selectedActivity.properties.old_priority"></span>
+                                                            <span class="text-red-600">→</span>
+                                                            <span class="text-red-700 font-bold" x-text="selectedActivity.properties.new_priority"></span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-gray-600">Status:</span>
+                                                            <span class="text-gray-700" x-text="selectedActivity.properties.old_status"></span>
+                                                            <span class="text-red-600">→</span>
+                                                            <span class="text-red-700 font-bold" x-text="selectedActivity.properties.new_status"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+
                                     <!-- Show status change for update/approve/reject events -->
                                     <template x-if="(selectedActivity.event === 'updated' || selectedActivity.event === 'approved' || selectedActivity.event === 'rejected') && selectedActivity.properties.old_status && selectedActivity.properties.new_status">
                                         <div class="bg-blue-50 border border-blue-200 rounded-sm p-3">

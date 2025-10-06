@@ -180,6 +180,15 @@ class UserGroup extends Model
             'aktiviti_log_keselamatan' => [
                 'lihat' => false,
             ],
+            // Letakkan modul sokongan di bawah sekali seperti diminta
+            'sokongan' => [
+                'tambah' => false,
+                'lihat' => false,
+                'balas' => false,
+                'tugaskan' => false,
+                'tutup' => false,
+                'padam' => false,
+            ],
         ];
     }
 
@@ -198,6 +207,10 @@ class UserGroup extends Model
             'gantung' => 'Gantung',
             'aktifkan' => 'Aktifkan',
             'eksport' => 'Eksport',
+            'balas' => 'Balas',
+            'assign' => 'Assign',
+            'escalate' => 'Eskalat',
+            'tutup' => 'Tutup',
         ];
     }
 
@@ -229,6 +242,7 @@ class UserGroup extends Model
             'tetapan_umum' => 'Tetapan Umum',
             'aktiviti_log' => 'Aktiviti Log',
             'aktiviti_log_keselamatan' => 'Aktiviti Log Keselamatan',
+            'sokongan' => 'Sokongan (Tiket Bantuan)',
         ];
     }
 }

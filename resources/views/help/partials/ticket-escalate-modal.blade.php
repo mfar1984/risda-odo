@@ -24,7 +24,7 @@
                             Escalate ke Administrator
                         </h3>
                         <p class="text-red-100" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
-                            TICKET-0001: Tak boleh login di aplikasi mobile
+                            <span id="esc-ticket-number">TICKET</span>: <span id="esc-ticket-subject">Subjek tiket</span>
                         </p>
                     </div>
                 </div>
@@ -156,7 +156,7 @@ Mohon admin dapat berikan akses billing kepada user ini.</textarea>
                         class="h-8 px-4 text-[11px] rounded-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
                     Batal
                 </button>
-                <button type="submit" class="h-8 px-4 text-[11px] font-medium rounded-sm bg-red-600 text-white hover:bg-red-700 transition-colors inline-flex items-center gap-1.5">
+                <button type="button" onclick="escalateTicketConfirm()" class="h-8 px-4 text-[11px] font-medium rounded-sm bg-red-600 text-white hover:bg-red-700 transition-colors inline-flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-[16px]">trending_up</span>
                     Escalate ke Admin
                 </button>

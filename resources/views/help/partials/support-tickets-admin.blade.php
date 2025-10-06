@@ -1,13 +1,16 @@
 {{-- ADMINISTRATOR VIEW --}}
 
-<div x-data="{ 
+<div id="supportTicketsRoot" x-data="{ 
     activeTab: 'escalated',
     viewTicketModal: false,
-    replyTicketModal: false,
     createTicketModal: false,
     assignTicketModal: false,
     escalateTicketModal: false
-}" class="mb-8">
+}"
+@open-view-ticket-modal.window="viewTicketModal = true"
+@open-assign-ticket-modal.window="assignTicketModal = true"
+@close-assign-ticket-modal.window="assignTicketModal = false"
+class="mb-8">
     
     {{-- Tab Navigation (senarai-risda style with badges) --}}
     <div class="border-b border-gray-200">
@@ -19,7 +22,9 @@
                 :style="activeTab === 'escalated' ? 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid #2563eb !important; color: #2563eb !important;' : 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid transparent !important;'">
                 <span class="material-symbols-outlined" style="font-size: 16px;">trending_up</span>
                 Escalated
-                <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 text-[9px] font-semibold rounded-full bg-red-600 text-white">8</span>
+                @if($adminStats['escalated'] > 0)
+                    <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 text-[9px] font-semibold rounded-full bg-red-600 text-white" style="font-family: Poppins, sans-serif !important;">{{ $adminStats['escalated'] }}</span>
+                @endif
             </button>
             <button 
                 @click="activeTab = 'staff'"
@@ -28,15 +33,9 @@
                 :style="activeTab === 'staff' ? 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid #2563eb !important; color: #2563eb !important;' : 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid transparent !important;'">
                 <span class="material-symbols-outlined" style="font-size: 16px;">mail</span>
                 Tiket Staff
-                <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 text-[9px] font-semibold rounded-full bg-blue-600 text-white">3</span>
-            </button>
-            <button 
-                @click="activeTab = 'driver'"
-                :class="activeTab === 'driver' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'"
-                class="whitespace-nowrap py-3 px-2 font-medium transition-colors duration-200 flex items-center gap-2"
-                :style="activeTab === 'driver' ? 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid #2563eb !important; color: #2563eb !important;' : 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid transparent !important;'">
-                <span class="material-symbols-outlined" style="font-size: 16px;">person</span>
-                Dari Pemandu
+                @if($adminStats['staff'] > 0)
+                    <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 text-[9px] font-semibold rounded-full bg-blue-600 text-white" style="font-family: Poppins, sans-serif !important;">{{ $adminStats['staff'] }}</span>
+                @endif
             </button>
             <button 
                 @click="activeTab = 'resolved'"
@@ -53,7 +52,7 @@
     <div class="mt-8">
 
         {{-- Dashboard Stats --}}
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div class="bg-gradient-to-br from-red-50 to-white p-4 rounded-sm border border-red-200">
             <div class="flex items-center gap-2 mb-2">
                 <span class="material-symbols-outlined text-red-600 text-[18px]">trending_up</span>
@@ -70,14 +69,6 @@
             <div class="text-[24px] font-bold text-gray-900">{{ $adminStats['staff'] }}</div>
             <div class="text-[9px] text-gray-500 mt-1">tiket dari staff</div>
         </div>
-        <div class="bg-gradient-to-br from-purple-50 to-white p-4 rounded-sm border border-purple-200">
-            <div class="flex items-center gap-2 mb-2">
-                <span class="material-symbols-outlined text-purple-600 text-[18px]">group</span>
-                <span class="text-[10px] text-gray-600">Driver</span>
-            </div>
-            <div class="text-[24px] font-bold text-gray-900">{{ $adminStats['driver'] }}</div>
-            <div class="text-[9px] text-gray-500 mt-1">tiket dari pemandu</div>
-        </div>
         <div class="bg-gradient-to-br from-green-50 to-white p-4 rounded-sm border border-green-200">
             <div class="flex items-center gap-2 mb-2">
                 <span class="material-symbols-outlined text-green-600 text-[18px]">check_circle</span>
@@ -88,19 +79,35 @@
         </div>
         </div>
 
-        {{-- Alert Box --}}
+        {{-- Alert Box (Dynamic - Only show if there are urgent tickets) --}}
+        @php
+            $escalatedOld = $tickets->where('status', 'escalated')->filter(function($ticket) {
+                return $ticket->created_at->diffInHours(now()) > 24;
+            })->count();
+            
+            $criticalNew = $tickets->where('priority', 'kritikal')->where('status', 'baru')->count();
+            
+            $showAlert = $escalatedOld > 0 || $criticalNew > 0;
+        @endphp
+        
+        @if($showAlert)
         <div class="bg-red-50 border-l-4 border-red-500 p-3 mb-6 rounded-sm">
-        <div class="flex items-start gap-3">
-            <span class="material-symbols-outlined text-red-600 text-[18px]">warning</span>
-            <div>
-                <div class="text-[11px] font-semibold text-red-900 mb-1">⚠️ Perlu Perhatian Segera</div>
-                <ul class="text-[10px] text-red-800 space-y-0.5">
-                    <li>• 2 tiket escalated lebih 24 jam</li>
-                    <li>• 1 critical staff request</li>
-                </ul>
+            <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-red-600 text-[18px]">warning</span>
+                <div>
+                    <div class="text-[11px] font-semibold text-red-900 mb-1" style="font-family: Poppins, sans-serif !important;">⚠️ Perlu Perhatian Segera</div>
+                    <ul class="text-[10px] text-red-800 space-y-0.5" style="font-family: Poppins, sans-serif !important;">
+                        @if($escalatedOld > 0)
+                            <li>• {{ $escalatedOld }} tiket escalated lebih 24 jam</li>
+                        @endif
+                        @if($criticalNew > 0)
+                            <li>• {{ $criticalNew }} tiket kritikal baru</li>
+                        @endif
+                    </ul>
+                </div>
             </div>
         </div>
-        </div>
+        @endif
 
         {{-- Advanced Filters --}}
         <div class="grid grid-cols-5 gap-3 mb-6">
@@ -132,24 +139,66 @@
         {{-- Ticket List --}}
         <div class="space-y-3">
         
-        @forelse($allTickets as $ticket)
-            @include('help.partials.ticket-card-admin', ['ticket' => $ticket])
-        @empty
-            <div class="text-center py-12">
-                <span class="material-symbols-outlined text-gray-400 text-[48px]">inbox</span>
-                <p class="text-[12px] text-gray-500 mt-2" style="font-family: Poppins, sans-serif !important;">Tiada tiket</p>
+        {{-- Escalated Tab --}}
+        <template x-if="activeTab === 'escalated'">
+            <div class="space-y-3">
+                @php
+                    $escalatedTickets = $tickets->where('status', 'escalated');
+                @endphp
+                
+                @forelse($escalatedTickets as $ticket)
+                    @include('help.partials.ticket-card-admin', ['ticket' => $ticket])
+                @empty
+                    <div class="text-center py-12">
+                        <span class="material-symbols-outlined text-gray-400 text-[48px]">inbox</span>
+                        <p class="text-[12px] text-gray-500 mt-2" style="font-family: Poppins, sans-serif !important;">Tiada tiket escalated</p>
+                    </div>
+                @endforelse
             </div>
-        @endforelse
+        </template>
+
+        {{-- Tiket Staff Tab --}}
+        <template x-if="activeTab === 'staff'">
+            <div class="space-y-3">
+                @php
+                    $staffTickets = $tickets->whereIn('jenis_organisasi', ['bahagian', 'stesen'])->where('status', '!=', 'escalated')->where('status', '!=', 'ditutup');
+                @endphp
+                
+                @forelse($staffTickets as $ticket)
+                    @include('help.partials.ticket-card-admin', ['ticket' => $ticket])
+                @empty
+                    <div class="text-center py-12">
+                        <span class="material-symbols-outlined text-gray-400 text-[48px]">inbox</span>
+                        <p class="text-[12px] text-gray-500 mt-2" style="font-family: Poppins, sans-serif !important;">Tiada tiket dari staff</p>
+                    </div>
+                @endforelse
+            </div>
+        </template>
+
+        {{-- Selesai Tab --}}
+        <template x-if="activeTab === 'resolved'">
+            <div class="space-y-3">
+                @php
+                    $resolvedTickets = $tickets->where('status', 'ditutup');
+                @endphp
+                
+                @forelse($resolvedTickets as $ticket)
+                    @include('help.partials.ticket-card-admin', ['ticket' => $ticket])
+                @empty
+                    <div class="text-center py-12">
+                        <span class="material-symbols-outlined text-gray-400 text-[48px]">inbox</span>
+                        <p class="text-[12px] text-gray-500 mt-2" style="font-family: Poppins, sans-serif !important;">Tiada tiket selesai</p>
+                    </div>
+                @endforelse
+            </div>
+        </template>
 
         </div>
-
-        {{-- Pagination (exactly like log-pemandu) --}}
-        <x-ui.pagination :paginator="$allTickets" record-label="tiket" />
     </div>
 
     {{-- Modals --}}
     @include('help.partials.ticket-view-modal')
-    @include('help.partials.ticket-reply-modal')
+    @include('help.partials.ticket-escalate-modal')
     @include('help.partials.ticket-create-modal')
     @include('help.partials.ticket-assign-modal')
     @include('help.partials.ticket-escalate-modal')
