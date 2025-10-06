@@ -171,8 +171,8 @@
                                   class="bg-gray-100 text-gray-800 border border-gray-200">
                                 {{ ucfirst($activity->event) }}
                             </span>
-                        </div>
-                        @endif
+            </div>
+        @endif
                     </div>
                     <div class="mobile-card-body">
                         <div class="mobile-card-row">
@@ -248,8 +248,8 @@
                         <span class="material-symbols-outlined text-white text-[20px]">article</span>
                         <div>
                             <h3 class="text-white font-semibold" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">
-                                Butiran Aktiviti Log
-                            </h3>
+                    Butiran Aktiviti Log
+                </h3>
                             <p class="text-indigo-100" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
                                 Maklumat lengkap rekod aktiviti sistem
                             </p>
@@ -257,8 +257,8 @@
                     </div>
                     <button @click="showModal = false" class="text-white hover:text-gray-200">
                         <span class="material-symbols-outlined text-[24px]">close</span>
-                    </button>
-                </div>
+                </button>
+            </div>
 
                 <!-- Body (Scrollable) -->
                 <div class="p-6 overflow-y-auto flex-1" style="max-height: calc(85vh - 140px);">
@@ -272,14 +272,14 @@
                                 <div class="flex-1">
                                     <div class="text-[12px] font-semibold text-indigo-900 mb-1" style="font-family: Poppins, sans-serif !important;">
                                         <span x-text="selectedActivity.description"></span>
-                                    </div>
+                            </div>
                                     <div class="text-[10px] text-indigo-700" style="font-family: Poppins, sans-serif !important;">
                                         ID: <span x-text="selectedActivity.id" class="font-mono"></span> 
                                         <span class="mx-2">•</span> 
                                         <span x-text="selectedActivity.created_at"></span>
-                                    </div>
-                                </div>
-                                <template x-if="selectedActivity.event && selectedActivity.event !== 'N/A'">
+                            </div>
+                            </div>
+                            <template x-if="selectedActivity.event && selectedActivity.event !== 'N/A'">
                                     <span class="inline-flex items-center h-5 px-2 text-[10px] font-medium rounded-sm"
                                           :class="{
                                               'bg-green-100 text-green-800 border border-green-200': selectedActivity.event === 'created',
@@ -299,13 +299,13 @@
                                                   selectedActivity.event === 'exported' ? 'Eksport' :
                                                   selectedActivity.event">
                                     </span>
-                                </template>
+                            </template>
                             </div>
-                        </div>
+                            </div>
 
                         <!-- Details Grid -->
                         <div class="space-y-6">
-                            
+
                             <!-- User Info Section -->
                             <div>
                                 <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
@@ -325,7 +325,7 @@
                                     </div>
                                 </div>
                             </div>
-
+                            
                             <!-- Context Info Section (Adaptive based on log_name) -->
                             <template x-if="selectedActivity.properties && Object.keys(selectedActivity.properties).length > 2">
                             <div>
@@ -355,8 +355,8 @@
                                                             selectedActivity.log_name === 'authentication' ? 'Akses' :
                                                             'Tambahan'"></span>
                                     </h4>
-                                </div>
-                                
+                            </div>
+
                                 <!-- Adaptive Content based on log_name -->
                                 <div class="space-y-3">
                                     <!-- Program specific fields -->
@@ -782,7 +782,7 @@
                                     <!-- Tetapan Umum specific fields -->
                                     <template x-if="selectedActivity.log_name === 'tetapan'">
                                         <div class="space-y-3">
-                                            <div>
+                                <div>
                                                 <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Nama Sistem</div>
                                                 <div class="text-[11px] font-semibold text-indigo-700" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.system_name"></div>
                                             </div>
@@ -792,9 +792,9 @@
                                                     <div class="text-[11px] text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.total_fields_changed + ' medan ditukar'"></div>
                                                 </div>
                                             </template>
-                                        </div>
-                                    </template>
-
+                                </div>
+                            </template>
+                            
                                     <!-- Support Ticket specific fields -->
                                     <template x-if="selectedActivity.log_name === 'support'">
                                         <div class="space-y-4">
@@ -828,7 +828,7 @@
                                                         </div>
                                                     </template>
                                                     <template x-if="selectedActivity.properties.organization">
-                                                        <div>
+                                <div>
                                                             <div class="text-[10px] text-gray-500 mb-1" style="font-family: Poppins, sans-serif !important;">Organisasi</div>
                                                             <div class="text-[11px] font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;" x-text="selectedActivity.properties.organization"></div>
                                                         </div>
@@ -943,7 +943,7 @@
                                         </div>
                                     </template>
                                 </div>
-                            </div>
+                                </div>
                             </template>
 
                             <!-- Technical Info Section -->
@@ -968,9 +968,9 @@
                                     </div>
                                 </div>
                             </div>
-
+                            
                         </div>
-                    </div>
+                        </div>
                     </template>
                 </div>
 
@@ -984,7 +984,7 @@
                     </button>
                 </div>
 
-            </div>
         </div>
+    </div>
     </div>
 </x-dashboard-layout>

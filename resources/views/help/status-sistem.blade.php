@@ -11,12 +11,31 @@
                 $storageStatus = true;
                 $cacheStatus = true;
                 $apiStatus = true;
+                $supportTicketingStatus = true;
                 
                 try {
                     DB::connection()->getPdo();
                     $databaseStatus = true;
                 } catch (\Exception $e) {
                     $databaseStatus = false;
+                }
+                
+                // Check Support Ticketing System
+                try {
+                    $supportTablesExist = Schema::hasTable('support_tickets') && 
+                                         Schema::hasTable('support_messages') && 
+                                         Schema::hasTable('support_ticket_participants');
+                    $supportTicketingStatus = $supportTablesExist;
+                    
+                    // Get ticket stats
+                    $totalTickets = \App\Models\SupportTicket::count();
+                    $openTickets = \App\Models\SupportTicket::whereNotIn('status', ['ditutup', 'selesai'])->count();
+                    $closedToday = \App\Models\SupportTicket::where('status', 'ditutup')->whereDate('closed_at', today())->count();
+                } catch (\Exception $e) {
+                    $supportTicketingStatus = false;
+                    $totalTickets = 0;
+                    $openTickets = 0;
+                    $closedToday = 0;
                 }
                 
                 try {
@@ -34,7 +53,7 @@
                     $cacheStatus = false;
                 }
                 
-                $allHealthy = $databaseStatus && $storageStatus && $cacheStatus && $apiStatus;
+                $allHealthy = $databaseStatus && $storageStatus && $cacheStatus && $apiStatus && $supportTicketingStatus;
                 
                 // System Info
                 $phpVersion = PHP_VERSION;
@@ -222,6 +241,45 @@
                         <div class="flex justify-between">
                             <span>Endpoints:</span>
                             <span class="font-medium text-gray-900">40+ Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support Ticketing Status -->
+                <div class="bg-white rounded-md shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <span class="material-symbols-outlined {{ $supportTicketingStatus ? 'text-green-600' : 'text-red-600' }} text-2xl mr-3">support_agent</span>
+                            <h3 class="text-sm font-semibold text-gray-900">Support Ticketing</h3>
+                        </div>
+                        @if($supportTicketingStatus)
+                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                                <span class="h-1.5 w-1.5 bg-green-600 rounded-full mr-1.5"></span>
+                                Operational
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                                <span class="h-1.5 w-1.5 bg-red-600 rounded-full mr-1.5"></span>
+                                Error
+                            </span>
+                        @endif
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Total Tiket:</span>
+                            <span class="font-medium text-gray-900">{{ $totalTickets }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Tiket Terbuka:</span>
+                            <span class="font-medium text-{{ $openTickets > 0 ? 'blue' : 'gray' }}-700">{{ $openTickets }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Selesai Hari Ini:</span>
+                            <span class="font-medium text-green-700">{{ $closedToday }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Real-time Chat:</span>
+                            <span class="font-medium text-green-700">Active (3s polling)</span>
                         </div>
                     </div>
                 </div>

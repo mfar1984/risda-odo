@@ -42,12 +42,12 @@
                     {{-- Stats --}}
                     <div class="faq-stats">
                         <div class="faq-stat-item">
-                            <span class="faq-stat-number">28</span>
+                            <span class="faq-stat-number">36</span>
                             <span class="faq-stat-label">Soalan</span>
                         </div>
                         <div class="faq-stat-divider"></div>
                         <div class="faq-stat-item">
-                            <span class="faq-stat-number">6</span>
+                            <span class="faq-stat-number">7</span>
                             <span class="faq-stat-label">Kategori</span>
                         </div>
                     </div>
@@ -118,6 +118,16 @@
                     <div class="flex-1">
                         <h3 style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 600;">Aplikasi Mobile</h3>
                         <p style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">4 soalan</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[18px] opacity-50">arrow_forward</span>
+                </a>
+                <a href="#sokongan" class="faq-category-card faq-card-blue">
+                    <div class="faq-category-icon">
+                        <span class="material-symbols-outlined text-[24px]">support_agent</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 600;">Hubungi Sokongan</h3>
+                        <p style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">8 soalan</p>
                     </div>
                     <span class="material-symbols-outlined text-[18px] opacity-50">arrow_forward</span>
                 </a>
@@ -643,6 +653,193 @@
                                 <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
                                     Anda akan terima notifikasi apabila versi baharu tersedia. Klik notifikasi untuk muat turun dan install versi terkini. Pastikan data anda telah disegerakkan sebelum kemaskini. Versi semasa aplikasi boleh dilihat di menu <strong>Tetapan > Tentang</strong>.
                                 </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Category 7: Hubungi Sokongan --}}
+                <div id="sokongan" class="faq-category scroll-mt-6">
+                    <div class="faq-section-header faq-header-blue">
+                        <span class="material-symbols-outlined text-[20px]">support_agent</span>
+                        <h2 style="font-family: Poppins, sans-serif !important; font-size: 14px !important; font-weight: 600;">Hubungi Sokongan</h2>
+                        <span class="faq-count">8</span>
+                    </div>
+                    
+                    <div class="faq-accordion">
+                        <div class="faq-item" data-category="sokongan" data-question="Bagaimana cara untuk buat tiket sokongan?" data-keywords="create ticket buat tiket">
+                            <button @click="toggle('sokongan_1')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="material-symbols-outlined faq-q-icon">help</span>
+                                    <span>Bagaimana cara untuk buat tiket sokongan?</span>
+                                </div>
+                                <span class="material-symbols-outlined text-[20px] faq-toggle-icon" :class="{ 'rotate-180': open === 'sokongan_1' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'sokongan_1'" x-collapse class="faq-answer">
+                                <p>Untuk membuat tiket sokongan:</p>
+                                <ol>
+                                    <li>Pergi ke <strong>Bantuan → Hubungi Sokongan</strong></li>
+                                    <li>Klik butang <strong>"Buat Tiket Baru"</strong></li>
+                                    <li>Isi maklumat: Subjek, Kategori, Keutamaan, Mesej</li>
+                                    <li>Tambah lampiran jika perlu (optional)</li>
+                                    <li>Klik <strong>"Hantar Tiket"</strong></li>
+                                </ol>
+                                <p>Tiket akan dihantar kepada administrator dan anda akan dapat notifikasi bila ada balasan.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="sokongan" data-question="Bagaimana cara untuk reply tiket?" data-keywords="reply balas chat">
+                            <button @click="toggle('sokongan_2')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="material-symbols-outlined faq-q-icon">help</span>
+                                    <span>Bagaimana cara untuk reply tiket?</span>
+                                </div>
+                                <span class="material-symbols-outlined text-[20px] faq-toggle-icon" :class="{ 'rotate-180': open === 'sokongan_2' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'sokongan_2'" x-collapse class="faq-answer">
+                                <p>Untuk membalas tiket:</p>
+                                <ol>
+                                    <li>Klik butang <strong>"Lihat & Respond"</strong> pada tiket</li>
+                                    <li>Scroll ke bahagian <strong>"Balas Tiket"</strong> di bawah</li>
+                                    <li>Taip balasan anda dalam text area</li>
+                                    <li>Klik <strong>"Lampiran"</strong> untuk upload fail (optional)</li>
+                                    <li>Klik <strong>"Hantar Respons"</strong></li>
+                                </ol>
+                                <p><strong>Real-time:</strong> Chat auto-update setiap 3 saat. User lain akan nampak mesej anda automatik tanpa refresh!</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="sokongan" data-question="Apa itu Assign dan Participant dalam tiket?" data-keywords="assign participant tugaskan peserta">
+                            <button @click="toggle('sokongan_3')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="material-symbols-outlined faq-q-icon">help</span>
+                                    <span>Apa itu Assign dan Participant dalam tiket?</span>
+                                </div>
+                                <span class="material-symbols-outlined text-[20px] faq-toggle-icon" :class="{ 'rotate-180': open === 'sokongan_3' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'sokongan_3'" x-collapse class="faq-answer">
+                                <p><strong>Assign (Tugaskan):</strong> Orang yang bertanggungjawab menyelesaikan tiket.</p>
+                                <ul>
+                                    <li>Hanya 1 orang boleh di-assign pada satu masa</li>
+                                    <li>Staff boleh assign kepada staff lain dalam organisasi sama</li>
+                                    <li>Administrator boleh assign kepada sesiapa sahaja</li>
+                                </ul>
+                                <p><strong>Participant (Peserta):</strong> Orang yang terlibat dalam perbincangan.</p>
+                                <ul>
+                                    <li>Multiple participants boleh ditambah</li>
+                                    <li>Semua participants boleh lihat dan balas dalam tiket</li>
+                                    <li>Gunakan untuk "loop in" staff lain untuk discussion</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="sokongan" data-question="Bagaimana cara escalate tiket ke administrator?" data-keywords="escalate kritikal urgent">
+                            <button @click="toggle('sokongan_4')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="material-symbols-outlined faq-q-icon">help</span>
+                                    <span>Bagaimana cara escalate tiket ke administrator?</span>
+                                </div>
+                                <span class="material-symbols-outlined text-[20px] faq-toggle-icon" :class="{ 'rotate-180': open === 'sokongan_4' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'sokongan_4'" x-collapse class="faq-answer">
+                                <p>Untuk escalate tiket (staff sahaja, untuk tiket dari Android):</p>
+                                <ol>
+                                    <li>Buka tiket yang perlu di-escalate</li>
+                                    <li>Klik butang <strong>"Escalate to Administrator"</strong></li>
+                                    <li>Tiket akan di-set kepada prioriti <strong>KRITIKAL</strong></li>
+                                    <li>Semua administrators akan dapat notification</li>
+                                </ol>
+                                <p><strong>Nota:</strong> Button escalate hanya appear untuk staff bila view Android tickets.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="sokongan" data-question="Siapa boleh lihat tiket saya?" data-keywords="access privacy who can see">
+                            <button @click="toggle('sokongan_5')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="material-symbols-outlined faq-q-icon">help</span>
+                                    <span>Siapa boleh lihat tiket saya?</span>
+                                </div>
+                                <span class="material-symbols-outlined text-[20px] faq-toggle-icon" :class="{ 'rotate-180': open === 'sokongan_5' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'sokongan_5'" x-collapse class="faq-answer">
+                                <p>Tiket boleh dilihat oleh:</p>
+                                <ul>
+                                    <li><strong>Creator</strong> - Yang buat tiket (always dapat lihat)</li>
+                                    <li><strong>Assigned Person</strong> - Yang bertanggungjawab selesaikan tiket</li>
+                                    <li><strong>Participants</strong> - Yang ditambah untuk perbincangan</li>
+                                    <li><strong>Administrators</strong> - Boleh lihat semua tiket</li>
+                                </ul>
+                                <p><strong>Privacy:</strong> Staff lain yang bukan creator/assigned/participant TIDAK boleh lihat tiket anda.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="sokongan" data-question="Bolehkah saya attach fail dalam reply?" data-keywords="attachment lampiran file upload">
+                            <button @click="toggle('sokongan_6')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="material-symbols-outlined faq-q-icon">help</span>
+                                    <span>Bolehkah saya attach fail dalam reply?</span>
+                                </div>
+                                <span class="material-symbols-outlined text-[20px] faq-toggle-icon" :class="{ 'rotate-180': open === 'sokongan_6' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'sokongan_6'" x-collapse class="faq-answer">
+                                <p>Ya! Anda boleh attach fail bila reply tiket:</p>
+                                <ol>
+                                    <li>Dalam form reply, klik butang <strong>"Lampiran"</strong></li>
+                                    <li>Pilih fail (PDF, gambar, Excel, Word, etc.)</li>
+                                    <li>Boleh pilih multiple files sekaligus</li>
+                                    <li>Fail akan preview sebelum hantar</li>
+                                    <li>Klik "Hantar Respons" untuk send dengan attachments</li>
+                                </ol>
+                                <p><strong>Max size:</strong> 5MB per file. <strong>Format:</strong> PDF, JPG, PNG, XLS, XLSX, DOC, DOCX</p>
+                                <p>User lain boleh klik attachment untuk preview atau download.</p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="sokongan" data-question="Bagaimana cara export chat history?" data-keywords="export download history">
+                            <button @click="toggle('sokongan_7')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="material-symbols-outlined faq-q-icon">help</span>
+                                    <span>Bagaimana cara export chat history?</span>
+                                </div>
+                                <span class="material-symbols-outlined text-[20px] faq-toggle-icon" :class="{ 'rotate-180': open === 'sokongan_7' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'sokongan_7'" x-collapse class="faq-answer">
+                                <p>Untuk export chat history (tiket yang dah selesai):</p>
+                                <ol>
+                                    <li>Buka tiket yang dah ditutup/selesai</li>
+                                    <li>Klik butang <strong>"Eksport Chat History"</strong></li>
+                                    <li>Fail teks (.txt) akan auto-download</li>
+                                </ol>
+                                <p><strong>Kandungan export:</strong></p>
+                                <ul>
+                                    <li>Ticket info (number, subject, priority, status)</li>
+                                    <li>Creator, assigned person, participants</li>
+                                    <li>Semua messages dengan timestamp</li>
+                                    <li>List attachments</li>
+                                    <li>Export metadata (who exported, when)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="sokongan" data-question="Bila saya dapat notification untuk tiket?" data-keywords="notification bell sound">
+                            <button @click="toggle('sokongan_8')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="material-symbols-outlined faq-q-icon">help</span>
+                                    <span>Bila saya dapat notification untuk tiket?</span>
+                                </div>
+                                <span class="material-symbols-outlined text-[20px] faq-toggle-icon" :class="{ 'rotate-180': open === 'sokongan_8' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'sokongan_8'" x-collapse class="faq-answer">
+                                <p>Anda akan dapat bell notification bila:</p>
+                                <ul>
+                                    <li><strong>Tiket baru</strong> - Bila ada tiket baru untuk anda (admin atau assigned)</li>
+                                    <li><strong>Reply baru</strong> - Bila ada reply dalam tiket yang anda terlibat</li>
+                                    <li><strong>Assigned</strong> - Bila tiket di-assign kepada anda</li>
+                                    <li><strong>Added as participant</strong> - Bila ditambah ke tiket</li>
+                                    <li><strong>Escalated</strong> - Bila tiket di-escalate (admin sahaja)</li>
+                                    <li><strong>Closed</strong> - Bila tiket ditutup</li>
+                                </ul>
+                                <p><strong>Sound:</strong> Bell notification akan bunyi bila ada notification baru. Click bell icon atau refresh page untuk lihat notifications.</p>
                             </div>
                         </div>
                     </div>

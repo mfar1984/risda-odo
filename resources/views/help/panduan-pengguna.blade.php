@@ -87,8 +87,17 @@
                 <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Jana & Eksport</p>
             </a>
 
-            <a href="#tetapan" class="guide-toc-card guide-toc-cyan">
+            <a href="#sokongan" class="guide-toc-card guide-toc-blue">
                 <div class="guide-toc-number">8</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-blue-600 text-[18px]">support_agent</span>
+                    <h3 class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Hubungi Sokongan</h3>
+                </div>
+                <p class="text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Tiket & Chat Real-time</p>
+            </a>
+
+            <a href="#tetapan" class="guide-toc-card guide-toc-cyan">
+                <div class="guide-toc-number">9</div>
                 <div class="flex items-center gap-2 mb-2">
                     <span class="material-symbols-outlined text-cyan-600 text-[18px]">settings</span>
                     <h3 class="font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Tetapan Sistem</h3>
@@ -728,7 +737,168 @@
             </div>
         </div>
 
-        {{-- Section 8: Tetapan Sistem --}}
+        {{-- Section 8: Hubungi Sokongan --}}
+        <div id="sokongan" class="guide-section">
+            <div class="guide-section-header guide-header-blue">
+                <span class="material-symbols-outlined text-[24px]">support_agent</span>
+                <h2 style="font-family: Poppins, sans-serif !important; font-size: 16px !important; font-weight: 700;">Hubungi Sokongan</h2>
+            </div>
+
+            <p class="guide-description">
+                Sistem tiket sokongan untuk pengurusan isu, pertanyaan, dan bantuan teknikal dengan real-time chat dan multi-user collaboration.
+            </p>
+
+            <div class="guide-content-grid">
+                {{-- Create Ticket --}}
+                <div class="guide-content-card">
+                    <div class="guide-card-icon guide-icon-blue">
+                        <span class="material-symbols-outlined">add_circle</span>
+                    </div>
+                    <h3 class="guide-card-title">Buat Tiket Baru</h3>
+                    <div class="guide-steps">
+                        <div class="guide-step">
+                            <div class="guide-step-number">1</div>
+                            <div class="guide-step-content">
+                                <strong>Akses Hubungi Sokongan</strong>
+                                <p>Pergi ke menu <code>Bantuan → Hubungi Sokongan</code></p>
+                            </div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="guide-step-number">2</div>
+                            <div class="guide-step-content">
+                                <strong>Klik "Buat Tiket Baru"</strong>
+                                <p>Butang biru di bahagian atas halaman</p>
+                            </div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="guide-step-number">3</div>
+                            <div class="guide-step-content">
+                                <strong>Isi Maklumat Tiket</strong>
+                                <p>Subjek, Kategori (Teknikal/Akaun/Perjalanan/Tuntutan/Lain), Keutamaan (Rendah/Sederhana/Tinggi/Kritikal)</p>
+                            </div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="guide-step-number">4</div>
+                            <div class="guide-step-content">
+                                <strong>Taip Mesej & Lampiran</strong>
+                                <p>Terangkan isu anda. Boleh upload fail (PDF, gambar, dokumen) jika perlu</p>
+                            </div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="guide-step-number">5</div>
+                            <div class="guide-step-content">
+                                <strong>Hantar Tiket</strong>
+                                <p>Administrator akan terima notification dan respond dalam masa terdekat</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Reply & Chat --}}
+                <div class="guide-content-card">
+                    <div class="guide-card-icon guide-icon-green">
+                        <span class="material-symbols-outlined">chat</span>
+                    </div>
+                    <h3 class="guide-card-title">Reply & Real-time Chat</h3>
+                    <div class="guide-steps">
+                        <div class="guide-step">
+                            <div class="guide-step-number">1</div>
+                            <div class="guide-step-content">
+                                <strong>Buka Tiket</strong>
+                                <p>Klik butang <code>Lihat & Respond</code> pada tiket</p>
+                            </div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="guide-step-number">2</div>
+                            <div class="guide-step-content">
+                                <strong>Lihat Chat Thread</strong>
+                                <p>Semua mesej dipaparkan dengan nama, timestamp, IP address, dan lokasi</p>
+                            </div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="guide-step-number">3</div>
+                            <div class="guide-step-content">
+                                <strong>Taip Balasan</strong>
+                                <p>Scroll ke bawah, taip dalam text area "Balas Tiket"</p>
+                            </div>
+                        </div>
+                        <div class="guide-step">
+                            <div class="guide-step-number">4</div>
+                            <div class="guide-step-content">
+                                <strong>Auto-update (Real-time)</strong>
+                                <p>Chat auto-refresh setiap 3 saat. Mesej baru appear automatik dengan notification sound!</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="guide-note guide-note-success">
+                        <span class="material-symbols-outlined">info</span>
+                        <div>
+                            <strong>Real-time Collaboration:</strong> Multiple users boleh chat simultaneously. Mesej auto-sync tanpa perlu refresh page!
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Assign & Participants --}}
+                <div class="guide-content-card">
+                    <div class="guide-card-icon guide-icon-purple">
+                        <span class="material-symbols-outlined">group</span>
+                    </div>
+                    <h3 class="guide-card-title">Assign & Tambah Peserta</h3>
+                    <p class="guide-card-text">
+                        <strong>Tugaskan (Assign):</strong> Assign tiket kepada staff yang bertanggungjawab.
+                    </p>
+                    <ul class="guide-list">
+                        <li>Klik butang <strong>"Tugaskan"</strong> dalam tiket modal</li>
+                        <li>Pilih pengguna dalam dropdown "Tugaskan Kepada"</li>
+                        <li>Staff boleh assign kepada staff dalam organisasi sama</li>
+                        <li>Administrator boleh assign kepada sesiapa sahaja</li>
+                    </ul>
+                    <p class="guide-card-text mt-3">
+                        <strong>Tambah Peserta (Participants):</strong> Add staff untuk discussion kumpulan.
+                    </p>
+                    <ul class="guide-list">
+                        <li>Dalam modal "Tugaskan", pilih pengguna untuk add participant</li>
+                        <li>Klik <strong>"Tambah"</strong> - multiple participants boleh ditambah</li>
+                        <li>Semua participants boleh lihat dan reply dalam tiket</li>
+                        <li>Gunakan untuk "loop in" staff lain untuk bantuan</li>
+                    </ul>
+                </div>
+
+                {{-- Export & Close --}}
+                <div class="guide-content-card">
+                    <div class="guide-card-icon guide-icon-orange">
+                        <span class="material-symbols-outlined">download</span>
+                    </div>
+                    <h3 class="guide-card-title">Eksport & Tutup Tiket</h3>
+                    <p class="guide-card-text">
+                        <strong>Selesaikan Tiket:</strong> Administrator & creator boleh close tiket.
+                    </p>
+                    <ul class="guide-list">
+                        <li>Klik butang <strong>"Selesaikan"</strong> dalam modal</li>
+                        <li>Tambah nota resolution (optional)</li>
+                        <li>Status berubah ke "Ditutup"</li>
+                        <li>Creator & participants dapat notification</li>
+                    </ul>
+                    <p class="guide-card-text mt-3">
+                        <strong>Eksport Chat History:</strong> Download perbincangan lengkap.
+                    </p>
+                    <ul class="guide-list">
+                        <li>Buka tiket yang dah selesai</li>
+                        <li>Klik <strong>"Eksport Chat History"</strong></li>
+                        <li>Fail teks (.txt) dengan semua messages, timestamps, attachments</li>
+                        <li>Untuk arkib dan audit purposes</li>
+                    </ul>
+                    <div class="guide-note guide-note-info">
+                        <span class="material-symbols-outlined">lock</span>
+                        <div>
+                            <strong>Tiket Selesai:</strong> Reply form auto-hide. Hanya creator & admin boleh buka semula tiket.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Section 9: Tetapan Sistem --}}
         <div id="tetapan" class="guide-section">
             <div class="guide-section-header">
                 <div class="guide-section-icon bg-cyan-100 text-cyan-700">
