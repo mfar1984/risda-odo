@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SupportTicket;
 use App\Models\SupportMessage;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -152,6 +153,7 @@ class SupportTicketController extends Controller
                 ->withProperties([
                     'ticket_number' => $ticket->ticket_number,
                     'assigned_to' => $currentUser->name,
+                    'ip' => request()->ip(),
                 ])
                 ->event('auto_assigned')
                 ->log('Tiket Android auto-assigned kepada staff yang pertama membuka');
@@ -279,7 +281,7 @@ class SupportTicketController extends Controller
             'created_by' => $currentUser->id,
             'assigned_to' => $currentUser->id, // Auto-assign web tickets to creator
             'source' => 'web',
-            'ip_address' => $request->ip(),
+            'ip' => $request->ip(),
             'device' => substr($request->userAgent() ?? '', 0, 190),
             'platform' => $request->header('X-Platform') ?? 'web',
             // latitude/longitude could be posted later by apps
@@ -314,9 +316,38 @@ class SupportTicketController extends Controller
                 'category' => $ticket->category,
                 'priority' => $ticket->priority,
                 'organization' => $ticket->organization_name,
+                'ip' => $request->ip(),
             ])
             ->event('created')
             ->log('Tiket sokongan baru telah dicipta');
+
+        // Send notification based on ticket type
+        if ($currentUser->jenis_organisasi !== 'semua') {
+            // Staff created ticket → Notify all administrators
+            $adminUsers = User::where('jenis_organisasi', 'semua')->pluck('id')->toArray();
+            if (!empty($adminUsers)) {
+                $this->sendNotification(
+                    $adminUsers,
+                    'support_ticket',
+                    'Tiket Sokongan Baru dari ' . $ticket->organization_name,
+                    "{$currentUser->name}: {$ticket->subject}",
+                    route('help.hubungi-sokongan'),
+                    ['ticket_id' => $ticket->id, 'ticket_number' => $ticket->ticket_number, 'priority' => $ticket->priority]
+                );
+            }
+        } else {
+            // Admin created ticket → Notify assigned person (if different)
+            if ($ticket->assigned_to && $ticket->assigned_to !== $currentUser->id) {
+                $this->sendNotification(
+                    $ticket->assigned_to,
+                    'support_ticket',
+                    'Tiket Sokongan Baru',
+                    "Tiket #{$ticket->ticket_number}: {$ticket->subject}",
+                    route('help.hubungi-sokongan'),
+                    ['ticket_id' => $ticket->id, 'ticket_number' => $ticket->ticket_number]
+                );
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -383,9 +414,42 @@ class SupportTicketController extends Controller
                 'ticket_number' => $ticket->ticket_number,
                 'subject' => $ticket->subject,
                 'reply_role' => $message->role,
+                'message_preview' => substr($request->message, 0, 100),
+                'has_attachments' => !empty($attachments),
+                'ip' => $request->ip(),
             ])
             ->event('replied')
             ->log('Balasan baru ditambah ke tiket sokongan');
+
+        // Notify all relevant users EXCEPT current user
+        $notifyUsers = collect([
+            $ticket->created_by,
+            $ticket->assigned_to,
+        ])
+        ->merge($ticket->participants->pluck('id'));
+        
+        // If ticket from staff, also notify all administrators
+        if ($ticket->jenis_organisasi !== 'semua') {
+            $adminUsers = User::where('jenis_organisasi', 'semua')->pluck('id');
+            $notifyUsers = $notifyUsers->merge($adminUsers);
+        }
+        
+        $notifyUsers = $notifyUsers
+            ->unique()
+            ->filter(fn($id) => $id && $id !== $currentUser->id)
+            ->values()
+            ->toArray();
+
+        if (!empty($notifyUsers)) {
+            $this->sendNotification(
+                $notifyUsers,
+                'support_reply',
+                'Balasan Baru - ' . $ticket->ticket_number,
+                "{$currentUser->name} telah membalas: " . substr($request->message, 0, 50) . '...',
+                route('help.hubungi-sokongan'),
+                ['ticket_id' => $ticket->id, 'ticket_number' => $ticket->ticket_number]
+            );
+        }
 
         return response()->json([
             'success' => true,
@@ -441,6 +505,7 @@ class SupportTicketController extends Controller
                 'subject' => $ticket->subject,
                 'old_assignee' => $oldAssignee?->name ?? 'Tiada',
                 'new_assignee' => $newAssignee->name,
+                'ip' => request()->ip(),
             ])
             ->event('assigned')
             ->log('Tiket sokongan telah ditugaskan');
@@ -503,9 +568,23 @@ class SupportTicketController extends Controller
                 'new_priority' => 'kritikal',
                 'old_status' => $oldStatus,
                 'new_status' => 'escalated',
+                'ip' => request()->ip(),
             ])
             ->event('escalated')
             ->log('Tiket sokongan telah di-escalate');
+
+        // Notify all administrators
+        $adminUsers = User::where('jenis_organisasi', 'semua')->pluck('id')->toArray();
+        if (!empty($adminUsers)) {
+            $this->sendNotification(
+                $adminUsers,
+                'support_escalated',
+                '🚨 Tiket Di-Escalate',
+                "{$currentUser->name} escalate tiket #{$ticket->ticket_number}: {$ticket->subject}",
+                route('help.hubungi-sokongan'),
+                ['ticket_id' => $ticket->id, 'ticket_number' => $ticket->ticket_number, 'priority' => 'kritikal']
+            );
+        }
 
         return response()->json([
             'success' => true,
@@ -556,9 +635,29 @@ class SupportTicketController extends Controller
                 'ticket_number' => $ticket->ticket_number,
                 'subject' => $ticket->subject,
                 'resolution_note' => $request->resolution_note ?? 'Tiada nota',
+                'ip' => request()->ip(),
             ])
             ->event('closed')
             ->log('Tiket sokongan telah ditutup');
+
+        // Notify creator & participants
+        $notifyUsers = collect([$ticket->created_by])
+            ->merge($ticket->participants->pluck('id'))
+            ->unique()
+            ->filter(fn($id) => $id && $id !== $currentUser->id)
+            ->values()
+            ->toArray();
+
+        if (!empty($notifyUsers)) {
+            $this->sendNotification(
+                $notifyUsers,
+                'support_closed',
+                'Tiket Diselesaikan',
+                "Tiket #{$ticket->ticket_number} telah ditutup oleh {$currentUser->name}",
+                route('help.hubungi-sokongan'),
+                ['ticket_id' => $ticket->id, 'ticket_number' => $ticket->ticket_number]
+            );
+        }
 
         return response()->json([
             'success' => true,
@@ -602,6 +701,7 @@ class SupportTicketController extends Controller
             ->withProperties([
                 'ticket_number' => $ticket->ticket_number,
                 'subject' => $ticket->subject,
+                'ip' => request()->ip(),
             ])
             ->event('reopened')
             ->log('Tiket sokongan telah dibuka semula');
@@ -635,6 +735,7 @@ class SupportTicketController extends Controller
                 'category' => $ticket->category,
                 'priority' => $ticket->priority,
                 'status' => $ticket->status,
+                'ip' => request()->ip(),
             ])
             ->event('deleted')
             ->log('Tiket sokongan telah dipadam');
@@ -704,9 +805,22 @@ class SupportTicketController extends Controller
                     'ticket_number' => $ticket->ticket_number,
                     'old_assignee' => $oldAssignee ? $oldAssignee->name : 'Tiada',
                     'new_assignee' => $newAssignee->name,
+                    'ip' => request()->ip(),
                 ])
                 ->event('assigned')
                 ->log('Tiket telah di-assign kepada ' . $newAssignee->name);
+
+            // Notify new assignee
+            if ($newAssignee->id !== $currentUser->id) {
+                $this->sendNotification(
+                    $newAssignee->id,
+                    'support_assigned',
+                    'Tiket Di-assign Kepada Anda',
+                    "Tiket #{$ticket->ticket_number}: {$ticket->subject}",
+                    route('help.hubungi-sokongan'),
+                    ['ticket_id' => $ticket->id, 'ticket_number' => $ticket->ticket_number]
+                );
+            }
 
             $message = 'Tiket berjaya di-assign kepada ' . $newAssignee->name;
         }
@@ -769,9 +883,20 @@ class SupportTicketController extends Controller
             ->withProperties([
                 'ticket_number' => $ticket->ticket_number,
                 'participant' => $participant->name,
+                'ip' => request()->ip(),
             ])
             ->event('participant_added')
             ->log('Participant ditambah: ' . $participant->name);
+
+        // Notify the new participant
+        $this->sendNotification(
+            $participant->id,
+            'support_participant',
+            'Anda Ditambah ke Tiket',
+            "{$currentUser->name} menambah anda ke tiket #{$ticket->ticket_number}: {$ticket->subject}",
+            route('help.hubungi-sokongan'),
+            ['ticket_id' => $ticket->id, 'ticket_number' => $ticket->ticket_number]
+        );
 
         return response()->json([
             'success' => true,
@@ -804,6 +929,7 @@ class SupportTicketController extends Controller
             ->withProperties([
                 'ticket_number' => $ticket->ticket_number,
                 'participant' => $participant->name,
+                'ip' => request()->ip(),
             ])
             ->event('participant_removed')
             ->log('Participant dibuang: ' . $participant->name);
@@ -834,6 +960,7 @@ class SupportTicketController extends Controller
             ->withProperties([
                 'ticket_number' => $ticket->ticket_number,
                 'format' => 'text',
+                'ip' => request()->ip(),
             ])
             ->event('exported')
             ->log('Chat history tiket sokongan telah di-eksport');
@@ -933,5 +1060,27 @@ class SupportTicketController extends Controller
             'latitude' => null,
             'longitude' => null,
         ];
+    }
+
+    /**
+     * Send notification to user(s)
+     */
+    private function sendNotification($userId, $type, $title, $message, $actionUrl = null, $data = [])
+    {
+        // Handle array of user IDs
+        $userIds = is_array($userId) ? $userId : [$userId];
+        
+        foreach ($userIds as $uid) {
+            if ($uid) {
+                Notification::create([
+                    'user_id' => $uid,
+                    'type' => $type,
+                    'title' => $title,
+                    'message' => $message,
+                    'action_url' => $actionUrl,
+                    'data' => $data,
+                ]);
+            }
+        }
     }
 }

@@ -1,0 +1,86 @@
+/* Support Tickets - MOBILE ONLY Styles */
+/* This file ONLY applies to mobile devices (max-width: 768px) */
+/* Desktop styles remain untouched in support-tickets.css */
+
+@media (max-width: 768px) {
+    /* ============================================
+       TICKET CARDS - Mobile Grid
+       ============================================ */
+    
+    .support-card-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    
+    .support-card-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* ============================================
+       TAB NAVIGATION - Horizontal Scroll
+       ============================================ */
+    
+    .support-tabs-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .support-tabs-container::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .support-tabs-container nav {
+        min-width: max-content;
+    }
+    
+    /* ============================================
+       MODALS - Full Screen
+       ============================================ */
+    
+    /* Make modal full screen on mobile */
+    .fixed.inset-0.overflow-y-auto .flex.items-center {
+        align-items: flex-start !important;
+        padding: 0 !important;
+    }
+    
+    .fixed.inset-0.overflow-y-auto .relative.bg-white.rounded-sm.shadow-xl {
+        max-width: 100% !important;
+        width: 100% !important;
+        min-height: 100vh !important;
+        max-height: 100vh !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+    
+    /* Modal footer buttons stack */
+    .support-modal-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .support-modal-footer button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* ============================================
+       SEARCH & FILTERS - Stack
+       ============================================ */
+    
+    .grid.grid-cols-5 {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+    }
+    
+    /* ============================================
+       STATS CARDS - Stack
+       ============================================ */
+    
+    .grid.grid-cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+}
+

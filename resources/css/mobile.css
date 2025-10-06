@@ -3,6 +3,7 @@
 
 @import './components/mobile-table.css';
 @import './components/mobile-forms.css';
+@import './components/support-tickets-mobile.css';
 
 
 @tailwind base;

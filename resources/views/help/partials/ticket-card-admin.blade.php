@@ -66,7 +66,7 @@
     </div>
 
     {{-- Admin Actions --}}
-    <div class="flex items-center gap-2">
+    <div class="support-card-actions flex items-center gap-2">
         <button onclick="viewTicket({{ $ticket->id }})" class="h-7 px-3 text-[10px] font-medium rounded-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors inline-flex items-center gap-1.5" style="font-family: Poppins, sans-serif !important;">
             <span class="material-symbols-outlined text-[14px]">visibility</span>
             Lihat & Respond

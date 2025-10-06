@@ -7,13 +7,14 @@
     assignTicketModal: false,
     escalateTicketModal: false
 }"
+x-init="$watch('viewTicketModal', value => { if (!value && typeof stopMessagePolling === 'function') stopMessagePolling(); })"
 @open-view-ticket-modal.window="viewTicketModal = true"
 @open-assign-ticket-modal.window="assignTicketModal = true"
 @close-assign-ticket-modal.window="assignTicketModal = false"
 class="mb-8">
     
     {{-- Tab Navigation (senarai-risda style with badges) --}}
-    <div class="border-b border-gray-200">
+    <div class="border-b border-gray-200 support-tabs-container">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
             <button 
                 @click="activeTab = 'escalated'"
@@ -116,25 +117,25 @@ class="mb-8">
         @endif
 
         {{-- Advanced Filters --}}
-        <div class="grid grid-cols-5 gap-3 mb-6">
-        <div class="col-span-2 relative">
+        <div class="support-filters-grid-admin grid grid-cols-5 gap-3 mb-6">
+        <div class="col-span-2 support-filter-search relative">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[16px]">search</span>
             <input type="text" placeholder="Cari tiket..." class="w-full h-8 pl-9 pr-3 text-[11px] rounded-sm border border-gray-200 focus:ring-0 focus:border-blue-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
         </div>
-        <select class="h-8 px-3 text-[11px] rounded-sm border border-gray-200 focus:ring-0 focus:border-blue-500 bg-white flex items-center" style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 32px !important; padding-top: 0 !important; padding-bottom: 0 !important; display: flex; align-items: center;">
+        <select class="support-filter-org h-8 px-3 text-[11px] rounded-sm border border-gray-200 focus:ring-0 focus:border-blue-500 bg-white flex items-center" style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 32px !important; padding-top: 0 !important; padding-bottom: 0 !important; display: flex; align-items: center;">
             <option value="">Organisasi</option>
             <option value="bahagian_utara">Bahagian Utara</option>
             <option value="bahagian_selatan">Bahagian Selatan</option>
             <option value="stesen_a">Stesen A</option>
         </select>
-        <select class="h-8 px-3 text-[11px] rounded-sm border border-gray-200 focus:ring-0 focus:border-blue-500 bg-white flex items-center" style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 32px !important; padding-top: 0 !important; padding-bottom: 0 !important; display: flex; align-items: center;">
+        <select class="support-filter-status h-8 px-3 text-[11px] rounded-sm border border-gray-200 focus:ring-0 focus:border-blue-500 bg-white flex items-center" style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 32px !important; padding-top: 0 !important; padding-bottom: 0 !important; display: flex; align-items: center;">
             <option value="">Status</option>
             <option value="baru">Baru</option>
             <option value="dalam_proses">Sedang Diproses</option>
             <option value="escalated">Escalated</option>
             <option value="selesai">Selesai</option>
         </select>
-        <select class="h-8 px-3 text-[11px] rounded-sm border border-gray-200 focus:ring-0 focus:border-blue-500 bg-white flex items-center" style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 32px !important; padding-top: 0 !important; padding-bottom: 0 !important; display: flex; align-items: center;">
+        <select class="support-filter-priority h-8 px-3 text-[11px] rounded-sm border border-gray-200 focus:ring-0 focus:border-blue-500 bg-white flex items-center" style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 32px !important; padding-top: 0 !important; padding-bottom: 0 !important; display: flex; align-items: center;">
             <option value="">Keutamaan</option>
             <option value="rendah">Rendah</option>
             <option value="sederhana">Sederhana</option>
@@ -207,7 +208,7 @@ class="mb-8">
     @include('help.partials.ticket-escalate-modal')
     @include('help.partials.ticket-create-modal')
     @include('help.partials.ticket-assign-modal')
-    @include('help.partials.ticket-escalate-modal')
+    @include('components.modals.delete-confirmation-modal')
 
 </div>
 

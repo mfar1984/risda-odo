@@ -4,12 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
+// use Spatie\Activitylog\Traits\LogsActivity; // Disabled - manual logging in controller for better control
 use Spatie\Activitylog\LogOptions;
 
 class SupportTicket extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory; // LogsActivity disabled - manual logging in controller
 
     protected $fillable = [
         'ticket_number',
@@ -143,9 +143,9 @@ class SupportTicket extends Model
     public function getOrganizationNameAttribute()
     {
         if ($this->jenis_organisasi === 'bahagian') {
-            return $this->bahagian?->nama ?? 'N/A';
+            return $this->bahagian?->nama_bahagian ?? 'N/A';
         } elseif ($this->jenis_organisasi === 'stesen') {
-            return $this->stesen?->nama ?? 'N/A';
+            return $this->stesen?->nama_stesen ?? 'N/A';
         } elseif ($this->jenis_organisasi === 'semua') {
             return 'RISDA Pusat';
         }
@@ -213,21 +213,22 @@ class SupportTicket extends Model
     /**
      * Spatie Activity Log options
      */
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logOnly([
-                'ticket_number',
-                'subject',
-                'category',
-                'priority',
-                'status',
-                'assigned_to',
-                'ip_address',
-                'platform',
-            ])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
-    }
+    // Disabled auto-logging - using manual logging in controller for better control and IP tracking
+    // public function getActivitylogOptions(): LogOptions
+    // {
+    //     return LogOptions::defaults()
+    //         ->logOnly([
+    //             'ticket_number',
+    //             'subject',
+    //             'category',
+    //             'priority',
+    //             'status',
+    //             'assigned_to',
+    //             'ip_address',
+    //             'platform',
+    //         ])
+    //         ->logOnlyDirty()
+    //         ->dontSubmitEmptyLogs();
+    // }
 }
 

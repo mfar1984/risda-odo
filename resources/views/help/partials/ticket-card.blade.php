@@ -46,14 +46,10 @@
     </div>
 
     {{-- Actions --}}
-    <div class="flex items-center gap-2">
+    <div class="support-card-actions flex items-center gap-2">
         <button onclick="viewTicket({{ $ticket->id }})" class="h-7 px-3 text-[10px] font-medium rounded-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors inline-flex items-center gap-1.5" style="font-family: Poppins, sans-serif !important;">
             <span class="material-symbols-outlined text-[14px]">visibility</span>
             Lihat
-        </button>
-        <button onclick="window.currentTicketId = {{ $ticket->id }}; document.querySelector('[x-data]').__x.$data.replyTicketModal = true" class="h-7 px-3 text-[10px] rounded-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5" style="font-family: Poppins, sans-serif !important;">
-            <span class="material-symbols-outlined text-[14px]">reply</span>
-            Balas
         </button>
     </div>
 

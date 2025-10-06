@@ -1,0 +1,686 @@
+/* Support Tickets System - Centralized Styles */
+/* Font: Poppins, Size Range: 10px - 14px, Border Radius: 0px - 2px */
+
+@layer components {
+    /* ============================================
+       MODAL STYLES
+       ============================================ */
+    
+    /* Modal Headers (Gradient) */
+    .support-modal-header {
+        @apply px-6 py-4 flex justify-between items-center;
+        background: linear-gradient(to right, #2563eb, #1d4ed8);
+    }
+    
+    .support-modal-header-purple {
+        @apply px-6 py-4 flex justify-between items-center;
+        background: linear-gradient(to right, #9333ea, #7e22ce);
+    }
+    
+    .support-modal-header-red {
+        @apply px-6 py-4 flex justify-between items-center;
+        background: linear-gradient(to right, #dc2626, #b91c1c);
+    }
+    
+    .support-modal-header-green {
+        @apply px-6 py-4 flex justify-between items-center;
+        background: linear-gradient(to right, #059669, #047857);
+    }
+    
+    .support-modal-title {
+        @apply text-white font-semibold;
+        font-family: Poppins, sans-serif !important;
+        font-size: 14px !important;
+    }
+    
+    .support-modal-subtitle {
+        @apply text-white;
+        font-family: Poppins, sans-serif !important;
+        font-size: 10px !important;
+        opacity: 0.9;
+    }
+    
+    .support-modal-body {
+        @apply p-6 overflow-y-auto flex-1;
+    }
+    
+    .support-modal-footer {
+        @apply border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-between items-center;
+    }
+    
+    /* ============================================
+       MESSAGE STYLES
+       ============================================ */
+    
+    .support-message-bubble {
+        @apply bg-gray-50 rounded-sm p-3 border border-gray-200;
+        text-align: left !important;
+    }
+    
+    .support-message-header {
+        @apply flex justify-between items-start mb-1;
+    }
+    
+    .support-message-author {
+        @apply text-gray-900 font-semibold;
+        font-family: Poppins, sans-serif !important;
+        font-size: 11px !important;
+    }
+    
+    .support-message-meta {
+        @apply flex items-center text-gray-500;
+        font-family: Poppins, sans-serif !important;
+        font-size: 10px !important;
+    }
+    
+    .support-message-body {
+        @apply text-gray-900 leading-relaxed;
+        font-family: Poppins, sans-serif !important;
+        font-size: 11px !important;
+        white-space: pre-line;
+        text-align: left !important;
+    }
+    
+    .support-message-attachments {
+        @apply mt-2 pt-2 border-t border-gray-200 space-y-1;
+    }
+    
+    .support-attachment-item {
+        @apply flex items-center gap-2 text-gray-600 hover:text-blue-600 cursor-pointer;
+        font-size: 10px !important;
+    }
+    
+    /* ============================================
+       BADGE STYLES
+       ============================================ */
+    
+    .support-badge {
+        @apply inline-flex items-center h-4 px-2 font-medium rounded-sm;
+        font-family: Poppins, sans-serif !important;
+        font-size: 9px !important;
+    }
+    
+    .support-badge-admin {
+        @apply bg-blue-600 text-white;
+    }
+    
+    .support-badge-sistem {
+        @apply bg-gray-600 text-white;
+    }
+    
+    .support-badge-pengguna {
+        @apply bg-purple-100 text-purple-800;
+    }
+    
+    .support-badge-priority-rendah {
+        @apply bg-green-100 text-green-800 border border-green-200;
+    }
+    
+    .support-badge-priority-sederhana {
+        @apply bg-yellow-100 text-yellow-800 border border-yellow-200;
+    }
+    
+    .support-badge-priority-tinggi {
+        @apply bg-orange-100 text-orange-800 border border-orange-200;
+    }
+    
+    .support-badge-priority-kritikal {
+        @apply bg-red-100 text-red-800 border border-red-200;
+    }
+    
+    .support-badge-status {
+        @apply inline-flex items-center h-5 px-2 font-medium rounded-sm;
+        font-family: Poppins, sans-serif !important;
+        font-size: 10px !important;
+    }
+    
+    /* ============================================
+       BUTTON STYLES
+       ============================================ */
+    
+    .support-btn {
+        @apply h-8 px-4 rounded-sm transition-colors inline-flex items-center gap-1.5;
+        font-family: Poppins, sans-serif !important;
+        font-size: 11px !important;
+    }
+    
+    .support-btn-sm {
+        @apply h-7 px-3 rounded-sm transition-colors inline-flex items-center gap-1.5;
+        font-family: Poppins, sans-serif !important;
+        font-size: 10px !important;
+    }
+    
+    .support-btn-primary {
+        @apply bg-blue-600 text-white hover:bg-blue-700 font-medium;
+    }
+    
+    .support-btn-secondary {
+        @apply border border-gray-300 text-gray-700 hover:bg-gray-50;
+    }
+    
+    .support-btn-success {
+        @apply border border-green-300 text-green-700 hover:bg-green-50;
+    }
+    
+    .support-btn-danger {
+        @apply border border-red-300 text-red-700 hover:bg-red-50;
+    }
+    
+    .support-btn-purple {
+        @apply bg-purple-600 text-white hover:bg-purple-700 font-medium;
+    }
+    
+    /* ============================================
+       FORM STYLES
+       ============================================ */
+    
+    .support-form-label {
+        @apply text-gray-700 mb-2 block font-medium;
+        font-family: Poppins, sans-serif !important;
+        font-size: 11px !important;
+    }
+    
+    .support-form-input {
+        @apply w-full h-8 px-3 rounded-sm border border-gray-200 focus:ring-0 focus:border-blue-500;
+        font-family: Poppins, sans-serif !important;
+        font-size: 11px !important;
+    }
+    
+    .support-form-textarea {
+        @apply w-full px-3 py-2 rounded-sm border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none;
+        font-family: Poppins, sans-serif !important;
+        font-size: 11px !important;
+    }
+    
+    .support-form-select {
+        @apply w-full h-8 px-3 rounded-sm border border-gray-200 focus:ring-0 focus:border-blue-500 bg-white;
+        font-family: Poppins, sans-serif !important;
+        font-size: 11px !important;
+        line-height: 32px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    .support-file-preview {
+        @apply flex items-center justify-between bg-blue-50 border border-blue-200 rounded-sm px-2 py-1;
+        font-family: Poppins, sans-serif !important;
+        font-size: 10px !important;
+    }
+    
+    /* ============================================
+       CARD STYLES
+       ============================================ */
+    
+    .support-ticket-card {
+        @apply bg-white p-4 rounded-sm border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all;
+    }
+    
+    .support-ticket-card-escalated {
+        @apply border-l-4 border-l-red-500;
+    }
+    
+    .support-ticket-title {
+        @apply text-gray-900 font-semibold mb-2;
+        font-family: Poppins, sans-serif !important;
+        font-size: 12px !important;
+    }
+    
+    .support-ticket-meta {
+        @apply flex items-center gap-1.5 text-gray-600;
+        font-family: Poppins, sans-serif !important;
+        font-size: 10px !important;
+    }
+    
+    /* ============================================
+       SECTION TITLES
+       ============================================ */
+    
+    .support-section-title {
+        @apply text-gray-900 mb-3 flex items-center gap-2 font-semibold;
+        font-family: Poppins, sans-serif !important;
+        font-size: 12px !important;
+    }
+    
+    .support-section-subtitle {
+        @apply text-gray-900 mb-3 flex items-center gap-2 font-semibold;
+        font-family: Poppins, sans-serif !important;
+        font-size: 11px !important;
+    }
+    
+    /* ============================================
+       INFO BOXES
+       ============================================ */
+    
+    .support-info-box {
+        @apply border-l-4 p-3 mb-6 rounded-sm;
+    }
+    
+    .support-info-box-blue {
+        @apply bg-blue-50 border-blue-500;
+    }
+    
+    .support-info-box-text {
+        @apply text-blue-800;
+        font-family: Poppins, sans-serif !important;
+        font-size: 10px !important;
+    }
+    
+    /* ============================================
+       TAB NAVIGATION
+       ============================================ */
+    
+    .support-tab-button {
+        @apply whitespace-nowrap py-3 px-2 font-medium transition-colors duration-200 flex items-center gap-2;
+        font-family: Poppins, sans-serif !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        border-bottom: 3px solid transparent !important;
+    }
+    
+    .support-tab-button-active {
+        border-bottom: 3px solid #2563eb !important;
+        color: #2563eb !important;
+    }
+    
+    .support-tab-button-inactive {
+        @apply text-gray-500 hover:text-gray-700;
+    }
+    
+    .support-tab-badge {
+        @apply inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 font-semibold rounded-full;
+        font-family: Poppins, sans-serif !important;
+        font-size: 9px !important;
+    }
+    
+    /* ============================================
+       STATS CARDS
+       ============================================ */
+    
+    .support-stat-card {
+        @apply bg-white p-4 rounded-sm border;
+    }
+    
+    .support-stat-value {
+        @apply font-bold text-gray-900;
+        font-size: 24px;
+    }
+    
+    .support-stat-label {
+        @apply text-gray-500 mt-1;
+        font-size: 9px;
+    }
+    
+    /* ============================================
+       MOBILE RESPONSIVE
+       ============================================ */
+    
+    @media (max-width: 768px) {
+        /* Modal adjustments - Full screen on mobile */
+        .support-modal-header,
+        .support-modal-header-purple,
+        .support-modal-header-red,
+        .support-modal-header-green {
+            padding-left: 1rem;
+            padding-right: 1rem;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        
+        .support-modal-title {
+            font-size: 12px !important;
+        }
+        
+        .support-modal-subtitle {
+            font-size: 9px !important;
+        }
+        
+        .support-modal-body {
+            padding: 1rem;
+        }
+        
+        .support-modal-footer {
+            padding: 0.75rem 1rem;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+        }
+        
+        .support-modal-footer button {
+            width: 100% !important;
+            justify-content: center !important;
+            font-size: 10px !important;
+        }
+        
+        .support-modal-footer button span.material-symbols-outlined {
+            font-size: 14px !important;
+        }
+        
+        /* Message bubbles - Mobile optimized */
+        .support-message-bubble {
+            padding: 0.5rem;
+        }
+        
+        .support-message-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+        
+        .support-message-author {
+            font-size: 10px !important;
+            width: 100%;
+        }
+        
+        .support-message-meta {
+            font-size: 8px !important;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+        
+        .support-message-meta .material-symbols-outlined {
+            font-size: 10px !important;
+        }
+        
+        .support-message-body {
+            font-size: 10px !important;
+            margin-top: 0.5rem;
+        }
+        
+        .support-attachment-item {
+            font-size: 9px !important;
+        }
+        
+        /* Organization badge - Smaller */
+        .support-badge {
+            font-size: 7px !important;
+            height: 1rem;
+            padding: 0 0.375rem;
+        }
+        
+        /* Buttons - Stack & full width where appropriate */
+        .support-btn {
+            height: 2rem;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+            font-size: 10px !important;
+        }
+        
+        .support-btn-sm {
+            height: 1.75rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            font-size: 9px !important;
+        }
+        
+        /* Forms - Better mobile UX */
+        .support-form-label {
+            font-size: 10px !important;
+        }
+        
+        .support-form-input,
+        .support-form-select {
+            height: 2.25rem;
+            font-size: 10px !important;
+        }
+        
+        .support-form-textarea {
+            font-size: 10px !important;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        /* Badges - Slightly smaller */
+        .support-badge {
+            font-size: 8px !important;
+            height: 1rem;
+            padding-left: 0.375rem;
+            padding-right: 0.375rem;
+        }
+        
+        .support-badge-status {
+            font-size: 9px !important;
+        }
+        
+        /* Stats cards - stack vertically */
+        .support-stats-grid {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+        
+        .support-stat-value {
+            font-size: 20px;
+        }
+        
+        /* Ticket cards - Mobile optimized */
+        .support-ticket-card {
+            padding: 0.75rem;
+        }
+        
+        .support-ticket-title {
+            font-size: 11px !important;
+        }
+        
+        .support-ticket-meta {
+            font-size: 9px !important;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        /* Section titles */
+        .support-section-title {
+            font-size: 11px !important;
+        }
+        
+        .support-section-subtitle {
+            font-size: 10px !important;
+        }
+        
+        /* Tab navigation - Horizontal scroll on mobile */
+        .support-tab-button {
+            font-size: 11px !important;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            padding-left: 0.375rem;
+            padding-right: 0.375rem;
+        }
+        
+        .support-tab-badge {
+            font-size: 8px !important;
+            min-width: 16px;
+            height: 16px;
+        }
+        
+        /* File upload preview */
+        .support-file-preview {
+            font-size: 9px !important;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+        
+        /* Info boxes */
+        .support-info-box {
+            padding: 0.625rem;
+            margin-bottom: 1rem;
+        }
+        
+        .support-info-box-text {
+            font-size: 9px !important;
+        }
+        
+        /* Action buttons in cards - Full width on mobile */
+        .support-card-actions {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+        }
+        
+        .support-card-actions button {
+            width: 100% !important;
+            justify-content: center !important;
+        }
+        
+        /* Search & Filters - Custom mobile layout */
+        .support-filters-grid {
+            grid-template-columns: 1fr !important;
+            gap: 0.5rem !important;
+        }
+        
+        .support-filter-search {
+            grid-column: span 1 !important;
+        }
+        
+        /* Status & Keutamaan - 50/50 grid */
+        .support-filters-grid {
+            display: grid !important;
+            grid-template-areas:
+                "search search"
+                "status priority"
+                "category category" !important;
+            grid-template-columns: 1fr 1fr !important;
+        }
+        
+        .support-filter-search {
+            grid-area: search !important;
+        }
+        
+        .support-filter-status {
+            grid-area: status !important;
+        }
+        
+        .support-filter-priority {
+            grid-area: priority !important;
+        }
+        
+        .support-filter-category {
+            grid-area: category !important;
+        }
+        
+        /* Admin Filters - Has 4 fields (Organisasi, Status, Keutamaan) */
+        .support-filters-grid-admin {
+            display: grid !important;
+            grid-template-areas:
+                "search search"
+                "org status"
+                "priority priority" !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 0.5rem !important;
+        }
+        
+        .support-filter-org {
+            grid-area: org !important;
+        }
+        
+        /* Stats cards - 2 columns on mobile for better use of space */
+        .grid.grid-cols-3,
+        .grid.md\:grid-cols-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.5rem !important;
+        }
+        
+        .support-stat-card,
+        .bg-gray-50.p-4.rounded-sm.border {
+            padding: 0.75rem !important;
+        }
+        
+        .support-stat-value {
+            font-size: 18px !important;
+        }
+        
+        .support-stat-label {
+            font-size: 8px !important;
+        }
+        
+        /* Tab container - Horizontal scroll */
+        .support-tabs-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .support-tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Inline reply form - Sticky bottom & compact */
+        #inline-reply-section {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 0.75rem;
+            margin: 0 -1rem -1rem;
+            border-top: 2px solid #e5e7eb;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        
+        #inline-reply-section h5 {
+            font-size: 10px !important;
+            margin-bottom: 0.5rem;
+        }
+        
+        #inline-reply-section textarea {
+            font-size: 10px !important;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            min-height: 60px;
+        }
+        
+        #inline-reply-section .flex.justify-between {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        #inline-reply-section button[type="button"] {
+            width: auto;
+        }
+        
+        #inline-reply-section button[type="submit"] {
+            width: 100%;
+        }
+        
+        /* Message thread container - Account for sticky reply form */
+        .overflow-y-auto:has(#ticket-messages-container) {
+            padding-bottom: 180px !important;
+        }
+        
+        /* Ticket info section - More compact */
+        .p-6.border-b {
+            padding: 0.75rem;
+        }
+        
+        /* Grid layouts in ticket info - Stack */
+        .grid.grid-cols-3.gap-4 {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+        
+        /* Participant add section - Stack on mobile */
+        #participant-user-select {
+            width: 100% !important;
+        }
+        
+        .flex.gap-2:has(#participant-user-select) {
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+        }
+        
+        .flex.gap-2:has(#participant-user-select) button {
+            width: 100% !important;
+        }
+        
+        /* Participants list items */
+        #participants-list > div {
+            font-size: 9px !important;
+            padding: 0.5rem !important;
+        }
+        
+        /* Section borders - Thinner on mobile */
+        .mb-6.pb-6.border-b {
+            margin-bottom: 1rem !important;
+            padding-bottom: 1rem !important;
+        }
+    }
+}
+

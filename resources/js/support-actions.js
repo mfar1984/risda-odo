@@ -58,8 +58,18 @@ window.createTicket = function() {
 /**
  * View ticket details
  */
+// Track polling interval for real-time message updates
+let messagePollingInterval = null;
+let lastMessageCount = 0;
+
 window.viewTicket = function(ticketId) {
     window.currentTicketId = ticketId;
+    
+    // Stop any existing polling
+    if (messagePollingInterval) {
+        clearInterval(messagePollingInterval);
+        messagePollingInterval = null;
+    }
     
     fetch(`/help/tickets/${ticketId}`, {
         method: 'GET',
@@ -127,6 +137,12 @@ window.viewTicket = function(ticketId) {
             if (exportBtn) {
                 exportBtn.style.display = isClosedTicket ? 'inline-flex' : 'none';
             }
+            
+            // Start real-time polling for new messages (only for open tickets)
+            if (!isClosedTicket) {
+                lastMessageCount = data.ticket.messages.length;
+                startMessagePolling(ticketId);
+            }
         } else {
             throw new Error(data.message || 'Gagal memuat tiket');
         }
@@ -136,6 +152,74 @@ window.viewTicket = function(ticketId) {
         alert('Gagal memuat tiket: ' + error.message);
     });
 };
+
+/**
+ * Start polling for new messages (real-time updates)
+ */
+function startMessagePolling(ticketId) {
+    // Clear any existing interval
+    if (messagePollingInterval) {
+        clearInterval(messagePollingInterval);
+    }
+    
+    // Poll every 3 seconds for new messages
+    messagePollingInterval = setInterval(() => {
+        fetch(`/help/tickets/${ticketId}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.ticket) {
+                const newMessageCount = data.ticket.messages.length;
+                
+                // If new messages detected, refresh the chat
+                if (newMessageCount > lastMessageCount) {
+                    lastMessageCount = newMessageCount;
+                    
+                    // Update messages container
+                    const container = document.getElementById('ticket-messages-container');
+                    if (container) {
+                        container.innerHTML = '';
+                        data.ticket.messages.forEach(msg => {
+                            container.appendChild(createMessageElement(msg));
+                        });
+                        
+                        // Scroll to bottom to show new message
+                        container.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                        
+                        // Play notification sound
+                        playNotificationSound();
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Polling error:', error);
+        });
+    }, 3000); // Poll every 3 seconds
+}
+
+/**
+ * Stop message polling
+ */
+function stopMessagePolling() {
+    if (messagePollingInterval) {
+        clearInterval(messagePollingInterval);
+        messagePollingInterval = null;
+    }
+}
+
+/**
+ * Play notification sound for new message
+ */
+function playNotificationSound() {
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUKnl86xhGwU7k9n0yXgiBS16yO/ajj4IF14w4IuYIwU2jdLuxG8gAycF');
+    audio.volume = 0.3;
+    audio.play().catch(e => console.log('Sound play failed:', e));
+}
 
 /**
  * Populate view ticket modal with data
@@ -754,13 +838,14 @@ window.reopenTicket = function(ticketId) {
  * Delete ticket (Admin only, with verification code)
  */
 window.deleteSupportTicket = function(ticketId, ticketNumber) {
-    openDeleteConfirmModal(
-        'Padam Tiket Sokongan',
-        `Adakah anda pasti untuk memadam tiket <strong>${ticketNumber}</strong>?`,
-        'Padam Tiket',
-        `/help/tickets/${ticketId}`,
-        '/help/hubungi-sokongan'
-    );
+    openDeleteConfirmModal({
+        title: 'Padam Tiket Sokongan',
+        message: `Adakah anda pasti untuk memadam tiket <strong>${ticketNumber}</strong>?`,
+        warning: 'AMARAN: Tindakan ini akan memadam tiket dan semua mesej secara kekal. Data tidak boleh dipulihkan semula.',
+        buttonText: 'Padam Tiket',
+        url: `/help/tickets/${ticketId}`,
+        redirectUrl: '/help/hubungi-sokongan'
+    });
 };
 
 /**

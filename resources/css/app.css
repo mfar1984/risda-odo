@@ -23,6 +23,7 @@
 @import './components/toast.css';
 @import './components/badge.css';
 @import './components/permission-matrix.css';
+@import './components/support-tickets.css';
 /* Mobile CSS split to separate entry (mobile.css) */
 
 @tailwind base;

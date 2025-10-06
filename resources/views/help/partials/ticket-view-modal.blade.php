@@ -16,14 +16,14 @@
              @click.away="viewTicketModal = false">
             
             {{-- Header --}}
-            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex justify-between items-center">
+            <div class="support-modal-header">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined text-white text-[20px]">confirmation_number</span>
                     <div>
-                        <h3 class="text-white font-semibold" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">
+                        <h3 class="support-modal-title">
                             <span id="ticket-number-display">-</span>
                         </h3>
-                        <p class="text-blue-100" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
+                        <p class="support-modal-subtitle text-blue-100">
                             <span id="ticket-opened-ago">&nbsp;</span>
                         </p>
                     </div>

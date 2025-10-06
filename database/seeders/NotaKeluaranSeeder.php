@@ -379,6 +379,61 @@ class NotaKeluaranSeeder extends Seeder
                     'Preserve current URL params: Maintain tab, search, tarikh_dari, tarikh_hingga, page during auto-refresh.'
                 ],
                 'urutan' => 173,
+                'is_latest' => false,
+            ],
+            [
+                'versi' => '2.0.0',
+                'nama_versi' => 'Support Ticketing System & Real-Time Collaboration',
+                'jenis_keluaran' => 'green',
+                'tarikh_keluaran' => Carbon::create(2025, 10, 6),
+                'penerangan' => 'Kemaskini major dengan sistem tiket sokongan yang komprehensif, termasuk real-time chat, multi-user collaboration, dan mobile-responsive design yang canggih.',
+                'ciri_baharu' => [
+                    'Sistem Tiket Sokongan: Platform lengkap untuk pengurusan isu dan pertanyaan dengan ticket numbering',
+                    'Real-time Chat: Mesej auto-update setiap 3 saat dengan notification sound',
+                    'Multi-user Collaboration: Assign tiket kepada staff, tambah peserta untuk perbincangan kumpulan',
+                    'Attachment Support: Upload dan preview fail (PDF, gambar, dokumen) dengan modal cantik',
+                    'IP & Location Tracking: Setiap mesej direkod dengan IP address dan lokasi pengguna (Google Maps link)',
+                    'Organization Badges: Paparan automatik nama stesen/bahagian dalam chat messages',
+                    'Bell Notifications: Notifikasi real-time dengan bunyi untuk create, reply, assign, escalate, close',
+                    'Activity Logging: Audit trail lengkap dengan IP untuk semua tindakan tiket',
+                    'Export Chat History: Eksport perbincangan lengkap sebagai fail teks untuk arkib',
+                    'Mobile Responsive: UI/UX optimized sepenuhnya - full-screen modals, stacked buttons, horizontal scroll tabs',
+                    'Access Control: Multi-tenancy filtering untuk creator, assigned person, participants',
+                    'Auto-assignment: Tiket Android auto-assign kepada staff yang pertama membuka',
+                    'Escalation System: Staff boleh escalate tiket kritikal kepada administrator',
+                    'Delete Verification: Padam tiket dengan sistem 6-digit kod pengesahan alphanumeric',
+                    'Participant Management: Add/remove peserta dalam tiket untuk collaborative discussion',
+                ],
+                'penambahbaikan' => [
+                    'Mobile view untuk permission matrix dalam tambah/edit kumpulan (checkbox labels appear conditionally)',
+                    'Smart pagination dengan limited page numbers untuk better navigation experience',
+                    'Breadcrumb navigation untuk halaman show laporan kenderaan',
+                    'Adaptive activity log display berdasarkan jenis entity dengan rich details',
+                    'Centralized CSS components untuk support tickets dengan mobile media queries',
+                    'Modal footer buttons dengan adaptive grid layout untuk mobile (stack vertical)',
+                    'Search & filter layout optimization - smart 2-column grid untuk mobile',
+                    'Stats cards 2-column layout pada mobile untuk better space utilization',
+                ],
+                'pembetulan_pepijat' => [
+                    'Fixed organization name accessor untuk stesen (nama_stesen) dan bahagian (nama_bahagian)',
+                    'Fixed duplicate activity logging dengan disable model auto-logging trait',
+                    'Fixed IP address field naming consistency (ip vs ip_address) across activity logs',
+                    'Fixed notification logic untuk ensure administrators selalu dapat notification dari staff tickets',
+                    'Fixed modal delete confirmation path untuk support tickets',
+                    'Fixed reply notification untuk include all administrators bila ticket dari staff',
+                    'Fixed circular dependency errors dalam mobile CSS dengan remove @apply',
+                    'Fixed canBeAccessedBy logic untuk unassigned Android tickets dalam same organization',
+                ],
+                'perubahan_teknikal' => [
+                    'Database: Created support_tickets, support_messages, support_ticket_participants tables',
+                    'Models: SupportTicket with relationships (creator, assignedAdmin, participants, messages)',
+                    'API: Internal /api/users/list endpoint untuk filtered user selection',
+                    'Services: IP geolocation via ip-api.com dengan graceful fallback untuk localhost',
+                    'CSS Architecture: Separated mobile-specific styles dalam support-tickets-mobile.css',
+                    'JavaScript: Real-time polling mechanism dengan auto-cleanup on modal close',
+                    'Permissions: Added sokongan module dengan granular actions (tambah, lihat, balas, tugaskan, tutup, padam)',
+                ],
+                'urutan' => 200,
                 'is_latest' => true,
             ],
         ];
@@ -404,6 +459,6 @@ class NotaKeluaranSeeder extends Seeder
             );
         }
 
-        NotaKeluaran::where('versi', '!=', '1.7.3')->update(['is_latest' => false]);
+        NotaKeluaran::where('versi', '!=', '2.0.0')->update(['is_latest' => false]);
     }
 }
