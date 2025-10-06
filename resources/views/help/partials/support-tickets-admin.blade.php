@@ -44,6 +44,12 @@ class="mb-8">
                 :style="activeTab === 'resolved' ? 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid #2563eb !important; color: #2563eb !important;' : 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid transparent !important;'">
                 <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
                 Selesai
+                @php $resolvedCount = $tickets->where('status', 'ditutup')->count(); @endphp
+                @if($resolvedCount > 0)
+                    <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 text-[9px] font-semibold rounded-full bg-green-600 text-white" style="font-family: Poppins, sans-serif !important;">
+                        {{ $resolvedCount }}
+                    </span>
+                @endif
             </button>
         </nav>
     </div>

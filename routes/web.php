@@ -312,6 +312,7 @@ Route::middleware('auth')->group(function () {
 
         Route::middleware('permission:sokongan,lihat')->group(function () {
             Route::get('/tickets/{id}', [App\Http\Controllers\SupportTicketController::class, 'show'])->name('tickets.show');
+            Route::get('/tickets/{id}/export', [App\Http\Controllers\SupportTicketController::class, 'export'])->name('tickets.export');
         });
 
         Route::middleware('permission:sokongan,balas')->group(function () {

@@ -15,6 +15,10 @@ class SupportMessage extends Model
         'role',
         'message',
         'attachments',
+        'ip_address',
+        'location',
+        'latitude',
+        'longitude',
     ];
 
     protected $casts = [

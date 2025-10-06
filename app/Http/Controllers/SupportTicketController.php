@@ -184,6 +184,7 @@ class SupportTicketController extends Controller
             'latitude' => $ticket->latitude,
             'longitude' => $ticket->longitude,
             'creator' => [
+                'id' => $ticket->creator?->id ?? null,
                 'name' => $ticket->creator?->name ?? 'N/A',
                 'email' => $ticket->creator?->email ?? null,
             ],
@@ -203,12 +204,30 @@ class SupportTicketController extends Controller
                 ];
             })->values(),
             'messages' => $ticket->messages->map(function ($m) {
+                // Determine organization label for badge
+                $organizationLabel = null;
+                if ($m->user && $m->role !== 'admin' && $m->role !== 'sistem') {
+                    if ($m->user->jenis_organisasi === 'stesen' && $m->user->organisasi_id) {
+                        $stesen = \App\Models\RisdaStesen::find($m->user->organisasi_id);
+                        $organizationLabel = $stesen ? $stesen->nama_stesen : 'Stesen';
+                    } elseif ($m->user->jenis_organisasi === 'bahagian' && $m->user->organisasi_id) {
+                        $bahagian = \App\Models\RisdaBahagian::find($m->user->organisasi_id);
+                        $organizationLabel = $bahagian ? $bahagian->nama_bahagian : 'Bahagian';
+                    }
+                }
+                
                 return [
                     'id' => $m->id,
                     'message' => $m->message,
                     'role' => $m->role,
                     'role_label' => $m->role_label,
+                    'organization_label' => $organizationLabel,
                     'created_at' => optional($m->created_at)->toISOString(),
+                    'attachments' => $m->attachments ?? [],
+                    'ip_address' => $m->ip_address,
+                    'location' => $m->location,
+                    'latitude' => $m->latitude,
+                    'longitude' => $m->longitude,
                     'user' => $m->user ? [ 'name' => $m->user->name ] : null,
                 ];
             })->values(),
@@ -218,6 +237,7 @@ class SupportTicketController extends Controller
             'success' => true,
             'ticket' => $ticketData,
             'current_user' => [
+                'id' => $currentUser->id,
                 'jenis_organisasi' => $currentUser->jenis_organisasi,
             ],
         ]);
@@ -265,6 +285,9 @@ class SupportTicketController extends Controller
             // latitude/longitude could be posted later by apps
         ]);
 
+        // Get location from IP
+        $locationData = $this->getLocationFromIP($request->ip());
+
         // Create initial message
         SupportMessage::create([
             'ticket_id' => $ticket->id,
@@ -272,6 +295,10 @@ class SupportTicketController extends Controller
             'role' => $currentUser->jenis_organisasi === 'semua' ? 'admin' : 'pengguna',
             'message' => $request->message,
             'attachments' => $attachments,
+            'ip_address' => $request->ip(),
+            'location' => $locationData['location'] ?? null,
+            'latitude' => $locationData['latitude'] ?? null,
+            'longitude' => $locationData['longitude'] ?? null,
         ]);
 
         // Update last_reply_at
@@ -325,6 +352,9 @@ class SupportTicketController extends Controller
             }
         }
 
+        // Get location from IP (optional - will be null if API fails)
+        $locationData = $this->getLocationFromIP($request->ip());
+
         // Create message
         $message = SupportMessage::create([
             'ticket_id' => $ticket->id,
@@ -332,6 +362,10 @@ class SupportTicketController extends Controller
             'role' => $currentUser->jenis_organisasi === 'semua' ? 'admin' : 'pengguna',
             'message' => $request->message,
             'attachments' => $attachments,
+            'ip_address' => $request->ip(),
+            'location' => $locationData['location'] ?? null,
+            'latitude' => $locationData['latitude'] ?? null,
+            'longitude' => $locationData['longitude'] ?? null,
         ]);
 
         // Update ticket status and last_reply_at
@@ -778,5 +812,126 @@ class SupportTicketController extends Controller
             'success' => true,
             'message' => $participant->name . ' berjaya dibuang dari participant.',
         ]);
+    }
+
+    /**
+     * Export ticket chat history
+     */
+    public function export($id)
+    {
+        $currentUser = Auth::user();
+        $ticket = SupportTicket::with(['creator', 'assignedAdmin', 'messages.user', 'participants'])->findOrFail($id);
+
+        // Check access
+        if (!$ticket->canBeAccessedBy($currentUser)) {
+            abort(403, 'Unauthorized access to this ticket.');
+        }
+
+        // Log activity
+        activity('support')
+            ->performedOn($ticket)
+            ->causedBy($currentUser)
+            ->withProperties([
+                'ticket_number' => $ticket->ticket_number,
+                'format' => 'text',
+            ])
+            ->event('exported')
+            ->log('Chat history tiket sokongan telah di-eksport');
+
+        // Generate text content
+        $content = "RISDA ODOMETER - SUPPORT TICKET EXPORT\n";
+        $content .= "=====================================\n\n";
+        $content .= "Ticket Number: {$ticket->ticket_number}\n";
+        $content .= "Subject: {$ticket->subject}\n";
+        $content .= "Category: {$ticket->category}\n";
+        $content .= "Priority: {$ticket->priority_label}\n";
+        $content .= "Status: {$ticket->status_label}\n";
+        $content .= "Created: {$ticket->created_at->format('d/m/Y H:i')}\n";
+        $content .= "Creator: {$ticket->creator->name}\n";
+        
+        if ($ticket->assignedAdmin) {
+            $content .= "Assigned To: {$ticket->assignedAdmin->name}\n";
+        }
+        
+        if ($ticket->participants->count() > 0) {
+            $content .= "Participants: " . $ticket->participants->pluck('name')->join(', ') . "\n";
+        }
+        
+        $content .= "\n=====================================\n";
+        $content .= "CHAT HISTORY\n";
+        $content .= "=====================================\n\n";
+
+        foreach ($ticket->messages as $msg) {
+            $userName = $msg->user ? $msg->user->name : 'Sistem';
+            $timestamp = $msg->created_at->format('d/m/Y H:i:s');
+            $role = strtoupper($msg->role_label);
+            
+            $content .= "[{$timestamp}] {$userName} ({$role})\n";
+            $content .= "{$msg->message}\n";
+            
+            if ($msg->attachments && count($msg->attachments) > 0) {
+                $content .= "Attachments:\n";
+                foreach ($msg->attachments as $att) {
+                    $fileName = basename($att);
+                    $content .= "  - {$fileName}\n";
+                }
+            }
+            
+            $content .= "\n" . str_repeat('-', 60) . "\n\n";
+        }
+
+        $content .= "\nExported by: {$currentUser->name}\n";
+        $content .= "Export Date: " . now()->format('d/m/Y H:i:s') . "\n";
+        
+        // Return as downloadable text file
+        $filename = "ticket-{$ticket->ticket_number}-" . now()->format('Ymd-His') . ".txt";
+        
+        return response($content)
+            ->header('Content-Type', 'text/plain')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
+    }
+
+    /**
+     * Get location from IP address using ip-api.com
+     */
+    private function getLocationFromIP($ip)
+    {
+        // Skip for localhost/private IPs
+        if ($ip === '127.0.0.1' || $ip === 'localhost' || str_starts_with($ip, '192.168.') || str_starts_with($ip, '10.')) {
+            return [
+                'location' => 'Local Network',
+                'latitude' => null,
+                'longitude' => null,
+            ];
+        }
+
+        try {
+            // Use ip-api.com free API (no key required, 45 req/min limit)
+            $response = file_get_contents("http://ip-api.com/json/{$ip}?fields=status,country,regionName,city,lat,lon");
+            $data = json_decode($response, true);
+
+            if ($data && $data['status'] === 'success') {
+                $location = implode(', ', array_filter([
+                    $data['city'] ?? null,
+                    $data['regionName'] ?? null,
+                    $data['country'] ?? null,
+                ]));
+
+                return [
+                    'location' => $location ?: 'Unknown',
+                    'latitude' => $data['lat'] ?? null,
+                    'longitude' => $data['lon'] ?? null,
+                ];
+            }
+        } catch (\Exception $e) {
+            // Silently fail - location is optional
+            \Log::info("Failed to get location for IP {$ip}: " . $e->getMessage());
+        }
+
+        return [
+            'location' => null,
+            'latitude' => null,
+            'longitude' => null,
+        ];
     }
 }

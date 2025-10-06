@@ -119,13 +119,13 @@
                         <div class="text-[11px] text-gray-500" style="font-family: Poppins, sans-serif !important;">Tiada mesej.</div>
                     </div>
 
-                    {{-- Inline Reply Form --}}
-                    <div class="border-t border-gray-200 pt-4">
+                    {{-- Inline Reply Form (Hidden for closed tickets) --}}
+                    <div id="inline-reply-section" class="border-t border-gray-200 pt-4">
                         <h5 class="text-[11px] font-semibold text-gray-900 mb-3 flex items-center gap-2" style="font-family: Poppins, sans-serif !important;">
                             <span class="material-symbols-outlined text-[16px]">reply</span>
                             Balas Tiket
                         </h5>
-                        <form id="inline-reply-ticket-form">
+                        <form id="inline-reply-ticket-form" enctype="multipart/form-data">
                             @csrf
                             <textarea 
                                 name="message"
@@ -135,10 +135,30 @@
                                 class="w-full px-3 py-2 text-[11px] border border-gray-300 rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                 style="font-family: Poppins, sans-serif !important;"></textarea>
                             
+                            {{-- Hidden file input --}}
+                            <input 
+                                type="file" 
+                                name="attachments[]" 
+                                id="reply-attachments"
+                                multiple
+                                accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx,.doc,.docx"
+                                class="hidden"
+                                onchange="updateReplyFileList(this)"
+                            />
+                            
+                            {{-- File list preview --}}
+                            <div id="reply-file-list" class="mt-2 space-y-1"></div>
+                            
                             <div class="flex justify-between items-center mt-3">
-                                <div class="text-[10px] text-gray-500" style="font-family: Poppins, sans-serif !important;">
-                                    <span class="material-symbols-outlined text-[12px] align-middle mr-1">info</span>
-                                    Balasan akan dihantar kepada pemandu
+                                <div class="flex items-center gap-3">
+                                    <button type="button" onclick="document.getElementById('reply-attachments').click()" class="h-8 px-3 text-[10px] rounded-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[14px]">attach_file</span>
+                                        Lampiran
+                                    </button>
+                                    <div class="text-[10px] text-gray-500" style="font-family: Poppins, sans-serif !important;">
+                                        <span class="material-symbols-outlined text-[12px] align-middle mr-1">info</span>
+                                        Balasan akan dihantar kepada pemandu
+                                    </div>
                                 </div>
                                 <button type="submit" class="h-8 px-4 text-[11px] font-medium rounded-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors inline-flex items-center gap-1.5">
                                     <span class="material-symbols-outlined text-[16px]">send</span>
@@ -147,6 +167,44 @@
                             </div>
                         </form>
                     </div>
+                    
+                    <script>
+                    function updateReplyFileList(input) {
+                        const fileList = document.getElementById('reply-file-list');
+                        fileList.innerHTML = '';
+                        
+                        if (input.files.length > 0) {
+                            Array.from(input.files).forEach((file, index) => {
+                                const fileItem = document.createElement('div');
+                                fileItem.className = 'flex items-center justify-between text-[10px] bg-blue-50 border border-blue-200 rounded-sm px-2 py-1';
+                                fileItem.style.fontFamily = 'Poppins, sans-serif';
+                                fileItem.innerHTML = `
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-blue-600 text-[14px]">description</span>
+                                        <span>${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
+                                    </div>
+                                    <button type="button" onclick="removeReplyFile(${index})" class="text-red-600 hover:text-red-800">
+                                        <span class="material-symbols-outlined text-[14px]">close</span>
+                                    </button>
+                                `;
+                                fileList.appendChild(fileItem);
+                            });
+                        }
+                    }
+                    
+                    function removeReplyFile(index) {
+                        const input = document.getElementById('reply-attachments');
+                        const dt = new DataTransfer();
+                        const files = Array.from(input.files);
+                        
+                        files.forEach((file, i) => {
+                            if (i !== index) dt.items.add(file);
+                        });
+                        
+                        input.files = dt.files;
+                        updateReplyFileList(input);
+                    }
+                    </script>
                 </div>
             </div>
 
@@ -159,7 +217,7 @@
                         Escalate to Administrator
                     </button>
                     
-                    {{-- Admin-only buttons --}}
+                    {{-- Action buttons --}}
                     <button id="btn-assign" onclick="openAssignModal()" class="h-8 px-4 text-[11px] rounded-sm border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors inline-flex items-center gap-1.5" style="display: none; font-family: Poppins, sans-serif !important;">
                         <span class="material-symbols-outlined text-[16px]">person_add</span>
                         Tugaskan
@@ -168,6 +226,17 @@
                     <button id="btn-close" onclick="closeTicket()" class="h-8 px-4 text-[11px] rounded-sm border border-green-300 text-green-700 hover:bg-green-50 transition-colors inline-flex items-center gap-1.5" style="display: none; font-family: Poppins, sans-serif !important;">
                         <span class="material-symbols-outlined text-[16px]">check_circle</span>
                         Selesaikan
+                    </button>
+                    
+                    <button id="btn-reopen" onclick="reopenTicket()" class="h-8 px-4 text-[11px] rounded-sm border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors inline-flex items-center gap-1.5" style="display: none; font-family: Poppins, sans-serif !important;">
+                        <span class="material-symbols-outlined text-[16px]">refresh</span>
+                        Buka Semula
+                    </button>
+                    
+                    {{-- Export button (for closed tickets) --}}
+                    <button id="btn-export" onclick="exportChatHistory()" class="h-8 px-4 text-[11px] rounded-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5" style="display: none; font-family: Poppins, sans-serif !important;">
+                        <span class="material-symbols-outlined text-[16px]">download</span>
+                        Eksport Chat History
                     </button>
                 </div>
                 <button @click="viewTicketModal = false" 

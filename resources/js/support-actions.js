@@ -88,16 +88,23 @@ window.viewTicket = function(ticketId) {
             const isAdmin = data.current_user && data.current_user.jenis_organisasi === 'semua';
             const isStaff = data.current_user && data.current_user.jenis_organisasi !== 'semua';
             const isAndroidTicket = data.ticket && data.ticket.source === 'android';
-            const isClosedTicket = data.ticket && data.ticket.status === 'selesai';
+            const isClosedTicket = data.ticket && (data.ticket.status === 'selesai' || data.ticket.status === 'ditutup');
+            const isCreator = data.ticket && data.current_user && data.ticket.creator && 
+                             (parseInt(data.ticket.creator.id) === parseInt(data.current_user.id));
             
-            // Escalate button: Only for staff viewing Android tickets
+            // Hide/show inline reply form based on ticket status
+            const replySection = document.getElementById('inline-reply-section');
+            if (replySection) {
+                replySection.style.display = isClosedTicket ? 'none' : 'block';
+            }
+            
+            // Escalate button: Only for staff viewing Android tickets (open only)
             const escalateBtn = document.getElementById('btn-escalate');
             if (escalateBtn) {
                 escalateBtn.style.display = (isStaff && isAndroidTicket && !isClosedTicket) ? 'inline-flex' : 'none';
             }
             
-            // Assign/Tugaskan button: For both admin AND staff viewing open tickets
-            // Staff can use this to reassign within their org and add participants
+            // Assign/Tugaskan button: For both admin AND staff viewing open tickets only
             const assignBtn = document.getElementById('btn-assign');
             if (assignBtn) {
                 assignBtn.style.display = !isClosedTicket ? 'inline-flex' : 'none';
@@ -107,6 +114,18 @@ window.viewTicket = function(ticketId) {
             const closeBtn = document.getElementById('btn-close');
             if (closeBtn) {
                 closeBtn.style.display = (isAdmin && !isClosedTicket) ? 'inline-flex' : 'none';
+            }
+            
+            // Reopen button: Only for admin OR creator viewing closed tickets
+            const reopenBtn = document.getElementById('btn-reopen');
+            if (reopenBtn) {
+                reopenBtn.style.display = ((isAdmin || isCreator) && isClosedTicket) ? 'inline-flex' : 'none';
+            }
+            
+            // Export button: Show for all users viewing closed tickets
+            const exportBtn = document.getElementById('btn-export');
+            if (exportBtn) {
+                exportBtn.style.display = isClosedTicket ? 'inline-flex' : 'none';
             }
         } else {
             throw new Error(data.message || 'Gagal memuat tiket');
@@ -183,7 +202,13 @@ function populateViewTicketModal(ticket) {
  */
 function createMessageElement(message) {
     const role = message.role || 'pengguna';
-    const roleLabel = message.role_label || (role === 'admin' ? 'Administrator' : role === 'sistem' ? 'Sistem' : 'Pengguna');
+    
+    // Use organization label if available, otherwise use role label
+    let badgeLabel = message.role_label || (role === 'admin' ? 'Administrator' : role === 'sistem' ? 'Sistem' : 'Pengguna');
+    if (message.organization_label && role !== 'admin' && role !== 'sistem') {
+        badgeLabel = message.organization_label;
+    }
+    
     const badgeColor = role === 'admin' ? 'bg-blue-600 text-white' : (role === 'sistem' ? 'bg-gray-600 text-white' : 'bg-purple-100 text-purple-800');
 
     const wrapper = document.createElement('div');
@@ -197,8 +222,57 @@ function createMessageElement(message) {
         </div>
     `;
 
+    // Build attachments HTML if any
+    let attachmentsHtml = '';
+    if (message.attachments && message.attachments.length > 0) {
+        attachmentsHtml = `
+            <div class="mt-2 pt-2 border-t border-gray-200 space-y-1">
+                ${message.attachments.map(att => {
+                    const fileName = att.split('/').pop();
+                    const fileExt = fileName.split('.').pop().toLowerCase();
+                    const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExt);
+                    
+                    return `
+                        <div class="flex items-center gap-2 text-[10px] text-gray-600 hover:text-blue-600 cursor-pointer" onclick="viewAttachment('/storage/${att}', '${fileName}', ${isImage})">
+                            <span class="material-symbols-outlined text-[14px]">${isImage ? 'image' : 'description'}</span>
+                            <span style="font-family: Poppins, sans-serif !important;">${fileName}</span>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
     const content = document.createElement('div');
     content.className = 'flex-1';
+    
+    // Build meta info parts (inline-flex for proper alignment)
+    let metaInfoHtml = `<span>${new Date(message.created_at).toLocaleString('ms-MY')}</span>`;
+    
+    if (message.ip_address) {
+        metaInfoHtml += `
+            <span class="text-gray-400 mx-1.5">•</span>
+            <span class="inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-[11px]" style="vertical-align: middle;">router</span>
+                <span>${message.ip_address}</span>
+            </span>
+        `;
+    }
+    
+    if (message.location) {
+        const locationContent = (message.latitude && message.longitude) 
+            ? `<a href="https://www.google.com/maps?q=${message.latitude},${message.longitude}" target="_blank" class="inline-flex items-center gap-1 hover:text-blue-600">
+                <span class="material-symbols-outlined text-[11px]" style="vertical-align: middle;">location_on</span>
+                <span>${message.location}</span>
+               </a>`
+            : `<span class="inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-[11px]" style="vertical-align: middle;">location_on</span>
+                <span>${message.location}</span>
+               </span>`;
+        
+        metaInfoHtml += `<span class="text-gray-400 mx-1.5">•</span>${locationContent}`;
+    }
+    
     content.innerHTML = `
         <div class="bg-gray-50 rounded-sm p-3 border border-gray-200" style="text-align: left !important;">
             <div class="flex justify-between items-start mb-1">
@@ -206,15 +280,16 @@ function createMessageElement(message) {
                     <div class="text-[11px] font-semibold text-gray-900" style="font-family: Poppins, sans-serif !important;">
                         ${message.user && message.user.name ? message.user.name : 'Sistem'}
                     </div>
-                    <div class="text-[9px] text-gray-500" style="font-family: Poppins, sans-serif !important;">
-                        ${new Date(message.created_at).toLocaleString('ms-MY')}
+                    <div class="flex items-center text-[10px] text-gray-500" style="font-family: Poppins, sans-serif !important;">
+                        ${metaInfoHtml}
                     </div>
                 </div>
                 <span class="inline-flex items-center h-4 px-2 text-[9px] font-medium rounded-sm ${badgeColor}">
-                    ${roleLabel.toUpperCase()}
+                    ${badgeLabel.toUpperCase()}
                 </span>
             </div>
             <div class="message-body text-[11px] text-gray-900 leading-relaxed" style="font-family: Poppins, sans-serif !important; white-space: pre-line; text-align: left !important;"></div>
+            ${attachmentsHtml}
         </div>
     `;
 
@@ -265,6 +340,8 @@ window.replyTicket = function() {
             viewTicket(window.currentTicketId);
             // Reset inline form
             form.reset();
+            // Clear file list
+            document.getElementById('reply-file-list').innerHTML = '';
             // Show success feedback
             const textarea = form.querySelector('textarea');
             textarea.placeholder = 'Balasan berjaya dihantar! ✓';
@@ -684,6 +761,69 @@ window.deleteSupportTicket = function(ticketId, ticketNumber) {
         `/help/tickets/${ticketId}`,
         '/help/hubungi-sokongan'
     );
+};
+
+/**
+ * Export chat history as PDF/text
+ */
+window.exportChatHistory = function() {
+    if (!window.currentTicketId) {
+        alert('Tiket tidak dijumpai');
+        return;
+    }
+    
+    // Open export URL in new tab
+    window.open(`/help/tickets/${window.currentTicketId}/export`, '_blank');
+};
+
+/**
+ * View attachment in modal
+ */
+window.viewAttachment = function(url, filename, isImage) {
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 z-[10000] overflow-y-auto';
+    modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" onclick="this.parentElement.remove()"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="relative bg-white rounded-sm shadow-xl w-full max-w-3xl max-h-[85vh] my-8 flex flex-col">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-white text-[20px]">${isImage ? 'image' : 'description'}</span>
+                        <h3 class="text-white font-semibold" style="font-family: Poppins, sans-serif !important; font-size: 14px !important;">
+                            ${filename}
+                        </h3>
+                    </div>
+                    <button onclick="this.closest('.fixed').remove()" class="text-white hover:text-gray-200">
+                        <span class="material-symbols-outlined text-[24px]">close</span>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1 flex items-center justify-center bg-gray-50">
+                    ${isImage ? 
+                        `<img src="${url}" alt="${filename}" class="max-w-full max-h-[60vh] object-contain rounded-sm shadow-lg" />` :
+                        `<div class="text-center">
+                            <span class="material-symbols-outlined text-gray-400 text-[64px]">description</span>
+                            <p class="text-[12px] text-gray-600 mt-4" style="font-family: Poppins, sans-serif !important;">${filename}</p>
+                            <a href="${url}" download="${filename}" class="inline-block mt-4 h-8 px-4 text-[11px] font-medium rounded-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                                <span class="material-symbols-outlined text-[14px] align-middle mr-1">download</span>
+                                Muat Turun
+                            </a>
+                        </div>`
+                    }
+                </div>
+                <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-end gap-2">
+                    <a href="${url}" download="${filename}" class="h-8 px-4 text-[11px] rounded-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[14px]">download</span>
+                        Muat Turun
+                    </a>
+                    <button onclick="this.closest('.fixed').remove()" class="h-8 px-4 text-[11px] rounded-sm bg-gray-700 text-white hover:bg-gray-800 transition-colors">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
 };
 
 // Event listeners

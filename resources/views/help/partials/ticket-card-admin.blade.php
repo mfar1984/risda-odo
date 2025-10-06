@@ -72,18 +72,6 @@
             Lihat & Respond
         </button>
         
-        @if($ticket->status !== 'ditutup')
-            <button onclick="closeTicket({{ $ticket->id }})" class="h-7 px-3 text-[10px] rounded-sm border border-green-300 text-green-700 hover:bg-green-50 transition-colors inline-flex items-center gap-1.5" style="font-family: Poppins, sans-serif !important;">
-                <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                Tutup
-            </button>
-        @else
-            <button onclick="reopenTicket({{ $ticket->id }})" class="h-7 px-3 text-[10px] rounded-sm border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors inline-flex items-center gap-1.5" style="font-family: Poppins, sans-serif !important;">
-                <span class="material-symbols-outlined text-[14px]">refresh</span>
-                Buka Semula
-            </button>
-        @endif
-        
         <button onclick="deleteSupportTicket({{ $ticket->id }}, '{{ $ticket->ticket_number }}')" class="h-7 px-3 text-[10px] rounded-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5" style="font-family: Poppins, sans-serif !important;">
             <span class="material-symbols-outlined text-[14px]">delete</span>
             Padam
