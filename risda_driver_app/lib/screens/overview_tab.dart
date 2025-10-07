@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
+import '../services/connectivity_service.dart';
 import '../core/api_client.dart';
 import 'dart:developer' as developer;
 
@@ -48,10 +49,34 @@ class _OverviewTabState extends State<OverviewTab> {
   void initState() {
     super.initState();
     _apiService = ApiService(ApiClient());
-    _loadData();
+    
+    // Load data after frame built (to access context)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupConnectivityListener();
+      _loadData();
+    });
+  }
+  
+  /// Setup listener untuk connectivity changes
+  void _setupConnectivityListener() {
+    context.read<ConnectivityService>().addListener(() {
+      final connectivity = context.read<ConnectivityService>();
+      if (connectivity.isOnline && _isLoading) {
+        // Back online and still loading - retry
+        _loadData();
+      }
+    });
   }
 
   Future<void> _loadData() async {
+    // Check online first
+    final connectivity = context.read<ConnectivityService>();
+    if (!connectivity.isOnline) {
+      developer.log('⚠️ Overview Tab: Offline - skipping data load');
+      setState(() => _isLoading = false);
+      return;
+    }
+    
     await Future.wait([
       _loadDashboardStats(),
       _loadChartData(),

@@ -95,9 +95,9 @@ class AuthHive extends HiveObject {
 
 ### Business Rules
 - ✅ Only **ONE** auth record at a time (FIFO)
-- ✅ Session expires after **7 days**
-- ✅ Auto-logout on expiry
-- ✅ Clear on logout
+- ✅ Session **NEVER EXPIRES** - persists until manual logout
+- ✅ Token valid until user clicks logout
+- ✅ Clear on logout only
 - ⚠️ Additional user data stored in `settings['full_user_data']`
 
 ### Operations
@@ -573,24 +573,40 @@ WHEN ONLINE DETECTED
 
 **Note:** Photos stored separately in device file system.
 
-### Cleanup Strategy
+### Cleanup Strategy (60-Day Retention Policy)
+
+**Automatic Cleanup:**
+- Runs weekly on app startup
+- Deletes synced data older than 60 days
+- Enforces max 150 records per entity
+- Keeps pending/active items
+
 ```dart
-// Delete old synced journeys (older than 30 days)
-final oldDate = DateTime.now().subtract(Duration(days: 30));
-final oldJourneys = journeyBox.values.where(
-  (j) => j.isSynced && j.createdAt!.isBefore(oldDate)
-);
-for (var journey in oldJourneys) {
-  await journey.delete();
+// Auto-cleanup (runs weekly)
+if (HiveService.shouldRunCleanup()) {
+  final stats = await HiveService.cleanOldData();
+  // Deletes:
+  // - Synced journeys older than 60 days
+  // - Synced claims older than 60 days
+  // - Failed sync queue items (>7 days, retries >= 3)
 }
 
-// Delete failed sync queue items (older than 7 days)
-final oldQueue = syncQueueBox.values.where(
-  (q) => q.createdAt.isBefore(oldDate) && q.retries >= 3
-);
-for (var item in oldQueue) {
-  await item.delete();
-}
+// Enforce storage limits
+await HiveService.enforceStorageLimits();
+// Deletes oldest records if exceeds:
+// - 150 journeys
+// - 150 claims
+
+// Get storage statistics
+final stats = HiveService.getStorageStats();
+print('Storage: ${stats['estimated_size_kb']} KB');
+```
+
+**Protection Rules:**
+- ✅ Never delete active journey (`status = 'dalam_perjalanan'`)
+- ✅ Never delete pending claims (`status = 'pending'`)
+- ✅ Never delete unsynced items (`isSynced = false`)
+- ✅ Never delete items in sync queue
 ```
 
 ---

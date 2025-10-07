@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../core/api_client.dart';
 import '../core/constants.dart';
 import '../services/api_service.dart';
+import '../services/connectivity_service.dart';
 import 'support_create_ticket_screen.dart';
 import 'support_ticket_detail_screen.dart';
+import 'dart:developer' as developer;
 
 class ReportTab extends StatefulWidget {
   const ReportTab({super.key});
@@ -47,10 +50,27 @@ class _ReportTabState extends State<ReportTab> {
   @override
   void initState() {
     super.initState();
-    _loadAllReports();
+    
+    // Load after frame built to access context
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAllReports();
+    });
   }
 
   Future<void> _loadAllReports() async {
+    // Check online first
+    final connectivity = context.read<ConnectivityService>();
+    if (!connectivity.isOnline) {
+      developer.log('⚠️ Report Tab: Offline - skipping data load');
+      setState(() {
+        isLoadingVehicle = false;
+        isLoadingCost = false;
+        isLoadingDriver = false;
+        isLoadingSupport = false;
+      });
+      return;
+    }
+    
     _loadVehicleReport();
     _loadCostReport();
     _loadDriverReport();
@@ -59,6 +79,15 @@ class _ReportTabState extends State<ReportTab> {
 
   Future<void> _loadSupportTickets() async {
     if (!mounted) return;
+    
+    // Check connectivity first
+    final connectivity = context.read<ConnectivityService>();
+    if (!connectivity.isOnline) {
+      developer.log('⚠️ Report Tab: Offline - skip support tickets load');
+      setState(() => isLoadingSupport = false);
+      return;
+    }
+    
     setState(() => isLoadingSupport = true);
 
     try {
@@ -82,6 +111,15 @@ class _ReportTabState extends State<ReportTab> {
 
   Future<void> _loadVehicleReport() async {
     if (!mounted) return;
+    
+    // Check connectivity first
+    final connectivity = context.read<ConnectivityService>();
+    if (!connectivity.isOnline) {
+      developer.log('⚠️ Report Tab: Offline - skip vehicle report load');
+      setState(() => isLoadingVehicle = false);
+      return;
+    }
+    
     setState(() => isLoadingVehicle = true);
 
     try {
@@ -109,6 +147,15 @@ class _ReportTabState extends State<ReportTab> {
 
   Future<void> _loadCostReport() async {
     if (!mounted) return;
+    
+    // Check connectivity first
+    final connectivity = context.read<ConnectivityService>();
+    if (!connectivity.isOnline) {
+      developer.log('⚠️ Report Tab: Offline - skip cost report load');
+      setState(() => isLoadingCost = false);
+      return;
+    }
+    
     setState(() => isLoadingCost = true);
 
     try {
@@ -136,6 +183,15 @@ class _ReportTabState extends State<ReportTab> {
 
   Future<void> _loadDriverReport() async {
     if (!mounted) return;
+    
+    // Check connectivity first
+    final connectivity = context.read<ConnectivityService>();
+    if (!connectivity.isOnline) {
+      developer.log('⚠️ Report Tab: Offline - skip driver report load');
+      setState(() => isLoadingDriver = false);
+      return;
+    }
+    
     setState(() => isLoadingDriver = true);
 
     try {

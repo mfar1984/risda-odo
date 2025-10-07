@@ -32,28 +32,21 @@ class AuthService extends ChangeNotifier {
       _currentAuth = HiveService.getCurrentAuth();
       
       if (_currentAuth != null) {
-        // Check if session is still valid (< 7 days old)
-        final daysSinceLogin = DateTime.now().difference(_currentAuth!.loginAt).inDays;
+        // Session persists until user manually logs out (no expiry)
+        // Set auth token in API client for subsequent requests
+        _apiClient.setAuthToken(_currentAuth!.token);
         
-        if (daysSinceLogin > 7) {
-          // Session expired, logout
-          developer.log('⏰ Session expired (> 7 days), logging out...');
-          await logout();
-        } else {
-          // Set auth token in API client for subsequent requests
-          _apiClient.setAuthToken(_currentAuth!.token);
-          
-          // Load full user data from Hive settings box (raw storage)
-          final cachedData = HiveService.settingsBox.get('full_user_data');
-          if (cachedData != null && cachedData is Map) {
-            _fullUserData = Map<String, dynamic>.from(cachedData as Map);
-          }
-          
-          developer.log('✅ Session valid, auto-login successful');
-          developer.log('👤 User: ${_currentAuth!.name} (${_currentAuth!.email})');
-          // Session valid, try to refresh token if online (TODO: implement later)
-          // _tryRefreshToken();
+        // Load full user data from Hive settings box (raw storage)
+        final cachedData = HiveService.settingsBox.get('full_user_data');
+        if (cachedData != null && cachedData is Map) {
+          _fullUserData = Map<String, dynamic>.from(cachedData as Map);
         }
+        
+        developer.log('✅ Session loaded from Hive, auto-login successful');
+        developer.log('👤 User: ${_currentAuth!.name} (${_currentAuth!.email})');
+        developer.log('🕒 Login at: ${_currentAuth!.loginAt}');
+        // Try to refresh user data if online (will happen in background)
+        // _tryRefreshToken();
       } else {
         developer.log('ℹ️ No cached session found');
       }
@@ -140,9 +133,17 @@ class AuthService extends ChangeNotifier {
   }
 
   /// Logout (REAL API)
+  /// Clears user-specific data but retains master data (programs, vehicles)
   Future<void> logout() async {
     try {
       developer.log('🔐 Logging out...');
+      
+      // Check pending sync data
+      final pendingCount = HiveService.getTotalPendingSyncCount();
+      if (pendingCount > 0) {
+        developer.log('⚠️ Warning: $pendingCount items pending sync will be lost on logout');
+        // Note: UI should handle this warning before calling logout()
+      }
       
       // Remove FCM token
       try {
@@ -155,7 +156,7 @@ class AuthService extends ChangeNotifier {
       // Call API logout endpoint (revoke current token)
       try {
         await _apiService.logout();
-        developer.log('✅ API logout successful');
+        developer.log('✅ API logout - server token revoked');
       } catch (e) {
         developer.log('⚠️ API logout failed (continuing with local logout): $e');
       }
@@ -163,17 +164,35 @@ class AuthService extends ChangeNotifier {
       // Clear API client token
       _apiClient.clearAuthToken();
 
-      // Clear Hive auth and full user data
-      await HiveService.clearAuth();
-      await HiveService.settingsBox.delete('full_user_data');
+      // ============================================
+      // CLEAR USER-SPECIFIC DATA
+      // ============================================
+      await HiveService.clearAuth();                          // Auth session
+      await HiveService.settingsBox.delete('full_user_data'); // User profile
+      await HiveService.journeyBox.clear();                   // User journeys
+      await HiveService.claimBox.clear();                     // User claims
+      await HiveService.syncQueueBox.clear();                 // Pending sync
+      
+      // ============================================
+      // KEEP MASTER DATA (shared, not user-specific)
+      // ============================================
+      // ✅ programBox - programs (shared across organization)
+      // ✅ vehicleBox - vehicles (shared across organization)
+      // ✅ settingsBox (other keys) - app settings
+      
+      final programsKept = HiveService.programBox.length;
+      final vehiclesKept = HiveService.vehicleBox.length;
 
       _currentAuth = null;
       _fullUserData = null;
       notifyListeners();
       
       developer.log('✅ Logout successful');
+      developer.log('🗑️ Cleared: auth, journeys, claims, sync queue');
+      developer.log('💾 Retained: $programsKept programs, $vehiclesKept vehicles');
     } catch (e) {
       developer.log('❌ Logout error: $e');
+      rethrow;
     }
   }
 

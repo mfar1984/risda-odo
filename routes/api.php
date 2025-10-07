@@ -25,6 +25,15 @@ Route::get('/health', function () {
     ]);
 });
 
+// Ping endpoint (alias for health check - used by mobile app connectivity check)
+Route::get('/ping', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'pong',
+        'timestamp' => now()->toIso8601String(),
+    ]);
+});
+
 // Public routes (require API token only - X-API-Key header)
 Route::middleware(['api.token', 'api.cors'])->group(function () {
     

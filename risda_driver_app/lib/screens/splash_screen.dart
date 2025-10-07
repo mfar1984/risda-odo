@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../services/hive_service.dart';
+import '../services/connectivity_service.dart';
+import '../services/sync_service.dart';
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
+import 'dart:developer' as developer;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -98,6 +102,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   Future<void> _startLoading() async {
     final authService = context.read<AuthService>();
+    final connectivityService = context.read<ConnectivityService>();
+    final syncService = context.read<SyncService>();
     
     for (int i = 0; i < _steps.length; i++) {
       if (mounted) {
@@ -109,11 +115,26 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       
       // Perform actual initialization tasks at specific steps
       if (_steps[i].contains('Checking Connection Status')) {
-        // 🎨 DUMMY MODE - Skip connectivity check
-        await Future.delayed(const Duration(milliseconds: 100));
+        // Real connectivity check
+        await connectivityService.initialize();
+        developer.log('📶 Connection status: ${connectivityService.isOnline ? "ONLINE" : "OFFLINE"}');
+      } else if (_steps[i].contains('Loading Local Data')) {
+        // Clean old data if needed (weekly cleanup, 60-day retention)
+        if (HiveService.shouldRunCleanup()) {
+          final stats = await HiveService.cleanOldData();
+          developer.log('🧹 Cleanup: ${stats['journeys_deleted']} journeys, ${stats['claims_deleted']} claims deleted');
+        }
+        
+        // Enforce storage limits
+        await HiveService.enforceStorageLimits();
       } else if (_steps[i].contains('Synchronizing Data')) {
-        // 🎨 DUMMY MODE - Skip sync
-        await Future.delayed(const Duration(milliseconds: 100));
+        // Real sync - auto-sync pending data if online
+        if (connectivityService.isOnline) {
+          developer.log('🔄 Online detected - syncing pending data...');
+          await syncService.syncPendingData();
+        } else {
+          developer.log('⚠️ Offline - skip sync on startup');
+        }
       } else if (_steps[i].contains('Checking Login Status')) {
         // Initialize AuthService (check Hive for cached session)
         await authService.initialize();

@@ -7,6 +7,8 @@ import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/hive_service.dart';
 import 'services/firebase_service.dart';
+import 'services/connectivity_service.dart';
+import 'services/sync_service.dart';
 import 'repositories/driver_log_repository.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
@@ -51,12 +53,16 @@ class MyApp extends StatelessWidget {
     final apiClient = ApiClient();
     final apiService = ApiService(apiClient);
     final driverLogRepository = DriverLogRepository(apiService);
+    final connectivityService = ConnectivityService();
+    final syncService = SyncService(apiService, connectivityService);
 
     return MultiProvider(
       providers: [
         Provider<ApiClient>.value(value: apiClient),
         Provider<ApiService>.value(value: apiService),
         ChangeNotifierProvider<AuthService>(create: (_) => AuthService()),
+        ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
+        ChangeNotifierProvider<SyncService>.value(value: syncService),
         Provider<DriverLogRepository>.value(value: driverLogRepository),
       ],
       child: MaterialApp(

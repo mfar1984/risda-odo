@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
+import '../services/connectivity_service.dart';
 import '../core/api_client.dart';
 import 'checkin_screen.dart';
 import 'checkout_screen.dart';
@@ -39,10 +41,25 @@ class _DoTabState extends State<DoTab> {
   void initState() {
     super.initState();
     _apiService = ApiService(ApiClient());
-    _loadData();
+    
+    // Load after frame built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   Future<void> _loadData() async {
+    // Check online first
+    final connectivity = context.read<ConnectivityService>();
+    if (!connectivity.isOnline) {
+      developer.log('⚠️ Do Tab: Offline - skipping data load');
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Offline - use cached data if available';
+      });
+      return;
+    }
+    
     await Future.wait([
       _loadPrograms(),
       _loadChartData(),
@@ -89,6 +106,13 @@ class _DoTabState extends State<DoTab> {
   }
 
   Future<void> _loadChartData() async {
+    // Check connectivity first
+    final connectivity = context.read<ConnectivityService>();
+    if (!connectivity.isOnline) {
+      developer.log('⚠️ Skipping chart data - offline');
+      return;
+    }
+    
     try {
       final response = await _apiService.getDoActivityChartData(period: _chartPeriod);
       

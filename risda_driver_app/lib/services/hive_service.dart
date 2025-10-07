@@ -240,5 +240,160 @@ class HiveService {
     final queueCount = getPendingSyncCount();
     return journeyCount + claimCount + queueCount;
   }
+
+  // ===== DATA RETENTION & CLEANUP =====
+  
+  /// Data retention settings (60 days policy)
+  static const int dataRetentionDays = 60;
+  static const int maxJourneysToKeep = 150;  // Safety limit
+  static const int maxClaimsToKeep = 150;    // Safety limit
+  
+  /// Clean old data (older than 60 days, already synced)
+  /// Call this after successful sync or on app startup
+  static Future<Map<String, int>> cleanOldData() async {
+    final cutoffDate = DateTime.now().subtract(Duration(days: dataRetentionDays));
+    int journeysDeleted = 0;
+    int claimsDeleted = 0;
+    int syncQueueDeleted = 0;
+    
+    // ============================================
+    // CLEAN OLD JOURNEYS
+    // ============================================
+    final oldJourneys = journeyBox.values.where((j) => 
+      j.isSynced == true &&                      // Only delete synced items
+      j.status != 'dalam_perjalanan' &&          // Keep active journey
+      j.createdAt != null &&
+      j.createdAt!.isBefore(cutoffDate)          // Older than 60 days
+    ).toList();
+    
+    for (var journey in oldJourneys) {
+      await journey.delete();
+      journeysDeleted++;
+    }
+    
+    // ============================================
+    // CLEAN OLD CLAIMS
+    // ============================================
+    final oldClaims = claimBox.values.where((c) => 
+      c.isSynced == true &&                      // Only delete synced items
+      c.status != 'pending' &&                   // Keep pending claims
+      c.createdAt != null &&
+      c.createdAt!.isBefore(cutoffDate)          // Older than 60 days
+    ).toList();
+    
+    for (var claim in oldClaims) {
+      await claim.delete();
+      claimsDeleted++;
+    }
+    
+    // ============================================
+    // CLEAN FAILED SYNC QUEUE (older than 7 days, retries >= 3)
+    // ============================================
+    final oldQueueDate = DateTime.now().subtract(Duration(days: 7));
+    final failedQueue = syncQueueBox.values.where((q) => 
+      q.retries >= 3 &&
+      q.createdAt.isBefore(oldQueueDate)
+    ).toList();
+    
+    for (var item in failedQueue) {
+      await item.delete();
+      syncQueueDeleted++;
+    }
+    
+    // Update last cleanup timestamp
+    await settingsBox.put('last_cleanup', DateTime.now().toIso8601String());
+    
+    final stats = {
+      'journeys_deleted': journeysDeleted,
+      'claims_deleted': claimsDeleted,
+      'sync_queue_deleted': syncQueueDeleted,
+    };
+    
+    print('🧹 Data cleanup completed: $stats');
+    return stats;
+  }
+  
+  /// Enforce storage limits (if exceeds max records)
+  static Future<void> enforceStorageLimits() async {
+    // Check journey count
+    if (journeyBox.length > maxJourneysToKeep) {
+      final excess = journeyBox.length - maxJourneysToKeep;
+      
+      // Delete oldest synced journeys
+      final oldestSynced = journeyBox.values
+          .where((j) => j.isSynced == true && j.status != 'dalam_perjalanan')
+          .toList()
+        ..sort((a, b) => (a.createdAt ?? DateTime.now()).compareTo(b.createdAt ?? DateTime.now()));
+      
+      for (var i = 0; i < excess && i < oldestSynced.length; i++) {
+        await oldestSynced[i].delete();
+      }
+      
+      print('🧹 Enforced limit: Deleted $excess old journeys');
+    }
+    
+    // Check claim count
+    if (claimBox.length > maxClaimsToKeep) {
+      final excess = claimBox.length - maxClaimsToKeep;
+      
+      // Delete oldest synced claims
+      final oldestSynced = claimBox.values
+          .where((c) => c.isSynced == true && c.status != 'pending')
+          .toList()
+        ..sort((a, b) => (a.createdAt ?? DateTime.now()).compareTo(b.createdAt ?? DateTime.now()));
+      
+      for (var i = 0; i < excess && i < oldestSynced.length; i++) {
+        await oldestSynced[i].delete();
+      }
+      
+      print('🧹 Enforced limit: Deleted $excess old claims');
+    }
+  }
+  
+  /// Get storage statistics
+  static Map<String, dynamic> getStorageStats() {
+    final stats = {
+      'boxes': {
+        'auth': authBox.length,
+        'journeys': journeyBox.length,
+        'programs': programBox.length,
+        'vehicles': vehicleBox.length,
+        'claims': claimBox.length,
+        'sync_queue': syncQueueBox.length,
+      },
+      'pending_sync': {
+        'journeys': getPendingSyncJourneys().length,
+        'claims': getPendingSyncClaims().length,
+        'queue': getPendingSyncCount(),
+        'total': getTotalPendingSyncCount(),
+      },
+      'estimated_size_kb': _estimateStorageSize(),
+      'last_cleanup': settingsBox.get('last_cleanup'),
+    };
+    return stats;
+  }
+  
+  /// Estimate total storage size (rough calculation)
+  static int _estimateStorageSize() {
+    return (journeyBox.length * 1) +           // 1 KB per journey
+           (claimBox.length * 0.6).toInt() +       // 0.6 KB per claim
+           (programBox.length * 0.8).toInt() +     // 0.8 KB per program
+           (vehicleBox.length * 0.4).toInt() +     // 0.4 KB per vehicle
+           (syncQueueBox.length * 0.5).toInt();    // 0.5 KB per queue item
+  }
+  
+  /// Check if cleanup is needed (weekly check)
+  static bool shouldRunCleanup() {
+    final lastCleanup = settingsBox.get('last_cleanup');
+    if (lastCleanup == null) return true;
+    
+    try {
+      final lastCleanupDate = DateTime.parse(lastCleanup);
+      final daysSinceCleanup = DateTime.now().difference(lastCleanupDate).inDays;
+      return daysSinceCleanup >= 7;  // Weekly cleanup
+    } catch (e) {
+      return true;
+    }
+  }
 }
 

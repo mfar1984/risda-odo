@@ -20,6 +20,8 @@ import 'checkout_screen.dart';
 import 'logs_screen.dart';
 import 'report_tab.dart';
 import '../services/auth_service.dart';
+import '../services/connectivity_service.dart';
+import '../widgets/offline_indicator.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -32,13 +34,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
   final ApiService _apiService = ApiService(ApiClient());
   int _unreadCount = 0;
+  Timer? _notificationTimer;
 
   @override
   void initState() {
     super.initState();
-    _loadNotificationCount();
-    // Auto-refresh notification count every 5 seconds
-    _startNotificationPolling();
+    
+    // Setup connectivity listener first
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupConnectivityListener();
+    });
   }
 
   @override
@@ -47,12 +52,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  Timer? _notificationTimer;
+  /// Setup listener untuk connectivity changes
+  void _setupConnectivityListener() {
+    // Listen to real-time connectivity changes
+    context.read<ConnectivityService>().addListener(_handleConnectivityChange);
+    
+    // Initial load if online
+    _handleConnectivityChange();
+  }
+  
+  /// Handle connectivity state changes
+  void _handleConnectivityChange() {
+    final connectivity = context.read<ConnectivityService>();
+    
+    if (connectivity.isOnline) {
+      // Online - start/resume polling
+      developer.log('🟢 Dashboard: Online - starting notification polling');
+      _loadNotificationCount();
+      _startNotificationPolling();
+    } else {
+      // Offline - stop polling
+      developer.log('🔴 Dashboard: Offline - stopping notification polling');
+      _notificationTimer?.cancel();
+    }
+  }
 
   void _startNotificationPolling() {
+    // Cancel existing timer
+    _notificationTimer?.cancel();
+    
+    // Start new timer
     _notificationTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      _loadNotificationCount();
+      final connectivity = context.read<ConnectivityService>();
+      if (connectivity.isOnline) {
+        _loadNotificationCount();
+      } else {
+        // Offline detected - stop polling
+        timer.cancel();
+        developer.log('🔴 Notification polling stopped - offline');
+      }
     });
+    developer.log('🔔 Notification polling started');
   }
 
   Future<void> _loadNotificationCount() async {
@@ -64,7 +104,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     } catch (e) {
-      developer.log('Load notification count error: $e');
+      // API error - might be offline, trigger connectivity check
+      developer.log('⚠️ Notification API failed: $e');
+      
+      // Mark as potentially offline and recheck
+      final connectivity = context.read<ConnectivityService>();
+      connectivity.checkConnection();  // Trigger recheck
     }
   }
 
@@ -237,6 +282,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         actions: [
+          // Online/Offline Indicator (with pulse animation)
+          const OfflineIndicator(),
+          
           // Notification Bell Icon with Badge
           Stack(
             children: [
