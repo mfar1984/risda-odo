@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 import 'dart:io' show File, Platform;
 import 'dart:typed_data';
-import 'dart:developer' as developer;
+ 
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../core/api_client.dart';
@@ -179,11 +179,10 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       });
     } catch (e) {
       setState(() {
-        // Show more specific error for debugging
-        currentLocation = 'Error getting location: ${e.toString().substring(0, 50)}...';
+        // Keep concise user-facing message
+        currentLocation = 'Error getting location';
         gpsLocationController.text = currentLocation;
       });
-      print('GPS Error (End Journey): $e'); // Log full error
     }
   }
 

@@ -175,6 +175,20 @@ class HiveService {
     await claimBox.add(claim);
   }
 
+  /// Update claim (persist existing HiveObject)
+  static Future<void> updateClaim(ClaimHive claim) async {
+    await claim.save();
+  }
+
+  /// Find claim by localId
+  static ClaimHive? getClaimByLocalId(String localId) {
+    try {
+      return claimBox.values.firstWhere((c) => c.localId == localId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Watch claims for live updates
   static Stream<BoxEvent> watchClaims() {
     return claimBox.watch();
@@ -309,7 +323,6 @@ class HiveService {
       'sync_queue_deleted': syncQueueDeleted,
     };
     
-    print('🧹 Data cleanup completed: $stats');
     return stats;
   }
   
@@ -328,8 +341,6 @@ class HiveService {
       for (var i = 0; i < excess && i < oldestSynced.length; i++) {
         await oldestSynced[i].delete();
       }
-      
-      print('🧹 Enforced limit: Deleted $excess old journeys');
     }
     
     // Check claim count
@@ -345,8 +356,6 @@ class HiveService {
       for (var i = 0; i < excess && i < oldestSynced.length; i++) {
         await oldestSynced[i].delete();
       }
-      
-      print('🧹 Enforced limit: Deleted $excess old claims');
     }
   }
   

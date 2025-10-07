@@ -33,9 +33,7 @@ Future<void> main() async {
       
       // Initialize Firebase Cloud Messaging (mobile only)
       await FirebaseService().initialize();
-    } catch (e) {
-      debugPrint('Firebase initialization error: $e');
-    }
+    } catch (e) {}
   }
   
   // Initialize Hive (offline storage)

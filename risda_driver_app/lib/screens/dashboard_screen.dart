@@ -10,7 +10,7 @@ import 'notification_screen.dart';
 import '../services/api_service.dart';
 import '../core/api_client.dart';
 import 'dart:async';
-import 'dart:developer' as developer;
+ 
 import 'help_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'about_screen.dart';
@@ -35,6 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final ApiService _apiService = ApiService(ApiClient());
   int _unreadCount = 0;
   Timer? _notificationTimer;
+  bool get _isPollingActive => _notificationTimer != null && _notificationTimer!.isActive;
 
   @override
   void initState() {
@@ -67,16 +68,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   
   /// Handle connectivity state changes
   void _handleConnectivityChange() {
+    if (!mounted) return;
     final connectivity = context.read<ConnectivityService>();
     
     if (connectivity.isOnline) {
       // Online - start/resume polling
-      developer.log('🟢 Dashboard: Online - starting notification polling');
-      _loadNotificationCount();
-      _startNotificationPolling();
+      if (!_isPollingActive) {
+        _loadNotificationCount();
+        _startNotificationPolling();
+      }
     } else {
       // Offline - stop polling
-      developer.log('🔴 Dashboard: Offline - stopping notification polling');
       _notificationTimer?.cancel();
     }
   }
@@ -86,17 +88,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _notificationTimer?.cancel();
     
     // Start new timer
-    _notificationTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    _notificationTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
       final connectivity = context.read<ConnectivityService>();
       if (connectivity.isOnline) {
         _loadNotificationCount();
       } else {
         // Offline detected - stop polling
         timer.cancel();
-        developer.log('🔴 Notification polling stopped - offline');
       }
     });
-    developer.log('🔔 Notification polling started');
+    
   }
 
   Future<void> _loadNotificationCount() async {
@@ -109,7 +110,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
     } catch (e) {
       // API error - might be offline, trigger connectivity check
-      developer.log('⚠️ Notification API failed: $e');
       
       // Mark as potentially offline and recheck
       final connectivity = context.read<ConnectivityService>();

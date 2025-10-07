@@ -179,10 +179,9 @@ class _CheckInScreenState extends State<CheckInScreen> {
       });
     } catch (e) {
       setState(() {
-        // Show more specific error for debugging
-        currentLocation = 'Error getting location: ${e.toString().substring(0, 50)}...';
+        // Keep message concise for users
+        currentLocation = 'Error getting location';
       });
-      print('GPS Error: $e'); // Log full error
     }
   }
 

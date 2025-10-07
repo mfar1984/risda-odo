@@ -5,7 +5,6 @@ import '../core/constants.dart';
 import '../models/program.dart';
 import '../models/vehicle.dart';
 import '../models/driver_log.dart';
-import 'dart:developer' as developer;
 
 class ApiService {
   final ApiClient _apiClient;
@@ -36,7 +35,6 @@ class ApiService {
       
       return response.data;
     } catch (e) {
-      developer.log('Login error: $e');
       rethrow;
     }
   }
@@ -54,7 +52,6 @@ class ApiService {
       
       return response.data;
     } catch (e) {
-      developer.log('Get user error: $e');
       rethrow;
     }
   }
@@ -64,7 +61,6 @@ class ApiService {
     try {
       await _apiClient.dio.post(ApiConstants.logoutAll);
     } catch (e) {
-      developer.log('Logout all error (ignored): $e');
     }
   }
 
@@ -85,7 +81,6 @@ class ApiService {
       
       return response.data;
     } catch (e) {
-      developer.log('Upload profile picture error: $e');
       rethrow;
     }
   }
@@ -95,7 +90,6 @@ class ApiService {
     try {
       await _apiClient.dio.delete('/user/profile-picture');
     } catch (e) {
-      developer.log('Delete profile picture error: $e');
       rethrow;
     }
   }
@@ -118,7 +112,6 @@ class ApiService {
       
       return response.data;
     } catch (e) {
-      developer.log('Change password error: $e');
       rethrow;
     }
   }
@@ -141,7 +134,6 @@ class ApiService {
       
       return response.data;
     } catch (e) {
-      developer.log('Get programs error: $e');
       rethrow;
     }
   }
@@ -159,7 +151,6 @@ class ApiService {
       
       return response.data;
     } catch (e) {
-      developer.log('Get program detail error: $e');
       rethrow;
     }
   }
@@ -178,7 +169,6 @@ class ApiService {
       
       return response.data;
     } catch (e) {
-      developer.log('Get active journey error: $e');
       rethrow;
     }
   }
@@ -206,7 +196,6 @@ class ApiService {
       
       return response.data;
     } catch (e) {
-      developer.log('Get driver logs error: $e');
       rethrow;
     }
   }
@@ -252,7 +241,6 @@ class ApiService {
       
       return response.data;
     } catch (e) {
-      developer.log('Start journey error: $e');
       rethrow;
     }
   }
@@ -311,7 +299,6 @@ class ApiService {
       
       return response.data;
     } catch (e) {
-      developer.log('End journey error: $e');
       rethrow;
     }
   }
@@ -322,7 +309,6 @@ class ApiService {
       await _apiClient.dio.post(ApiConstants.logout);
     } catch (e) {
       // Ignore errors on logout
-      developer.log('Logout error (ignored): $e');
     }
   }
 
@@ -333,7 +319,6 @@ class ApiService {
       final List<dynamic> data = response.data['data'] ?? response.data;
       return data.map((json) => Program.fromJson(json)).toList();
     } catch (e) {
-      developer.log('Get programs error: $e');
       rethrow;
     }
   }
@@ -341,12 +326,18 @@ class ApiService {
   /// Get Vehicles
   Future<List<Vehicle>> getVehicles() async {
     try {
-      final response = await _apiClient.dio.get(ApiConstants.vehicles);
-      final List<dynamic> data = response.data['data'] ?? response.data;
-      return data.map((json) => Vehicle.fromJson(json)).toList();
+      // Gracefully handle 404 (endpoint not available) without throwing
+      final response = await _apiClient.dio.get(
+        ApiConstants.vehicles,
+        options: Options(validateStatus: (_) => true),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'] ?? response.data;
+        return data.map((json) => Vehicle.fromJson(json)).toList();
+      }
+      return <Vehicle>[];
     } catch (e) {
-      developer.log('Get vehicles error: $e');
-      rethrow;
+      return <Vehicle>[];
     }
   }
 
@@ -359,7 +350,6 @@ class ApiService {
       }
       return null;
     } catch (e) {
-      developer.log('Get active trip error: $e');
       return null;
     }
   }
@@ -399,7 +389,6 @@ class ApiService {
       
       return DriverLog.fromJson(response.data['data'] ?? response.data);
     } catch (e) {
-      developer.log('Start trip error: $e');
       rethrow;
     }
   }
@@ -442,7 +431,6 @@ class ApiService {
       
       return DriverLog.fromJson(response.data['data'] ?? response.data);
     } catch (e) {
-      developer.log('End trip error: $e');
       rethrow;
     }
   }
@@ -459,7 +447,6 @@ class ApiService {
       );
       return response.data;
     } catch (e) {
-      developer.log('Get claims error: $e');
       rethrow;
     }
   }
@@ -470,7 +457,6 @@ class ApiService {
       final response = await _apiClient.dio.get('/tuntutan/$id');
       return response.data;
     } catch (e) {
-      developer.log('Get claim error: $e');
       rethrow;
     }
   }
@@ -504,7 +490,6 @@ class ApiService {
 
       return response.data;
     } catch (e) {
-      developer.log('Create claim error: $e');
       rethrow;
     }
   }
@@ -538,7 +523,6 @@ class ApiService {
 
       return response.data;
     } catch (e) {
-      developer.log('Update claim error: $e');
       rethrow;
     }
   }
@@ -561,7 +545,6 @@ class ApiService {
 
       return response.data;
     } catch (e) {
-      developer.log('Get vehicle report error: $e');
       rethrow;
     }
   }
@@ -582,7 +565,6 @@ class ApiService {
 
       return response.data;
     } catch (e) {
-      developer.log('Get cost report error: $e');
       rethrow;
     }
   }
@@ -603,7 +585,6 @@ class ApiService {
 
       return response.data;
     } catch (e) {
-      developer.log('Get driver report error: $e');
       rethrow;
     }
   }
@@ -614,7 +595,6 @@ class ApiService {
       final response = await _apiClient.dio.get('/dashboard/statistics');
       return response.data;
     } catch (e) {
-      developer.log('Get dashboard statistics error: $e');
       rethrow;
     }
   }
@@ -627,7 +607,6 @@ class ApiService {
       final response = await _apiClient.dio.get('/app-info');
       return response.data;
     } catch (e) {
-      developer.log('Get app info error: $e');
       rethrow;
     }
   }
@@ -640,7 +619,6 @@ class ApiService {
       final response = await _apiClient.dio.get('/privacy-policy');
       return response.data;
     } catch (e) {
-      developer.log('Get privacy policy error: $e');
       rethrow;
     }
   }
@@ -653,7 +631,6 @@ class ApiService {
       final response = await _apiClient.dio.get('/chart/overview', queryParameters: {'period': period});
       return response.data;
     } catch (e) {
-      developer.log('Get overview chart data error: $e');
       rethrow;
     }
   }
@@ -664,7 +641,6 @@ class ApiService {
       final response = await _apiClient.dio.get('/chart/do-activity', queryParameters: {'period': period});
       return response.data;
     } catch (e) {
-      developer.log('Get do activity chart data error: $e');
       rethrow;
     }
   }
@@ -679,7 +655,6 @@ class ApiService {
       });
       return response.data;
     } catch (e) {
-      developer.log('Register FCM token error: $e');
       rethrow;
     }
   }
@@ -692,7 +667,6 @@ class ApiService {
       });
       return response.data;
     } catch (e) {
-      developer.log('Remove FCM token error: $e');
       rethrow;
     }
   }
@@ -705,7 +679,6 @@ class ApiService {
       });
       return response.data;
     } catch (e) {
-      developer.log('Get notifications error: $e');
       rethrow;
     }
   }
@@ -713,11 +686,21 @@ class ApiService {
   /// Mark notification as read
   Future<Map<String, dynamic>> markNotificationAsRead(int id) async {
     try {
-      final response = await _apiClient.dio.post('/notifications/$id/mark-as-read');
-      return response.data;
+      // Accept non-2xx to avoid throwing; we'll treat non-200 as soft-fail
+      final response = await _apiClient.dio.post(
+        '/notifications/$id/mark-as-read',
+        options: Options(validateStatus: (_) => true),
+      );
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+      return {
+        'success': false,
+        'status': response.statusCode,
+        'message': response.statusMessage ?? 'Server returned ${response.statusCode}',
+      };
     } catch (e) {
-      developer.log('Mark notification as read error: $e');
-      rethrow;
+      return {'success': false, 'message': e.toString()};
     }
   }
 
@@ -727,7 +710,6 @@ class ApiService {
       final response = await _apiClient.dio.post('/notifications/mark-all-as-read');
       return response.data;
     } catch (e) {
-      developer.log('Mark all notifications as read error: $e');
       rethrow;
     }
   }
@@ -746,7 +728,6 @@ class ApiService {
       );
       return response.data;
     } catch (e) {
-      developer.log('Get support tickets error: $e');
       rethrow;
     }
   }
@@ -757,7 +738,6 @@ class ApiService {
       final response = await _apiClient.dio.get('/support/tickets/$ticketId');
       return response.data;
     } catch (e) {
-      developer.log('Get ticket detail error: $e');
       rethrow;
     }
   }
@@ -798,7 +778,6 @@ class ApiService {
       );
       return response.data;
     } catch (e) {
-      developer.log('Create ticket error: $e');
       rethrow;
     }
   }
@@ -833,7 +812,6 @@ class ApiService {
       );
       return response.data;
     } catch (e) {
-      developer.log('Send message error: $e');
       rethrow;
     }
   }
@@ -844,7 +822,6 @@ class ApiService {
       final response = await _apiClient.dio.get('/support/tickets/$ticketId/messages');
       return response.data;
     } catch (e) {
-      developer.log('Get messages error: $e');
       rethrow;
     }
   }
@@ -855,7 +832,6 @@ class ApiService {
       final response = await _apiClient.dio.get('/support/tickets/$ticketId/status');
       return response.data;
     } catch (e) {
-      developer.log('Get ticket status error: $e');
       rethrow;
     }
   }
@@ -866,7 +842,6 @@ class ApiService {
       final response = await _apiClient.dio.post('/support/tickets/$ticketId/reopen');
       return response.data;
     } catch (e) {
-      developer.log('Reopen ticket error: $e');
       rethrow;
     }
   }
@@ -877,7 +852,6 @@ class ApiService {
       final response = await _apiClient.dio.delete('/support/tickets/$ticketId');
       return response.data;
     } catch (e) {
-      developer.log('Delete ticket error: $e');
       rethrow;
     }
   }
@@ -888,7 +862,6 @@ class ApiService {
       final response = await _apiClient.dio.post('/support/tickets/$ticketId/typing');
       return response.data;
     } catch (e) {
-      developer.log('Update typing status error: $e');
       rethrow;
     }
   }
@@ -899,7 +872,6 @@ class ApiService {
       final response = await _apiClient.dio.get('/support/tickets/$ticketId/typing');
       return response.data;
     } catch (e) {
-      developer.log('Get typing status error: $e');
       rethrow;
     }
   }

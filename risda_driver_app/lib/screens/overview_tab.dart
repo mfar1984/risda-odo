@@ -6,7 +6,7 @@ import '../theme/text_styles.dart';
 import '../services/api_service.dart';
 import '../services/connectivity_service.dart';
 import '../core/api_client.dart';
-import 'dart:developer' as developer;
+ 
 
 class OverviewTab extends StatefulWidget {
   const OverviewTab({super.key});
@@ -90,7 +90,6 @@ class _OverviewTabState extends State<OverviewTab> {
     // Check online first
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
-      developer.log('⚠️ Overview Tab: Offline - skipping data load');
       if (mounted) setState(() => _isLoading = false);
       return;
     }

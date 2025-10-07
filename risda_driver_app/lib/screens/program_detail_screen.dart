@@ -4,7 +4,7 @@ import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
 import '../core/api_client.dart';
-import 'dart:developer' as developer;
+ 
 
 class ProgramDetailScreen extends StatefulWidget {
   final int programId;
@@ -491,7 +491,7 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
       
       return '$day/$month/$year $hour:$minute';
     } catch (e) {
-      developer.log('Error formatting datetime: $e', name: 'ProgramDetail');
+      
       return '-';
     }
   }

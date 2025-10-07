@@ -3,7 +3,7 @@ import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
 import '../core/api_client.dart';
-import 'dart:developer' as developer;
+ 
 import 'package:intl/intl.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -33,7 +33,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
         });
       }
     } catch (e) {
-      developer.log('Load notifications error: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -41,20 +40,38 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _markAsRead(int id) async {
-    try {
-      await _apiService.markNotificationAsRead(id);
-      _loadNotifications(); // Reload
-    } catch (e) {
-      developer.log('Mark as read error: $e');
+    // Optimistic UI: mark as read immediately
+    final index = _notifications.indexWhere((n) => n['id'] == id);
+    if (index != -1 && mounted) {
+      setState(() {
+        _notifications[index]['read_at'] = DateTime.now().toIso8601String();
+      });
+    }
+    // Fire-and-forget API (soft-fail already handled in ApiService)
+    final res = await _apiService.markNotificationAsRead(id);
+    if (res['success'] != true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal mark as read (server). Akan cuba semula.')),
+      );
     }
   }
 
   Future<void> _markAllAsRead() async {
+    // Optimistic UI: mark all as read immediately
+    if (mounted) {
+      setState(() {
+        _notifications = _notifications.map((n) {
+          final m = Map<String, dynamic>.from(n);
+          m['read_at'] = DateTime.now().toIso8601String();
+          return m;
+        }).toList();
+      });
+    }
+    // Fire-and-forget API
     try {
       await _apiService.markAllNotificationsAsRead();
-      _loadNotifications(); // Reload
     } catch (e) {
-      developer.log('Mark all as read error: $e');
+      
     }
   }
 

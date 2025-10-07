@@ -11,7 +11,7 @@ import 'checkout_screen.dart';
 import 'claim_main_tab.dart';
 import 'logs_screen.dart';
 import 'program_detail_screen.dart';
-import 'dart:developer' as developer;
+ 
 
 class DoTab extends StatefulWidget {
   const DoTab({super.key});
@@ -52,7 +52,7 @@ class _DoTabState extends State<DoTab> {
     // Check online first
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
-      developer.log('⚠️ Do Tab: Offline - skipping data load');
+      
       setState(() {
         _isLoading = false;
         _errorMessage = 'Offline - use cached data if available';
@@ -109,7 +109,7 @@ class _DoTabState extends State<DoTab> {
     // Check connectivity first
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
-      developer.log('⚠️ Skipping chart data - offline');
+      
       return;
     }
     

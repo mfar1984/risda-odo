@@ -9,7 +9,7 @@ import '../services/api_service.dart';
 import '../core/api_client.dart';
 import '../core/constants.dart';
 import '../models/support_ticket.dart';
-import 'dart:developer' as developer;
+ 
 
 class SupportTicketDetailScreen extends StatefulWidget {
   final int ticketId;
@@ -124,7 +124,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
     if (text.isNotEmpty) {
       // Send typing status
       _apiService.updateTypingStatus(widget.ticketId).catchError((e) {
-        developer.log('Typing status error: $e');
+        
       });
       
       // Auto-clear after 3 seconds of inactivity
@@ -141,13 +141,13 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
         final response = await _apiService.getTypingStatus(widget.ticketId);
         if (mounted && response['success'] == true) {
           final typingList = List<Map<String, dynamic>>.from(response['typing_users'] ?? []);
-          developer.log('Typing users: ${typingList.length} - $typingList');
+          
           setState(() {
             _typingUsers = typingList;
           });
         }
       } catch (e) {
-        developer.log('Typing check error: $e');
+        
       }
     });
   }
@@ -175,7 +175,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
         });
       }
     } catch (e) {
-      developer.log('Load ticket error: $e');
+      
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -220,7 +220,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
         }
       }
     } catch (e) {
-      developer.log('Refresh messages error: $e');
+      
     }
   }
 
@@ -240,7 +240,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
       lat = position.latitude;
       lng = position.longitude;
     } catch (e) {
-      developer.log('GPS error: $e');
+      
       // Continue without GPS if failed
     }
 
@@ -263,7 +263,7 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
         await _loadTicketDetail();
       }
     } catch (e) {
-      developer.log('Send message error: $e');
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),

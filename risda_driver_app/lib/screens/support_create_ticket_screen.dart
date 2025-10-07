@@ -6,7 +6,7 @@ import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
 import '../core/api_client.dart';
-import 'dart:developer' as developer;
+ 
 
 class CreateSupportTicketScreen extends StatefulWidget {
   const CreateSupportTicketScreen({super.key});
@@ -73,7 +73,7 @@ class _CreateSupportTicketScreenState extends State<CreateSupportTicketScreen> {
 
       if (permission == LocationPermission.denied || 
           permission == LocationPermission.deniedForever) {
-        developer.log('Location permission denied');
+        
         if (mounted) {
           setState(() => _isGettingLocation = false);
         }
@@ -94,7 +94,7 @@ class _CreateSupportTicketScreenState extends State<CreateSupportTicketScreen> {
         });
       }
     } catch (e) {
-      developer.log('Get location error (Support Ticket): $e');
+      
       if (mounted) {
         setState(() => _isGettingLocation = false);
         
@@ -135,7 +135,7 @@ class _CreateSupportTicketScreenState extends State<CreateSupportTicketScreen> {
         Navigator.pop(context, true); // Return true to refresh list
       }
     } catch (e) {
-      developer.log('Create ticket error: $e');
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -9,7 +9,7 @@ import '../services/api_service.dart';
 import '../services/connectivity_service.dart';
 import 'support_create_ticket_screen.dart';
 import 'support_ticket_detail_screen.dart';
-import 'dart:developer' as developer;
+ 
 
 class ReportTab extends StatefulWidget {
   const ReportTab({super.key});
@@ -61,7 +61,7 @@ class _ReportTabState extends State<ReportTab> {
     // Check online first
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
-      developer.log('⚠️ Report Tab: Offline - skipping data load');
+      
       setState(() {
         isLoadingVehicle = false;
         isLoadingCost = false;
@@ -83,7 +83,7 @@ class _ReportTabState extends State<ReportTab> {
     // Check connectivity first
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
-      developer.log('⚠️ Report Tab: Offline - skip support tickets load');
+      
       setState(() => isLoadingSupport = false);
       return;
     }
@@ -115,7 +115,7 @@ class _ReportTabState extends State<ReportTab> {
     // Check connectivity first
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
-      developer.log('⚠️ Report Tab: Offline - skip vehicle report load');
+      
       setState(() => isLoadingVehicle = false);
       return;
     }
@@ -151,7 +151,7 @@ class _ReportTabState extends State<ReportTab> {
     // Check connectivity first
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
-      developer.log('⚠️ Report Tab: Offline - skip cost report load');
+      
       setState(() => isLoadingCost = false);
       return;
     }
@@ -187,7 +187,7 @@ class _ReportTabState extends State<ReportTab> {
     // Check connectivity first
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
-      developer.log('⚠️ Report Tab: Offline - skip driver report load');
+      
       setState(() => isLoadingDriver = false);
       return;
     }

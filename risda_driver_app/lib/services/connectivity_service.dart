@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import '../core/constants.dart';
-import 'dart:developer' as developer;
+ 
 
 /// Service to monitor internet connectivity status
 /// Provides real-time online/offline status and triggers auto-sync
@@ -37,7 +37,6 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> initialize() async {
     // Make idempotent to avoid duplicate timers/subscriptions
     if (_initialized) {
-      developer.log('ℹ️ ConnectivityService already initialized');
       return;
     }
     // Observe app lifecycle to re-check on resume
@@ -52,7 +51,6 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
     _startPeriodicCheck();
     _initialized = true;
     
-    developer.log('✅ ConnectivityService initialized');
   }
   
   /// Start monitoring connectivity changes
@@ -60,11 +58,10 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
       _handleConnectivityChange,
       onError: (error) {
-        developer.log('❌ Connectivity stream error: $error');
+        
       },
     );
     
-    developer.log('📡 Connectivity monitoring started');
   }
   
   /// Start periodic server ping (detects server down even if WiFi on)
@@ -72,23 +69,21 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
     _periodicCheckTimer?.cancel();
     
     _periodicCheckTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
-      developer.log('🔍 Periodic server check...');
       checkConnection();
     });
     
-    developer.log('⏰ Periodic server check started (every 15s)');
   }
   
   /// Handle connectivity change event
   Future<void> _handleConnectivityChange(ConnectivityResult result) async {
-    developer.log('📶 Connectivity changed: $result');
+    
     
     // Check if connection is available
     final hasConnection = result != ConnectivityResult.none;
     
     if (hasConnection) {
       // Network interface available - verify server reachability
-      developer.log('📡 Network interface available - verifying server...');
+      
       // Debounce slightly to allow interface to settle (IP/DNS)
       _connectivityDebounceTimer?.cancel();
       _connectivityDebounceTimer = Timer(const Duration(milliseconds: 800), () {
@@ -96,7 +91,7 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
       });
     } else {
       // No network interface - definitely offline
-      developer.log('⚠️ No network interface');
+      
       _updateStatus(false);  // Will trigger callbacks via _updateStatus()
     }
   }
@@ -131,12 +126,10 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
       _updateStatus(isConnected);
       _lastChecked = DateTime.now();
       
-      developer.log(isConnected ? '✅ Server reachable' : '❌ Server not reachable');
-      
       return isConnected;
     } catch (e) {
       // First attempt failed - retry once (might be slow connection)
-      developer.log('⚠️ First ping failed, retrying... ($e)');
+      
       
       try {
         await Future.delayed(const Duration(seconds: 2));  // Wait 2s before retry
@@ -158,12 +151,10 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
         _updateStatus(isConnected);
         _lastChecked = DateTime.now();
         
-        developer.log(isConnected ? '✅ Server reachable (after retry)' : '❌ Server not reachable');
         return isConnected;
         
       } catch (retryError) {
         // Both attempts failed - truly offline
-        developer.log('❌ Connection check failed (after retry): $retryError');
         _updateStatus(false);
         _lastChecked = DateTime.now();
         return false;
@@ -178,8 +169,6 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
   void _updateStatus(bool isOnline) {
     final wasOnline = _isOnline;
     
-    developer.log('🔄 _updateStatus called: wasOnline=$wasOnline, newStatus=$isOnline');
-    
     // Update status FIRST
     _isOnline = isOnline;
     
@@ -190,47 +179,44 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
     }
     
     // Notify UI FIRST so indicator updates immediately
-    developer.log('📡 Calling notifyListeners() - should trigger Consumer rebuild');
     notifyListeners();
-    developer.log('✅ notifyListeners() completed');
     
     // THEN trigger callbacks (may kick off async sync work)
     if (wasOnline != isOnline) {
-      developer.log('📶 Status changed: ${wasOnline ? "ONLINE" : "OFFLINE"} → ${isOnline ? "ONLINE" : "OFFLINE"}');
       if (isOnline) {
         _onBackOnline();
       } else {
         _onBackOffline();
       }
     } else {
-      developer.log('   (Status unchanged: ${isOnline ? "ONLINE" : "OFFLINE"})');
+      
     }
   }
   
   /// Called when connection is restored
   void _onBackOnline() {
-    developer.log('🟢 Back online - triggering callbacks...');
+    
     
     // Trigger all registered callbacks
     for (var callback in _onOnlineCallbacks) {
       try {
         callback();
       } catch (e) {
-        developer.log('❌ Online callback error: $e');
+        
       }
     }
   }
   
   /// Called when connection is lost
   void _onBackOffline() {
-    developer.log('🔴 Now offline - triggering callbacks...');
+    
     
     // Trigger all registered callbacks
     for (var callback in _onOfflineCallbacks) {
       try {
         callback();
       } catch (e) {
-        developer.log('❌ Offline callback error: $e');
+        
       }
     }
   }
@@ -281,7 +267,6 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      developer.log('🔁 App resumed - rechecking connectivity');
       checkConnection();
     }
   }

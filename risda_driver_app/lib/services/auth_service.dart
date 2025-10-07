@@ -4,7 +4,7 @@ import 'hive_service.dart';
 import 'api_service.dart';
 import '../core/api_client.dart';
 import 'firebase_service.dart';
-import 'dart:developer' as developer;
+ 
 
 class AuthService extends ChangeNotifier {
   AuthHive? _currentAuth;
@@ -42,16 +42,14 @@ class AuthService extends ChangeNotifier {
           _fullUserData = Map<String, dynamic>.from(cachedData as Map);
         }
         
-        developer.log('✅ Session loaded from Hive, auto-login successful');
-        developer.log('👤 User: ${_currentAuth!.name} (${_currentAuth!.email})');
-        developer.log('🕒 Login at: ${_currentAuth!.loginAt}');
+        
         // Try to refresh user data if online (will happen in background)
         // _tryRefreshToken();
       } else {
-        developer.log('ℹ️ No cached session found');
+        
       }
     } catch (e) {
-      developer.log('❌ Auth initialization error: $e');
+      
       _currentAuth = null;
     } finally {
       _isLoading = false;
@@ -113,19 +111,16 @@ class AuthService extends ChangeNotifier {
         _isLoading = false;
         notifyListeners();
         
-        developer.log('✅ Login successful: ${authData.name} (${authData.email})');
-        developer.log('📍 Organisasi: ${authData.organisasiName} (${authData.jenisOrganisasi})');
-        if (data['user']['staf'] != null) {
-          developer.log('👤 Staf: ${data['user']['staf']['no_pekerja']} - ${data['user']['staf']['jawatan']}');
-        }
+        
+        
         
         // Sync master data after successful login
         if (_syncService != null) {
-          developer.log('🔄 Triggering post-login data sync...');
+          
           try {
             await _syncService.syncAllMasterData();
           } catch (e) {
-            developer.log('⚠️ Post-login sync failed: $e');
+            
           }
         }
         
@@ -134,7 +129,7 @@ class AuthService extends ChangeNotifier {
 
       // Login failed - store error message from API
       _lastErrorMessage = response['message'] ?? 'Login gagal';
-      developer.log('❌ Login failed: $_lastErrorMessage');
+      
       _isLoading = false;
       notifyListeners();
       return false;
@@ -142,7 +137,7 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       // Network or other error
       _lastErrorMessage = 'Ralat sambungan. Cuba lagi.';
-      developer.log('❌ Login error: $e');
+      
       _isLoading = false;
       notifyListeners();
       return false;
@@ -153,29 +148,26 @@ class AuthService extends ChangeNotifier {
   /// Clears user-specific data but retains master data (programs, vehicles)
   Future<void> logout() async {
     try {
-      developer.log('🔐 Logging out...');
+      
       
       // Check pending sync data
       final pendingCount = HiveService.getTotalPendingSyncCount();
       if (pendingCount > 0) {
-        developer.log('⚠️ Warning: $pendingCount items pending sync will be lost on logout');
         // Note: UI should handle this warning before calling logout()
       }
       
       // Remove FCM token
       try {
         await FirebaseService().removeToken();
-        developer.log('✅ FCM token removed');
       } catch (e) {
-        developer.log('⚠️ FCM token removal failed: $e');
+        
       }
       
       // Call API logout endpoint (revoke current token)
       try {
         await _apiService.logout();
-        developer.log('✅ API logout - server token revoked');
       } catch (e) {
-        developer.log('⚠️ API logout failed (continuing with local logout): $e');
+        
       }
 
       // Clear API client token
@@ -204,11 +196,9 @@ class AuthService extends ChangeNotifier {
       _fullUserData = null;
       notifyListeners();
       
-      developer.log('✅ Logout successful');
-      developer.log('🗑️ Cleared: auth, journeys, claims, sync queue');
-      developer.log('💾 Retained: $programsKept programs, $vehiclesKept vehicles');
+      
     } catch (e) {
-      developer.log('❌ Logout error: $e');
+      
       rethrow;
     }
   }
@@ -216,7 +206,6 @@ class AuthService extends ChangeNotifier {
   /// Refresh user data from API (updates profile picture, etc.)
   Future<void> refreshUserData() async {
     try {
-      developer.log('🔄 Refreshing user data from API...');
       
       final response = await _apiService.getCurrentUser();
       
@@ -247,10 +236,9 @@ class AuthService extends ChangeNotifier {
         }
         
         notifyListeners();
-        developer.log('✅ User data refreshed successfully');
       }
     } catch (e) {
-      developer.log('❌ Refresh user data error: $e');
+      
       // Don't throw error, just log it
     }
   }
@@ -266,11 +254,11 @@ class AuthService extends ChangeNotifier {
       //     _currentAuth!.lastSync = DateTime.now();
       //     await _currentAuth!.save(); // HiveObject save method
       //     notifyListeners();
-      //     developer.log('Token refreshed successfully');
+      //     // token refreshed
       //   }
       // }
     } catch (e) {
-      developer.log('Token refresh error: $e');
+      
     }
   }
 

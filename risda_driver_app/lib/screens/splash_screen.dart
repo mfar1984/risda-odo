@@ -6,7 +6,6 @@ import '../services/connectivity_service.dart';
 import '../services/sync_service.dart';
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
-import 'dart:developer' as developer;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -117,12 +116,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       if (_steps[i].contains('Checking Connection Status')) {
         // Real connectivity check
         await connectivityService.initialize();
-        developer.log('📶 Connection status: ${connectivityService.isOnline ? "ONLINE" : "OFFLINE"}');
       } else if (_steps[i].contains('Loading Local Data')) {
         // Clean old data if needed (weekly cleanup, 60-day retention)
         if (HiveService.shouldRunCleanup()) {
           final stats = await HiveService.cleanOldData();
-          developer.log('🧹 Cleanup: ${stats['journeys_deleted']} journeys, ${stats['claims_deleted']} claims deleted');
+          // no-op: stats used implicitly
         }
         
         // Enforce storage limits
@@ -130,15 +128,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       } else if (_steps[i].contains('Synchronizing Data')) {
         // Real sync - sync master data to Hive if online
         if (connectivityService.isOnline) {
-          developer.log('🔄 Online detected - syncing master data to Hive...');
-          
           // Sync master data (programs, vehicles, journeys, claims) to Hive
           await syncService.syncAllMasterData();
           
           // Then sync pending offline data
           await syncService.syncPendingData();
         } else {
-          developer.log('⚠️ Offline - will use cached Hive data');
+          // offline path: use cached Hive data
         }
       } else if (_steps[i].contains('Checking Login Status')) {
         // Initialize AuthService (check Hive for cached session)

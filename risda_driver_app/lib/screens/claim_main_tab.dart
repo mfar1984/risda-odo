@@ -8,11 +8,12 @@ import '../theme/text_styles.dart';
 import '../services/api_service.dart';
 import '../services/hive_service.dart';
 import '../services/connectivity_service.dart';
+import '../services/sync_service.dart';
 import '../models/claim_hive_model.dart';
 import '../core/api_client.dart';
 import '../core/constants.dart';
 import 'claim_screen.dart';
-import 'dart:developer' as developer;
+ 
 
 class ClaimMainTab extends StatefulWidget {
   const ClaimMainTab({super.key});
@@ -30,6 +31,8 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
   List<Map<String, dynamic>>? pendingClaims;
   List<Map<String, dynamic>>? rejectedClaims;
   List<Map<String, dynamic>>? approvedClaims;
+  bool _isSyncingClaims = false;
+  bool _didBackgroundSync = false;
 
   @override
   void initState() {
@@ -44,7 +47,8 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
     super.dispose();
   }
 
-  Future<void> _loadClaims() async {
+  Future<void> _loadClaims({bool triggerBackgroundSync = true}) async {
+    if (!mounted) return;
     setState(() => isLoading = true);
     
     try {
@@ -107,8 +111,9 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
         };
       }).toList();
       
-      developer.log('📦 Loaded ${claims.length} claims from Hive');
       
+      
+      if (!mounted) return;
       setState(() {
         allClaims = claims;
         pendingClaims = claims.where((c) => c['status'] == 'pending').toList();
@@ -117,14 +122,14 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
         isLoading = false;
       });
       
-      // If online, sync fresh data from server in background
+      // If online, sync fresh data from server in background (one-shot)
       final connectivity = context.read<ConnectivityService>();
-      if (connectivity.isOnline) {
-        developer.log('🔄 Online - syncing claims in background...');
-        _syncClaimsInBackground();
+      if (triggerBackgroundSync && connectivity.isOnline && !_isSyncingClaims && !_didBackgroundSync) {
+        
+        await _syncClaimsInBackground();
       }
     } catch (e) {
-      developer.log('❌ Error loading claims from Hive: $e');
+      
       setState(() {
         allClaims = [];
         pendingClaims = [];
@@ -138,6 +143,8 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
   /// Sync claims in background (if online)
   Future<void> _syncClaimsInBackground() async {
     try {
+      if (_isSyncingClaims) return;
+      _isSyncingClaims = true;
       final response = await _apiService.getClaims();
       if (response['success'] == true && mounted) {
         // Update Hive with fresh data
@@ -160,12 +167,16 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
           await HiveService.saveClaim(claim);
         }
         
-        // Reload UI
-        _loadClaims();
+        // Reload UI from Hive without triggering another background sync
+        if (!mounted) return;
+        await _loadClaims(triggerBackgroundSync: false);
       }
     } catch (e) {
-      developer.log('⚠️ Background sync failed: $e');
+      
       // Silently fail - user already has Hive data
+    } finally {
+      _isSyncingClaims = false;
+      _didBackgroundSync = true;
     }
   }
   
@@ -780,6 +791,9 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
   }
 
   Widget _buildClaimCard(Map<String, dynamic> claim) {
+    final bool isSynced = claim['is_synced'] == true;
+    final bool hasError = claim['sync_error'] != null && claim['sync_error'].toString().isNotEmpty;
+    final String? localId = claim['local_id']?.toString();
     return Card(
       color: Colors.white,
       elevation: 2,
@@ -841,7 +855,78 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
                     'RM ${claim['jumlah']?.toStringAsFixed(2) ?? '0.00'}',
                     style: AppTextStyles.h1.copyWith(color: PastelColors.primary),
                   ),
-                  if (claim['status'] == 'ditolak')
+                  Row(children: [
+                    if (!isSynced) Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange.shade200),
+                      ),
+                      child: Row(children: const [
+                        Icon(Icons.sync, size: 14, color: Colors.orange),
+                        SizedBox(width: 4),
+                        Text('Pending Sync', style: TextStyle(fontSize: 11, color: Colors.orange)),
+                      ]),
+                    ),
+                    if (hasError) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(children: const [
+                          Icon(Icons.error_outline, size: 14, color: Colors.red),
+                          SizedBox(width: 4),
+                          Text('Sync Failed', style: TextStyle(fontSize: 11, color: Colors.red)),
+                        ]),
+                      ),
+                    ],
+                  ]),
+                ],
+              ),
+              if (hasError && localId != null) ...[
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final connectivity = context.read<ConnectivityService>();
+                      if (!connectivity.isOnline) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Masih offline. Cuba lagi selepas online.')),
+                        );
+                        return;
+                      }
+                      final syncService = context.read<SyncService>();
+                      final res = await syncService.syncSingleClaimByLocalId(localId);
+                      if (mounted) {
+                        if (res['success'] == true) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Sync berjaya')),
+                          );
+                          _loadClaims();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Gagal sync: ${res['message'] ?? 'Ralat'}')),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('Cuba Sync Semula'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: PastelColors.primary,
+                      side: BorderSide(color: PastelColors.primary),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                  ),
+                ),
+              ],
+              if (claim['status'] == 'ditolak')
                     TextButton.icon(
                       onPressed: () => _navigateToEditClaim(claim),
                       icon: const Icon(Icons.edit, size: 16),
@@ -851,8 +936,6 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       ),
                     ),
-                ],
-              ),
             ],
           ),
         ),

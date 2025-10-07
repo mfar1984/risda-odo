@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'dart:developer' as developer;
+ 
 import 'api_service.dart';
 import '../core/api_client.dart';
 
@@ -9,7 +9,7 @@ import '../core/api_client.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  developer.log('Background message received: ${message.messageId}');
+  
 }
 
 class FirebaseService {
@@ -35,7 +35,7 @@ class FirebaseService {
         provisional: false,
       );
 
-      developer.log('FCM Permission status: ${settings.authorizationStatus}');
+      
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
@@ -45,7 +45,7 @@ class FirebaseService {
 
         // Get FCM token
         _fcmToken = await _firebaseMessaging.getToken();
-        developer.log('FCM Token: $_fcmToken');
+        
 
         // Register token with backend
         if (_fcmToken != null) {
@@ -69,17 +69,17 @@ class FirebaseService {
 
         // Listen for token refresh
         _firebaseMessaging.onTokenRefresh.listen((newToken) {
-          developer.log('FCM Token refreshed: $newToken');
+          
           _fcmToken = newToken;
           _registerTokenWithBackend(newToken);
         });
 
-        developer.log('Firebase initialized successfully');
+        
       } else {
-        developer.log('FCM permission denied');
+        
       }
     } catch (e) {
-      developer.log('Firebase initialization error: $e');
+      
     }
   }
 
@@ -101,7 +101,7 @@ class FirebaseService {
     await _localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        developer.log('Local notification tapped: ${response.payload}');
+        
         // TODO: Navigate to specific screen based on payload
       },
     );
@@ -123,15 +123,15 @@ class FirebaseService {
   Future<void> _registerTokenWithBackend(String token) async {
     try {
       await _apiService.registerFcmToken(token);
-      developer.log('FCM token registered with backend');
+      
     } catch (e) {
-      developer.log('Failed to register FCM token with backend: $e');
+      
     }
   }
 
   /// Handle foreground messages (show local notification)
   void _handleForegroundMessage(RemoteMessage message) {
-    developer.log('Foreground message received: ${message.notification?.title}');
+    
 
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
@@ -159,7 +159,7 @@ class FirebaseService {
 
   /// Handle notification tap (navigate to specific screen)
   void _handleNotificationTap(RemoteMessage message) {
-    developer.log('Notification tapped: ${message.data}');
+    
     
     String? type = message.data['type'];
     
@@ -170,7 +170,7 @@ class FirebaseService {
         // Navigate to claim detail
         int? claimId = int.tryParse(message.data['claim_id']?.toString() ?? '');
         if (claimId != null) {
-          developer.log('Navigate to claim detail: $claimId');
+          
           // navigationService.navigateTo('/claim/$claimId');
         }
         break;
@@ -178,7 +178,7 @@ class FirebaseService {
         // Navigate to program detail
         int? programId = int.tryParse(message.data['program_id']?.toString() ?? '');
         if (programId != null) {
-          developer.log('Navigate to program detail: $programId');
+          
           // navigationService.navigateTo('/program/$programId');
         }
         break;
@@ -191,13 +191,13 @@ class FirebaseService {
         int? ticketId = int.tryParse(message.data['ticket_id']?.toString() ?? '');
         String? ticketNumber = message.data['ticket_number']?.toString();
         if (ticketId != null) {
-          developer.log('Navigate to support ticket: $ticketId ($ticketNumber)');
+          
           // TODO: Navigate to SupportTicketDetailScreen
           // navigationService.navigateTo('/support/tickets/$ticketId');
         }
         break;
       default:
-        developer.log('Unknown notification type: $type');
+        
     }
   }
 
@@ -208,9 +208,9 @@ class FirebaseService {
         await _apiService.removeFcmToken(_fcmToken!);
         await _firebaseMessaging.deleteToken();
         _fcmToken = null;
-        developer.log('FCM token removed');
+        
       } catch (e) {
-        developer.log('Failed to remove FCM token: $e');
+        
       }
     }
   }

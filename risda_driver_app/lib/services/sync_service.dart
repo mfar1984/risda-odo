@@ -9,7 +9,7 @@ import '../models/program_hive_model.dart';
 import '../models/vehicle_hive_model.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:io';
-import 'dart:developer' as developer;
+ 
 
 /// Sync Service - Handles background sync operations
 /// - Syncs pending data when online
@@ -37,7 +37,6 @@ class SyncService extends ChangeNotifier {
   /// Setup auto-sync when connectivity restored
   void _setupConnectivityListener() {
     _connectivityService.onBackOnline(() {
-      developer.log('🟢 SyncService: Back online - triggering auto-sync');
       if (_isAutoSyncEnabled) {
         syncPendingData();  // Auto-sync!
       }
@@ -48,7 +47,7 @@ class SyncService extends ChangeNotifier {
   void setAutoSync(bool enabled) {
     _isAutoSyncEnabled = enabled;
     notifyListeners();
-    developer.log('🔄 Auto-sync ${enabled ? "enabled" : "disabled"}');
+    
   }
   
   // ============================================
@@ -59,21 +58,17 @@ class SyncService extends ChangeNotifier {
   /// This runs when offline → online transition
   Future<Map<String, dynamic>> syncPendingData() async {
     if (_isSyncing) {
-      developer.log('⚠️ Sync already in progress - skipping');
       return {'success': false, 'message': 'Sync already in progress'};
     }
     
     if (!_connectivityService.isOnline) {
-      developer.log('⚠️ Cannot sync - offline');
       return {'success': false, 'message': 'Device is offline'};
     }
     
     _isSyncing = true;
     notifyListeners();
     
-    developer.log('🔄 ========================================');
-    developer.log('🔄 STARTING PENDING DATA SYNC');
-    developer.log('🔄 ========================================');
+    
     
     int journeysSynced = 0;
     int journeysFailed = 0;
@@ -85,26 +80,26 @@ class SyncService extends ChangeNotifier {
       // ============================================
       // STEP 1: Sync Pending Journeys
       // ============================================
-      developer.log('📦 Step 1: Syncing pending journeys...');
+      
       final pendingJourneys = HiveService.getPendingSyncJourneys();
-      developer.log('   Found ${pendingJourneys.length} pending journeys');
+      
       
       for (var journey in pendingJourneys) {
         try {
           if (journey.id == null) {
             // New journey - needs to be created on server
-            developer.log('   ⬆️ Creating journey ${journey.localId}...');
+            
             // TODO: Implement journey sync (will do in next phase)
             // For now, just log
-            developer.log('   ⚠️ Journey sync not implemented yet');
+            
           } else {
             // Existing journey - update on server
-            developer.log('   ⬆️ Updating journey ${journey.id}...');
+            
             // TODO: Implement journey update
           }
           journeysSynced++;
         } catch (e) {
-          developer.log('   ❌ Failed to sync journey: $e');
+          
           journeysFailed++;
         }
       }
@@ -112,9 +107,9 @@ class SyncService extends ChangeNotifier {
       // ============================================
       // STEP 2: Sync Pending Claims
       // ============================================
-      developer.log('💰 Step 2: Syncing pending claims...');
+      
       final pendingClaims = HiveService.getPendingSyncClaims();
-      developer.log('   Found ${pendingClaims.length} pending claims');
+      
       
       for (var claim in pendingClaims) {
         try {
@@ -131,7 +126,7 @@ class SyncService extends ChangeNotifier {
 
           if (claim.id == null) {
             // New claim → create on server
-            developer.log('   ⬆️ Creating claim ${claim.localId}...');
+            
             final resp = await _apiService.createClaim(
               logPemanduId: claim.logPemanduId ?? 0,
               kategori: claim.kategori,
@@ -174,11 +169,11 @@ class SyncService extends ChangeNotifier {
               claim.lastSyncAttempt = DateTime.now();
               await claim.save();
               claimsFailed++;
-              developer.log('   ❌ Create claim failed: ${claim.syncError}');
+              
             }
           } else {
             // Existing claim edited offline → update on server
-            developer.log('   ⬆️ Updating claim ${claim.id}...');
+            
             final resp = await _apiService.updateClaim(
               id: claim.id!,
               kategori: claim.kategori,
@@ -211,11 +206,11 @@ class SyncService extends ChangeNotifier {
               claim.lastSyncAttempt = DateTime.now();
               await claim.save();
               claimsFailed++;
-              developer.log('   ❌ Update claim failed: ${claim.syncError}');
+              
             }
           }
         } catch (e) {
-          developer.log('   ❌ Failed to sync claim: $e');
+          
           try {
             claim.syncRetries += 1;
             claim.syncError = e.toString();
@@ -229,33 +224,31 @@ class SyncService extends ChangeNotifier {
       // ============================================
       // STEP 3: Process Sync Queue
       // ============================================
-      developer.log('📋 Step 3: Processing sync queue...');
+      
       final pendingQueue = HiveService.getPendingSyncQueue();
-      developer.log('   Found ${pendingQueue.length} queue items');
+      
       
       for (var item in pendingQueue) {
         try {
-          developer.log('   ⬆️ Processing ${item.type} ${item.action}...');
+          
           // TODO: Implement queue processing
           queueProcessed++;
         } catch (e) {
-          developer.log('   ❌ Failed to process queue item: $e');
+          
         }
       }
       
       // ============================================
       // STEP 4: Cleanup Old Data (After Sync!)
       // ============================================
-      developer.log('🧹 Step 4: Cleaning up old data...');
+      
       final cleanupStats = await HiveService.cleanOldData();
-      developer.log('   Deleted ${cleanupStats['journeys_deleted']} old journeys');
-      developer.log('   Deleted ${cleanupStats['claims_deleted']} old claims');
-      developer.log('   Deleted ${cleanupStats['sync_queue_deleted']} old queue items');
+      
       
       // ============================================
       // STEP 5: Enforce Storage Limits
       // ============================================
-      developer.log('📊 Step 5: Enforcing storage limits...');
+      
       await HiveService.enforceStorageLimits();
       
       _lastSyncTime = DateTime.now();
@@ -268,10 +261,7 @@ class SyncService extends ChangeNotifier {
         'cleanup_stats': cleanupStats,
       };
       
-      developer.log('🔄 ========================================');
-      developer.log('✅ SYNC COMPLETED SUCCESSFULLY');
-      developer.log('🔄 ========================================');
-      developer.log('📊 Stats: $journeysSynced journeys, $claimsSynced claims synced');
+      
 
       // Refresh claims from server to reflect latest server state/IDs
       try {
@@ -284,7 +274,6 @@ class SyncService extends ChangeNotifier {
       };
       
     } catch (e) {
-      developer.log('❌ Sync error: $e');
       return {
         'success': false,
         'message': e.toString(),
@@ -303,7 +292,7 @@ class SyncService extends ChangeNotifier {
   Future<void> syncByType(String type) async {
     if (!_connectivityService.isOnline) return;
     
-    developer.log('🔔 FCM-triggered sync: $type');
+    
     
     switch (type) {
       case 'claims':
@@ -320,14 +309,14 @@ class SyncService extends ChangeNotifier {
         await syncPrograms();
         break;
       default:
-        developer.log('⚠️ Unknown sync type: $type');
+        
     }
   }
   
   /// Sync programs from server and save to Hive
   Future<void> syncPrograms() async {
     try {
-      developer.log('📋 Syncing programs from server...');
+      
       
       // Fetch all programs (current + ongoing + past)
       final currentResponse = await _apiService.getPrograms(status: 'current');
@@ -345,7 +334,6 @@ class SyncService extends ChangeNotifier {
             allPrograms.add(ProgramHive.fromJson(p));
           } catch (e) {
             skippedPrograms++;
-            developer.log('   ⚠️ Skipped program ${p['id']}: $e');
           }
         }
       }
@@ -357,7 +345,6 @@ class SyncService extends ChangeNotifier {
             allPrograms.add(ProgramHive.fromJson(p));
           } catch (e) {
             skippedPrograms++;
-            developer.log('   ⚠️ Skipped program ${p['id']}: $e');
           }
         }
       }
@@ -369,30 +356,34 @@ class SyncService extends ChangeNotifier {
             allPrograms.add(ProgramHive.fromJson(p));
           } catch (e) {
             skippedPrograms++;
-            developer.log('   ⚠️ Skipped program ${p['id']}: $e');
           }
         }
       }
       
       if (skippedPrograms > 0) {
-        developer.log('   ⚠️ Total skipped: $skippedPrograms programs');
+        
       }
       
       // Save to Hive (replace all)
       await HiveService.savePrograms(allPrograms);
       
-      developer.log('✅ Programs synced to Hive: ${allPrograms.length} programs');
+      
     } catch (e) {
-      developer.log('❌ Sync programs error: $e');
+      
     }
   }
   
   /// Sync vehicles from server and save to Hive
   Future<void> syncVehicles() async {
     try {
-      developer.log('🚙 Syncing vehicles from server...');
+      
       final vehicles = await _apiService.getVehicles();
       
+      // If backend endpoint not available, keep existing cache (do nothing)
+      if (vehicles.isEmpty) {
+        return;
+      }
+
       // Convert Vehicle to VehicleHive (manual mapping since Vehicle has no toJson)
       final vehicleHives = vehicles.map((v) => VehicleHive(
         id: v.id,
@@ -400,12 +391,12 @@ class SyncService extends ChangeNotifier {
         jenisKenderaan: v.jenama ?? 'N/A',
         model: v.model,
         tahun: v.tahun,
-        warna: null,  // Not in Vehicle model
-        bacanOdometerSemasaTerkini: null,  // Not in Vehicle model
+        warna: null,
+        bacanOdometerSemasaTerkini: null,
         status: v.status,
-        organisasiId: null,  // Not in Vehicle model
-        jenisOrganisasi: 'semua',  // Default
-        diciptaOleh: 1,  // Default
+        organisasiId: null,
+        jenisOrganisasi: 'semua',
+        diciptaOleh: 1,
         dikemaskiniOleh: null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
@@ -415,9 +406,9 @@ class SyncService extends ChangeNotifier {
       // Save to Hive (replace all)
       await HiveService.saveVehicles(vehicleHives);
       
-      developer.log('✅ Vehicles synced to Hive: ${vehicleHives.length} vehicles');
+      
     } catch (e) {
-      developer.log('⚠️ Sync vehicles error (skipping): $e');
+      
       // Don't fail entire sync - vehicles optional for claims
     }
   }
@@ -425,7 +416,7 @@ class SyncService extends ChangeNotifier {
   /// Sync journeys from server and save to Hive (last 60 days only)
   Future<void> syncJourneys() async {
     try {
-      developer.log('🚗 Syncing journeys from server...');
+      
       final response = await _apiService.getDriverLogs();
       
       if (response['success'] == true) {
@@ -441,17 +432,17 @@ class SyncService extends ChangeNotifier {
         await HiveService.journeyBox.clear();
         await HiveService.journeyBox.addAll(journeyHives);
         
-        developer.log('✅ Journeys synced to Hive: ${journeyHives.length} journeys');
+        
       }
     } catch (e) {
-      developer.log('❌ Sync journeys error: $e');
+      
     }
   }
   
   /// Sync claims from server and save to Hive
   Future<void> syncClaims() async {
     try {
-      developer.log('💰 Syncing claims from server...');
+      
       final response = await _apiService.getClaims();
       
       if (response['success'] == true) {
@@ -467,12 +458,11 @@ class SyncService extends ChangeNotifier {
             claimHives.add(ClaimHive.fromJson(c, localId: uuid.v4()));
           } catch (e) {
             skippedClaims++;
-            developer.log('   ⚠️ Skipped claim ${c['id']}: $e');
           }
         }
         
         if (skippedClaims > 0) {
-          developer.log('   ⚠️ Total skipped: $skippedClaims claims');
+          
         }
         
         // Merge with existing offline claims (keep unsynced)
@@ -487,10 +477,10 @@ class SyncService extends ChangeNotifier {
           await HiveService.saveClaim(unsyncedClaim);
         }
         
-        developer.log('✅ Claims synced to Hive: ${claimHives.length} claims + ${unsyncedClaims.length} offline');
+        
       }
     } catch (e) {
-      developer.log('❌ Sync claims error: $e');
+      
     }
   }
   
@@ -498,13 +488,9 @@ class SyncService extends ChangeNotifier {
   /// Call this on app startup and after login
   Future<void> syncAllMasterData() async {
     if (!_connectivityService.isOnline) {
-      developer.log('⚠️ Cannot sync master data - offline');
       return;
     }
     
-    developer.log('🔄 ========================================');
-    developer.log('🔄 SYNCING ALL MASTER DATA TO HIVE');
-    developer.log('🔄 ========================================');
     
     // Sync sequentially to avoid issues
     await syncPrograms();
@@ -512,7 +498,6 @@ class SyncService extends ChangeNotifier {
     await syncJourneys();
     await syncClaims();
     
-    developer.log('✅ All master data synced to Hive');
   }
   
   // ============================================
@@ -532,8 +517,86 @@ class SyncService extends ChangeNotifier {
   
   /// Force sync now (manual trigger)
   Future<void> forceSyncNow() async {
-    developer.log('🔄 Force sync triggered manually');
+    
     await syncPendingData();
+  }
+
+  /// Sync a single claim by localId (for retry from UI)
+  Future<Map<String, dynamic>> syncSingleClaimByLocalId(String localId) async {
+    if (!_connectivityService.isOnline) {
+      return {'success': false, 'message': 'Device is offline'};
+    }
+
+    final claim = HiveService.getClaimByLocalId(localId);
+    if (claim == null) {
+      return {'success': false, 'message': 'Claim not found'};
+    }
+
+    try {
+      // Prepare file if exists
+      List<int>? resitBytes;
+      String? resitFilename;
+      if (claim.resitLocal != null && claim.resitLocal!.isNotEmpty) {
+        final f = File(claim.resitLocal!);
+        if (await f.exists()) {
+          resitBytes = await f.readAsBytes();
+          resitFilename = f.path.split(Platform.pathSeparator).last;
+        }
+      }
+
+      Map<String, dynamic> resp;
+      if (claim.id == null) {
+        resp = await _apiService.createClaim(
+          logPemanduId: claim.logPemanduId ?? 0,
+          kategori: claim.kategori,
+          jumlah: claim.jumlah,
+          keterangan: claim.catatan,
+          resitBytes: resitBytes,
+          resitFilename: resitFilename,
+        );
+      } else {
+        resp = await _apiService.updateClaim(
+          id: claim.id!,
+          kategori: claim.kategori,
+          jumlah: claim.jumlah,
+          keterangan: claim.catatan,
+          resitBytes: resitBytes,
+          resitFilename: resitFilename,
+        );
+      }
+
+      if (resp['success'] == true) {
+        final data = Map<String, dynamic>.from(resp['data'] ?? {});
+        claim.id = data['id'] ?? claim.id;
+        final r = data['resit'];
+        if (r != null) {
+          if (r is String) {
+            claim.resit = r;
+          } else if (r is Map) {
+            claim.resit = r['url'] ?? r['path'] ?? r['storage_path'] ?? r['file_path'] ?? r['download_url'] ?? claim.resit;
+          }
+        }
+        claim.status = data['status'] ?? claim.status;
+        claim.isSynced = true;
+        claim.syncError = null;
+        claim.syncRetries = 0;
+        claim.lastSyncAttempt = DateTime.now();
+        await claim.save();
+        return {'success': true};
+      }
+
+      claim.syncRetries += 1;
+      claim.syncError = resp['message']?.toString();
+      claim.lastSyncAttempt = DateTime.now();
+      await claim.save();
+      return {'success': false, 'message': claim.syncError};
+    } catch (e) {
+      claim.syncRetries += 1;
+      claim.syncError = e.toString();
+      claim.lastSyncAttempt = DateTime.now();
+      await claim.save();
+      return {'success': false, 'message': e.toString()};
+    }
   }
 }
 
