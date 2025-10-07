@@ -69,6 +69,8 @@ class _ClaimScreenState extends State<ClaimScreen> {
       // OFFLINE-FIRST: Load completed logs from Hive
       // ============================================
       final allJourneys = HiveService.getAllJourneys();
+      final allPrograms = HiveService.getAllPrograms();
+      final programById = {for (var p in allPrograms) p.id: p};
       developer.log('📊 Total journeys in Hive: ${allJourneys.length}');
       
       final completedJourneys = allJourneys.where((j) => j.status == 'selesai').toList();
@@ -78,7 +80,9 @@ class _ClaimScreenState extends State<ClaimScreen> {
       final logs = completedJourneys.map((j) => {
         'id': j.id ?? 0,  // May be null if offline journey
         'program': j.programId != null ? {
-          'nama_program': 'Program #${j.programId}',  // Simplified, can enhance later
+          'id': j.programId,
+          'nama_program': programById[j.programId]?.namaProgram ?? 'Program #${j.programId}',
+          'lokasi_program': programById[j.programId]?.lokasi,
         } : null,
         'tarikh_perjalanan': j.tarikhPerjalanan.toIso8601String().split('T')[0],
         'masa_keluar': j.masaKeluar,

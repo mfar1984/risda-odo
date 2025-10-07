@@ -121,12 +121,27 @@ class ClaimHive extends HiveObject {
       }
     }
     
+    // Normalize server receipt field which may be a String or a nested Map
+    String? serverResit;
+    final rawResit = json['resit'];
+    if (rawResit != null) {
+      if (rawResit is String) {
+        serverResit = rawResit;
+      } else if (rawResit is Map) {
+        // Common keys from various backends
+        serverResit = rawResit['url'] ?? rawResit['path'] ?? rawResit['storage_path'] ?? rawResit['file_path'] ?? rawResit['download_url'];
+        if (serverResit is! String) {
+          serverResit = rawResit.toString();
+        }
+      }
+    }
+
     return ClaimHive(
       id: json['id'],
       logPemanduId: json['log_pemandu_id'],
       kategori: json['kategori'] ?? 'others',
       jumlah: json['jumlah'] != null ? double.tryParse(json['jumlah'].toString()) ?? 0.0 : 0.0,
-      resit: json['resit'],
+      resit: serverResit,
       catatan: json['keterangan'], // MySQL uses 'keterangan'
       status: json['status'] ?? 'pending',
       diciptaOleh: json['dicipta_oleh'] ?? 0,

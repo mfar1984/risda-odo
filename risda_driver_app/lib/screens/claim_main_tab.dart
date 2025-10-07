@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:io';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
@@ -51,28 +52,59 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
       // OFFLINE-FIRST: Load from Hive first
       // ============================================
       final hiveClaims = HiveService.getAllClaims();
+      // Preload journeys and programs to enrich claim display
+      final journeys = HiveService.getAllJourneys();
+      final programs = HiveService.getAllPrograms();
+      final journeyById = {for (var j in journeys) if (j.id != null) j.id!: j};
+      final programById = {for (var p in programs) p.id: p};
       
       // Convert ClaimHive to Map format
-      final claims = hiveClaims.map((c) => {
-        'id': c.id,
-        'log_pemandu_id': c.logPemanduId,
-        'kategori': c.kategori,
-        'kategori_label': _getKategoriLabel(c.kategori),
-        'jumlah': c.jumlah,
-        'keterangan': c.catatan,
-        'resit': c.resit ?? c.resitLocal,  // Use server path or local path
-        'status': c.status,
-        'status_label': _getStatusLabel(c.status),
-        'alasan_tolak': c.alasanTolak,
-        'alasan_gantung': c.alasanGantung,
-        'created_at': c.createdAt?.toIso8601String(),
-        'tarikh_diproses': c.tarikhDiproses?.toIso8601String(),
-        'can_edit': c.status == 'ditolak',
-        'is_synced': c.isSynced,  // Track sync status
-        'local_id': c.localId,
-        'diproses_oleh': null,  // Simplified for now
-        'program': null,  // Simplified for now
-        'log_pemandu': null,  // Simplified for now
+      final claims = hiveClaims.map((c) {
+        // Enrich with local journey + program info when available
+        Map<String, dynamic>? programMap;
+        Map<String, dynamic>? logMap;
+        if (c.logPemanduId != null && journeyById.containsKey(c.logPemanduId)) {
+          final j = journeyById[c.logPemanduId]!;
+          if (j.programId != null && programById.containsKey(j.programId)) {
+            final p = programById[j.programId]!;
+            programMap = {
+              'id': p.id,
+              'nama_program': p.namaProgram,
+              'lokasi_program': p.lokasi ?? '-',
+              'permohonan_dari': null, // not available offline yet
+            };
+          }
+          // Compose a readable datetime for the journey
+          final tarikh = j.tarikhPerjalanan.toIso8601String().split('T')[0];
+          final tarikhMasa = '${tarikh} ${j.masaKeluar}';
+          logMap = {
+            'id': j.id,
+            'tarikh_masa_perjalanan': tarikhMasa,
+          };
+        }
+        return {
+          'id': c.id,
+          'log_pemandu_id': c.logPemanduId,
+          'kategori': c.kategori,
+          'kategori_label': _getKategoriLabel(c.kategori),
+          'jumlah': c.jumlah,
+          'keterangan': c.catatan,
+          'resit_server': c.resit,      // explicit server path
+          'resit_local': c.resitLocal,  // explicit local path
+          'resit': c.resit ?? c.resitLocal, // legacy field
+          'status': c.status,
+          'status_label': _getStatusLabel(c.status),
+          'alasan_tolak': c.alasanTolak,
+          'alasan_gantung': c.alasanGantung,
+          'created_at': c.createdAt?.toIso8601String(),
+          'tarikh_diproses': c.tarikhDiproses?.toIso8601String(),
+          'can_edit': c.status == 'ditolak',
+          'is_synced': c.isSynced,  // Track sync status
+          'local_id': c.localId,
+          'diproses_oleh': null,  // Simplified for now
+          'program': programMap,  // from local Hive if available
+          'log_pemandu': logMap,  // from local Hive if available
+        };
       }).toList();
       
       developer.log('📦 Loaded ${claims.length} claims from Hive');
@@ -160,6 +192,21 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
     return statusMap[status] ?? status;
   }
 
+  String _toText(dynamic value) {
+    if (value == null) return 'N/A';
+    if (value is String) return value;
+    if (value is Map) {
+      final map = Map<String, dynamic>.from(value as Map);
+      return map['nama_penuh']?.toString() ??
+             map['nama']?.toString() ??
+             map['name']?.toString() ??
+             map['label']?.toString() ??
+             map['title']?.toString() ??
+             map.values.first?.toString() ?? 'N/A';
+    }
+    return value.toString();
+  }
+
   Future<void> _navigateToCreateClaim() async {
     final result = await Navigator.push(
       context,
@@ -187,6 +234,35 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
   void _showClaimDetails(Map<String, dynamic> claim) {
     final program = claim['program'] as Map<String, dynamic>?;
     final logPemandu = claim['log_pemandu'] as Map<String, dynamic>?;
+
+    // Enrich program details from cache/API before showing
+    if (program != null && program['id'] != null) {
+      final programId = program['id'] as int;
+      try {
+        // Try cached details first
+        final cached = HiveService.settingsBox.get('program_detail_$programId');
+        if (cached is Map) {
+          final cachedMap = Map<String, dynamic>.from(cached);
+          program['lokasi_program'] ??= cachedMap['lokasi_program'] ?? cachedMap['lokasi'];
+          program['permohonan_dari'] ??= cachedMap['permohonan_dari'];
+        }
+
+        // If still missing and online, fetch live detail then cache
+        final connectivity = context.read<ConnectivityService>();
+        if (connectivity.isOnline && (program['lokasi_program'] == null || program['permohonan_dari'] == null)) {
+          _apiService.getProgramDetail(programId).then((resp) {
+            if (resp['success'] == true && resp['data'] != null) {
+              final data = Map<String, dynamic>.from(resp['data']);
+              program['lokasi_program'] ??= data['lokasi_program'] ?? data['lokasi'];
+              program['permohonan_dari'] ??= data['permohonan_dari'];
+              // Cache for future offline use
+              HiveService.settingsBox.put('program_detail_$programId', data);
+              if (mounted) setState(() {});
+            }
+          }).catchError((_) {});
+        }
+      } catch (_) {}
+    }
     
     showModalBottomSheet(
       context: context,
@@ -258,7 +334,7 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
                       _buildDetailRowWithIcon(
                         Icons.person_outline,
                         'Dimohon Oleh',
-                        program?['permohonan_dari'] ?? 'N/A',
+                        _toText(program?['permohonan_dari']),
                       ),
                       if (logPemandu?['tarikh_masa_perjalanan'] != null)
                         _buildDetailRowWithIcon(
@@ -375,11 +451,12 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
                     ],
                     
                     // Receipt Image Section
-                    if (claim['resit'] != null && claim['resit'].toString().isNotEmpty) ...[
+                    if ((claim['resit_server'] != null && claim['resit_server'].toString().isNotEmpty) ||
+                        (claim['resit_local'] != null && claim['resit_local'].toString().isNotEmpty)) ...[
                       const SizedBox(height: 16),
                       _buildSectionTitle('Resit'),
                       GestureDetector(
-                        onTap: () => _showImagePreview(context, claim['resit']),
+                        onTap: () => _showImagePreview(context, claim['resit_local'] ?? claim['resit_server'], isLocal: claim['resit_local'] != null),
                         child: Container(
                           height: 200,
                           decoration: BoxDecoration(
@@ -389,32 +466,49 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              ApiConstants.buildStorageUrl(claim['resit']),
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Center(
-                                  child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                        : null,
+                            child: (claim['resit_local'] != null)
+                                ? Image.file(
+                                    File(claim['resit_local']),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
+                                            const SizedBox(height: 8),
+                                            Text('Gagal memuatkan gambar', style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[600])),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Image.network(
+                                    ApiConstants.buildStorageUrl(claim['resit_server']),
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          value: loadingProgress.expectedTotalBytes != null
+                                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                              : null,
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
+                                            const SizedBox(height: 8),
+                                            Text('Gagal memuatkan gambar', style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[600])),
+                                          ],
+                                        ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.broken_image, size: 48, color: Colors.grey[400]),
-                                      const SizedBox(height: 8),
-                                      Text('Gagal memuatkan gambar', style: AppTextStyles.bodySmall.copyWith(color: Colors.grey[600])),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
                           ),
                         ),
                       ),
@@ -499,8 +593,8 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
     }
   }
 
-  void _showImagePreview(BuildContext context, String imagePath) {
-    final imageUrl = ApiConstants.buildStorageUrl(imagePath);
+  void _showImagePreview(BuildContext context, String imagePath, {bool isLocal = false}) {
+    final imageUrl = isLocal ? null : ApiConstants.buildStorageUrl(imagePath);
 
     showDialog(
       context: context,
@@ -514,21 +608,31 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
                 panEnabled: true,
                 minScale: 0.5,
                 maxScale: 4.0,
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Icon(Icons.error, color: Colors.white, size: 64),
-                    );
-                  },
-                ),
+                child: isLocal
+                    ? Image.file(
+                        File(imagePath),
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Icon(Icons.error, color: Colors.white, size: 64),
+                          );
+                        },
+                      )
+                    : Image.network(
+                        imageUrl!,
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: CircularProgressIndicator(color: Colors.white),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Icon(Icons.error, color: Colors.white, size: 64),
+                          );
+                        },
+                      ),
               ),
             ),
             Positioned(

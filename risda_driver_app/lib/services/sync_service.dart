@@ -8,6 +8,7 @@ import '../models/sync_queue_hive_model.dart';
 import '../models/program_hive_model.dart';
 import '../models/vehicle_hive_model.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:io';
 import 'dart:developer' as developer;
 
 /// Sync Service - Handles background sync operations
@@ -117,19 +118,110 @@ class SyncService extends ChangeNotifier {
       
       for (var claim in pendingClaims) {
         try {
-          if (claim.id == null) {
-            // New claim
-            developer.log('   ⬆️ Creating claim ${claim.localId}...');
-            // TODO: Implement claim sync
-            developer.log('   ⚠️ Claim sync not implemented yet');
-          } else {
-            // Update claim
-            developer.log('   ⬆️ Updating claim ${claim.id}...');
-            // TODO: Implement claim update
+          // Prepare optional receipt upload if local exists
+          List<int>? resitBytes;
+          String? resitFilename;
+          if (claim.resitLocal != null && claim.resitLocal!.isNotEmpty) {
+            final file = File(claim.resitLocal!);
+            if (await file.exists()) {
+              resitBytes = await file.readAsBytes();
+              resitFilename = file.path.split(Platform.pathSeparator).last;
+            }
           }
-          claimsSynced++;
+
+          if (claim.id == null) {
+            // New claim → create on server
+            developer.log('   ⬆️ Creating claim ${claim.localId}...');
+            final resp = await _apiService.createClaim(
+              logPemanduId: claim.logPemanduId ?? 0,
+              kategori: claim.kategori,
+              jumlah: claim.jumlah,
+              keterangan: claim.catatan,
+              resitBytes: resitBytes,
+              resitFilename: resitFilename,
+            );
+
+            if (resp['success'] == true) {
+              final data = Map<String, dynamic>.from(resp['data'] ?? {});
+              // Update local record with server data
+              claim.id = data['id'] ?? claim.id;
+              // Normalize resit which might be a String or Map
+              final r = data['resit'];
+              if (r != null) {
+                if (r is String) {
+                  claim.resit = r;
+                } else if (r is Map) {
+                  claim.resit = r['url'] ?? r['path'] ?? r['storage_path'] ?? r['file_path'] ?? r['download_url'] ?? claim.resit;
+                }
+              }
+              claim.status = data['status'] ?? claim.status;
+              if (data['created_at'] != null) {
+                try { claim.createdAt = DateTime.parse(data['created_at']); } catch (_) {}
+              }
+              if (data['tarikh_diproses'] != null) {
+                try { claim.tarikhDiproses = DateTime.parse(data['tarikh_diproses']); } catch (_) {}
+              }
+              claim.isSynced = true;
+              claim.syncError = null;
+              claim.syncRetries = 0;
+              claim.lastSyncAttempt = DateTime.now();
+              await claim.save();
+              claimsSynced++;
+            } else {
+              // Server rejected - keep offline and record error
+              claim.syncRetries += 1;
+              claim.syncError = resp['message']?.toString();
+              claim.lastSyncAttempt = DateTime.now();
+              await claim.save();
+              claimsFailed++;
+              developer.log('   ❌ Create claim failed: ${claim.syncError}');
+            }
+          } else {
+            // Existing claim edited offline → update on server
+            developer.log('   ⬆️ Updating claim ${claim.id}...');
+            final resp = await _apiService.updateClaim(
+              id: claim.id!,
+              kategori: claim.kategori,
+              jumlah: claim.jumlah,
+              keterangan: claim.catatan,
+              resitBytes: resitBytes,
+              resitFilename: resitFilename,
+            );
+
+            if (resp['success'] == true) {
+              final data = Map<String, dynamic>.from(resp['data'] ?? {});
+              final r = data['resit'];
+              if (r != null) {
+                if (r is String) {
+                  claim.resit = r;
+                } else if (r is Map) {
+                  claim.resit = r['url'] ?? r['path'] ?? r['storage_path'] ?? r['file_path'] ?? r['download_url'] ?? claim.resit;
+                }
+              }
+              claim.status = data['status'] ?? claim.status;
+              claim.isSynced = true;
+              claim.syncError = null;
+              claim.syncRetries = 0;
+              claim.lastSyncAttempt = DateTime.now();
+              await claim.save();
+              claimsSynced++;
+            } else {
+              claim.syncRetries += 1;
+              claim.syncError = resp['message']?.toString();
+              claim.lastSyncAttempt = DateTime.now();
+              await claim.save();
+              claimsFailed++;
+              developer.log('   ❌ Update claim failed: ${claim.syncError}');
+            }
+          }
         } catch (e) {
           developer.log('   ❌ Failed to sync claim: $e');
+          try {
+            claim.syncRetries += 1;
+            claim.syncError = e.toString();
+            claim.lastSyncAttempt = DateTime.now();
+            await claim.save();
+          } catch (_) {}
           claimsFailed++;
         }
       }
@@ -180,6 +272,11 @@ class SyncService extends ChangeNotifier {
       developer.log('✅ SYNC COMPLETED SUCCESSFULLY');
       developer.log('🔄 ========================================');
       developer.log('📊 Stats: $journeysSynced journeys, $claimsSynced claims synced');
+
+      // Refresh claims from server to reflect latest server state/IDs
+      try {
+        await syncClaims();
+      } catch (_) {}
       
       return {
         'success': true,

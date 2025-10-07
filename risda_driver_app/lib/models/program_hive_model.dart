@@ -92,7 +92,8 @@ class ProgramHive extends HiveObject {
       pemanduId: json['pemandu_id']?.toString(),
       tarikhMula: json['tarikh_mula'] != null ? DateTime.parse(json['tarikh_mula']) : null,
       tarikhTamat: json['tarikh_tamat'] != null ? DateTime.parse(json['tarikh_tamat']) : null,
-      lokasi: json['lokasi'],
+      // Some APIs return 'lokasi_program' instead of 'lokasi'
+      lokasi: json['lokasi'] ?? json['lokasi_program'],
       lokasiLat: json['lokasi_lat'] != null ? double.tryParse(json['lokasi_lat'].toString()) : null,
       lokasiLong: json['lokasi_long'] != null ? double.tryParse(json['lokasi_long'].toString()) : null,
       peneranganProgram: json['penerangan_program'],

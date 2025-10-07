@@ -44,6 +44,8 @@ class _OverviewTabState extends State<OverviewTab> {
   double _chartMaxY = 100;
   
   bool _isLoading = true;
+  ConnectivityService? _connectivityService;
+  VoidCallback? _connectivityListener;
 
   @override
   void initState() {
@@ -59,13 +61,29 @@ class _OverviewTabState extends State<OverviewTab> {
   
   /// Setup listener untuk connectivity changes
   void _setupConnectivityListener() {
-    context.read<ConnectivityService>().addListener(() {
-      final connectivity = context.read<ConnectivityService>();
-      if (connectivity.isOnline && _isLoading) {
-        // Back online and still loading - retry
+    // Detach previous if any (defensive against hot reloads)
+    if (_connectivityService != null && _connectivityListener != null) {
+      _connectivityService!.removeListener(_connectivityListener!);
+    }
+    final svc = context.read<ConnectivityService>();
+    _connectivityService = svc;
+    _connectivityListener = () {
+      if (!mounted) return; // Guard against unmounted state
+      if (svc.isOnline && _isLoading) {
+        // Back online while still loading - retry
         _loadData();
       }
-    });
+    };
+    svc.addListener(_connectivityListener!);
+  }
+
+  @override
+  void dispose() {
+    // Remove connectivity listener to avoid callbacks after unmount
+    if (_connectivityService != null && _connectivityListener != null) {
+      _connectivityService!.removeListener(_connectivityListener!);
+    }
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -73,14 +91,16 @@ class _OverviewTabState extends State<OverviewTab> {
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
       developer.log('⚠️ Overview Tab: Offline - skipping data load');
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
       return;
     }
+    if (mounted) setState(() => _isLoading = true);
     
     await Future.wait([
       _loadDashboardStats(),
       _loadChartData(),
     ]);
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _loadDashboardStats() async {
