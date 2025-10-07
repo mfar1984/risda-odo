@@ -13,4 +13,11 @@ window.L = L;
 import locationPicker from './components/locationPicker';
 window.locationPicker = locationPicker;
 
+document.addEventListener('alpine:init', () => {
+    Alpine.store('layout', {
+        collapsed: false,
+        mobileOpen: false,
+    });
+});
+
 Alpine.start();

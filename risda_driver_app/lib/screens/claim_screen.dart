@@ -1,11 +1,20 @@
 import 'dart:typed_data';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
+import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
+import 'package:path_provider/path_provider.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
+import '../services/connectivity_service.dart';
+import '../services/hive_service.dart';
+import '../services/auth_service.dart';
 import '../core/api_client.dart';
+import '../models/claim_hive_model.dart';
+import 'dart:developer' as developer;
 
 class ClaimScreen extends StatefulWidget {
   final Map<String, dynamic>? existingClaim; // For edit mode
@@ -56,9 +65,30 @@ class _ClaimScreenState extends State<ClaimScreen> {
     setState(() => isLoading = true);
     
     try {
-      // Load completed logs first
-      final logsResponse = await _apiService.getDriverLogs(status: 'selesai');
-      final logs = List<Map<String, dynamic>>.from(logsResponse['data'] ?? []);
+      // ============================================
+      // OFFLINE-FIRST: Load completed logs from Hive
+      // ============================================
+      final allJourneys = HiveService.getAllJourneys();
+      developer.log('📊 Total journeys in Hive: ${allJourneys.length}');
+      
+      final completedJourneys = allJourneys.where((j) => j.status == 'selesai').toList();
+      developer.log('📊 Completed journeys: ${completedJourneys.length}');
+      
+      // Convert to Map format for dropdown
+      final logs = completedJourneys.map((j) => {
+        'id': j.id ?? 0,  // May be null if offline journey
+        'program': j.programId != null ? {
+          'nama_program': 'Program #${j.programId}',  // Simplified, can enhance later
+        } : null,
+        'tarikh_perjalanan': j.tarikhPerjalanan.toIso8601String().split('T')[0],
+        'masa_keluar': j.masaKeluar,
+      }).toList();
+      
+      developer.log('📦 Loaded ${logs.length} completed journeys from Hive');
+      
+      // Debug: Print Hive storage stats
+      final hiveStats = HiveService.getStorageStats();
+      developer.log('📊 Hive Stats: ${hiveStats['boxes']}');
       
       // If editing existing claim, populate fields after logs are loaded
       int? tempLogId;
@@ -169,6 +199,87 @@ class _ClaimScreenState extends State<ClaimScreen> {
     setState(() => receiptImage = null);
   }
 
+  /// Save claim offline to Hive
+  Future<void> _saveClaimOffline(double amount, int userId) async {
+    try {
+      // Generate unique local ID
+      const uuid = Uuid();
+      final localId = uuid.v4();
+      
+      // Save receipt photo to local storage
+      String? localPhotoPath;
+      if (receiptImage != null) {
+        final appDir = await getApplicationDocumentsDirectory();
+        final fileName = 'claim_${localId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final localFile = File('${appDir.path}/receipts/$fileName');
+        
+        // Create directory if not exists
+        await localFile.parent.create(recursive: true);
+        
+        // Copy photo to local storage
+        final bytes = await receiptImage!.readAsBytes();
+        await localFile.writeAsBytes(bytes);
+        localPhotoPath = localFile.path;
+        
+        developer.log('📷 Receipt saved locally: $localPhotoPath');
+      }
+      
+      // Create ClaimHive object
+      final claim = ClaimHive(
+        id: null,  // Will be set when synced
+        logPemanduId: selectedLogId,
+        kategori: selectedCategory!,
+        jumlah: amount,
+        catatan: descriptionController.text.isNotEmpty ? descriptionController.text : null,
+        resit: null,  // Server path, will be set when synced
+        resitLocal: localPhotoPath,  // Local device path
+        status: 'pending',
+        diciptaOleh: userId,
+        localId: localId,
+        isSynced: false,
+        createdAt: DateTime.now(),
+      );
+      
+      // Save to Hive
+      await HiveService.saveClaim(claim);
+      
+      developer.log('💾 Claim saved to Hive (offline): $localId');
+      
+      setState(() => isSubmitting = false);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.offline_pin, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text('Tuntutan disimpan offline. Akan sync bila online.'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        Navigator.pop(context, true);  // Return success
+      }
+    } catch (e) {
+      developer.log('❌ Save claim offline error: $e');
+      setState(() => isSubmitting = false);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyimpan offline: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _submitClaim() async {
     // Validation
     if (selectedLogId == null) {
@@ -202,6 +313,25 @@ class _ClaimScreenState extends State<ClaimScreen> {
 
     setState(() => isSubmitting = true);
 
+    // ============================================
+    // CHECK CONNECTIVITY (Fresh check before submit!)
+    // ============================================
+    final connectivity = context.read<ConnectivityService>();
+    final authService = context.read<AuthService>();
+    
+    // Perform fresh connectivity check (don't trust stale status)
+    developer.log('🔍 Checking connectivity before submit...');
+    final isReallyOnline = await connectivity.checkConnection();
+    
+    if (!isReallyOnline) {
+      // OFFLINE MODE - Save to Hive
+      developer.log('📴 Offline confirmed - saving claim to Hive');
+      await _saveClaimOffline(amount, authService.userId!);
+      return;
+    }
+
+    // ONLINE MODE - Upload to server (current behavior)
+    developer.log('🌐 Online confirmed - uploading to server');
     try {
       // Prepare receipt image bytes if exists
       List<int>? resitBytes;
@@ -251,6 +381,40 @@ class _ClaimScreenState extends State<ClaimScreen> {
         Navigator.pop(context, true); // Return true to indicate success
       }
     } on DioException catch (e) {
+      // Check if it's a connection error (server down/timeout)
+      final isConnectionError = e.type == DioExceptionType.connectionTimeout ||
+                                 e.type == DioExceptionType.receiveTimeout ||
+                                 e.type == DioExceptionType.connectionError ||
+                                 e.type == DioExceptionType.unknown;
+      
+      if (isConnectionError) {
+        // Connection error - fallback to offline mode
+        developer.log('⚠️ Connection error detected - falling back to offline mode');
+        
+        // Mark as offline and save to Hive
+        final connectivity = context.read<ConnectivityService>();
+        connectivity.checkConnection();  // Trigger recheck (will update indicator)
+        
+        // Re-get authService in case scope changed
+        final auth = context.read<AuthService>();
+        if (auth.userId != null) {
+          await _saveClaimOffline(amount, auth.userId!);
+        } else {
+          // No user ID - show error
+          setState(() => isSubmitting = false);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Error: User not authenticated'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+        return;
+      }
+      
+      // Other errors (validation, etc) - show error
       setState(() => isSubmitting = false);
       
       String errorMessage = 'Ralat tidak diketahui';

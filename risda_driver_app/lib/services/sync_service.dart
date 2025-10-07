@@ -5,6 +5,9 @@ import '../services/connectivity_service.dart';
 import '../models/journey_hive_model.dart';
 import '../models/claim_hive_model.dart';
 import '../models/sync_queue_hive_model.dart';
+import '../models/program_hive_model.dart';
+import '../models/vehicle_hive_model.dart';
+import 'package:uuid/uuid.dart';
 import 'dart:developer' as developer;
 
 /// Sync Service - Handles background sync operations
@@ -224,62 +227,195 @@ class SyncService extends ChangeNotifier {
     }
   }
   
-  /// Sync claims from server
-  Future<void> syncClaims() async {
+  /// Sync programs from server and save to Hive
+  Future<void> syncPrograms() async {
     try {
-      developer.log('💰 Syncing claims from server...');
-      final response = await _apiService.getClaims();
+      developer.log('📋 Syncing programs from server...');
       
-      if (response['success'] == true) {
-        // TODO: Update Hive with fresh claim data
-        developer.log('✅ Claims synced');
+      // Fetch all programs (current + ongoing + past)
+      final currentResponse = await _apiService.getPrograms(status: 'current');
+      final ongoingResponse = await _apiService.getPrograms(status: 'ongoing');
+      final pastResponse = await _apiService.getPrograms(status: 'past');
+      
+      List<ProgramHive> allPrograms = [];
+      int skippedPrograms = 0;
+      
+      // Convert to ProgramHive (skip bad records)
+      if (currentResponse['success'] == true) {
+        final programs = List<Map<String, dynamic>>.from(currentResponse['data'] ?? []);
+        for (var p in programs) {
+          try {
+            allPrograms.add(ProgramHive.fromJson(p));
+          } catch (e) {
+            skippedPrograms++;
+            developer.log('   ⚠️ Skipped program ${p['id']}: $e');
+          }
+        }
       }
+      
+      if (ongoingResponse['success'] == true) {
+        final programs = List<Map<String, dynamic>>.from(ongoingResponse['data'] ?? []);
+        for (var p in programs) {
+          try {
+            allPrograms.add(ProgramHive.fromJson(p));
+          } catch (e) {
+            skippedPrograms++;
+            developer.log('   ⚠️ Skipped program ${p['id']}: $e');
+          }
+        }
+      }
+      
+      if (pastResponse['success'] == true) {
+        final programs = List<Map<String, dynamic>>.from(pastResponse['data'] ?? []);
+        for (var p in programs) {
+          try {
+            allPrograms.add(ProgramHive.fromJson(p));
+          } catch (e) {
+            skippedPrograms++;
+            developer.log('   ⚠️ Skipped program ${p['id']}: $e');
+          }
+        }
+      }
+      
+      if (skippedPrograms > 0) {
+        developer.log('   ⚠️ Total skipped: $skippedPrograms programs');
+      }
+      
+      // Save to Hive (replace all)
+      await HiveService.savePrograms(allPrograms);
+      
+      developer.log('✅ Programs synced to Hive: ${allPrograms.length} programs');
     } catch (e) {
-      developer.log('❌ Sync claims error: $e');
+      developer.log('❌ Sync programs error: $e');
     }
   }
   
-  /// Sync journeys from server
+  /// Sync vehicles from server and save to Hive
+  Future<void> syncVehicles() async {
+    try {
+      developer.log('🚙 Syncing vehicles from server...');
+      final vehicles = await _apiService.getVehicles();
+      
+      // Convert Vehicle to VehicleHive (manual mapping since Vehicle has no toJson)
+      final vehicleHives = vehicles.map((v) => VehicleHive(
+        id: v.id,
+        noPendaftaran: v.noPlat,
+        jenisKenderaan: v.jenama ?? 'N/A',
+        model: v.model,
+        tahun: v.tahun,
+        warna: null,  // Not in Vehicle model
+        bacanOdometerSemasaTerkini: null,  // Not in Vehicle model
+        status: v.status,
+        organisasiId: null,  // Not in Vehicle model
+        jenisOrganisasi: 'semua',  // Default
+        diciptaOleh: 1,  // Default
+        dikemaskiniOleh: null,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        lastSync: DateTime.now(),
+      )).toList();
+      
+      // Save to Hive (replace all)
+      await HiveService.saveVehicles(vehicleHives);
+      
+      developer.log('✅ Vehicles synced to Hive: ${vehicleHives.length} vehicles');
+    } catch (e) {
+      developer.log('⚠️ Sync vehicles error (skipping): $e');
+      // Don't fail entire sync - vehicles optional for claims
+    }
+  }
+  
+  /// Sync journeys from server and save to Hive (last 60 days only)
   Future<void> syncJourneys() async {
     try {
       developer.log('🚗 Syncing journeys from server...');
       final response = await _apiService.getDriverLogs();
       
       if (response['success'] == true) {
-        // TODO: Update Hive with fresh journey data
-        developer.log('✅ Journeys synced');
+        final journeys = List<Map<String, dynamic>>.from(response['data'] ?? []);
+        
+        // Convert to JourneyHive
+        final journeyHives = journeys.map((j) {
+          const uuid = Uuid();
+          return JourneyHive.fromJson(j, localId: uuid.v4());
+        }).toList();
+        
+        // Clear and save to Hive
+        await HiveService.journeyBox.clear();
+        await HiveService.journeyBox.addAll(journeyHives);
+        
+        developer.log('✅ Journeys synced to Hive: ${journeyHives.length} journeys');
       }
     } catch (e) {
       developer.log('❌ Sync journeys error: $e');
     }
   }
   
-  /// Sync programs from server
-  Future<void> syncPrograms() async {
+  /// Sync claims from server and save to Hive
+  Future<void> syncClaims() async {
     try {
-      developer.log('📋 Syncing programs from server...');
-      final response = await _apiService.getPrograms();
+      developer.log('💰 Syncing claims from server...');
+      final response = await _apiService.getClaims();
       
       if (response['success'] == true) {
-        // TODO: Update Hive with fresh program data
-        developer.log('✅ Programs synced');
+        final claims = List<Map<String, dynamic>>.from(response['data'] ?? []);
+        
+        // Convert to ClaimHive (skip bad records)
+        List<ClaimHive> claimHives = [];
+        int skippedClaims = 0;
+        
+        for (var c in claims) {
+          try {
+            const uuid = Uuid();
+            claimHives.add(ClaimHive.fromJson(c, localId: uuid.v4()));
+          } catch (e) {
+            skippedClaims++;
+            developer.log('   ⚠️ Skipped claim ${c['id']}: $e');
+          }
+        }
+        
+        if (skippedClaims > 0) {
+          developer.log('   ⚠️ Total skipped: $skippedClaims claims');
+        }
+        
+        // Merge with existing offline claims (keep unsynced)
+        final unsyncedClaims = HiveService.getPendingSyncClaims();
+        
+        // Clear and save
+        await HiveService.claimBox.clear();
+        await HiveService.claimBox.addAll(claimHives);
+        
+        // Re-add unsynced claims
+        for (var unsyncedClaim in unsyncedClaims) {
+          await HiveService.saveClaim(unsyncedClaim);
+        }
+        
+        developer.log('✅ Claims synced to Hive: ${claimHives.length} claims + ${unsyncedClaims.length} offline');
       }
     } catch (e) {
-      developer.log('❌ Sync programs error: $e');
+      developer.log('❌ Sync claims error: $e');
     }
   }
   
-  /// Sync vehicles from server
-  Future<void> syncVehicles() async {
-    try {
-      developer.log('🚙 Syncing vehicles from server...');
-      final vehicles = await _apiService.getVehicles();
-      
-      // TODO: Convert to VehicleHive and save to Hive
-      developer.log('✅ Vehicles synced: ${vehicles.length} vehicles');
-    } catch (e) {
-      developer.log('❌ Sync vehicles error: $e');
+  /// Sync ALL master data (programs + vehicles + journeys + claims)
+  /// Call this on app startup and after login
+  Future<void> syncAllMasterData() async {
+    if (!_connectivityService.isOnline) {
+      developer.log('⚠️ Cannot sync master data - offline');
+      return;
     }
+    
+    developer.log('🔄 ========================================');
+    developer.log('🔄 SYNCING ALL MASTER DATA TO HIVE');
+    developer.log('🔄 ========================================');
+    
+    // Sync sequentially to avoid issues
+    await syncPrograms();
+    await syncVehicles();
+    await syncJourneys();
+    await syncClaims();
+    
+    developer.log('✅ All master data synced to Hive');
   }
   
   // ============================================
@@ -303,4 +439,5 @@ class SyncService extends ChangeNotifier {
     await syncPendingData();
   }
 }
+
 

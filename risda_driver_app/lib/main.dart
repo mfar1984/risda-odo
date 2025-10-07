@@ -55,12 +55,16 @@ class MyApp extends StatelessWidget {
     final driverLogRepository = DriverLogRepository(apiService);
     final connectivityService = ConnectivityService();
     final syncService = SyncService(apiService, connectivityService);
+    final authService = AuthService();
+    
+    // Inject sync service into auth service (for post-login sync)
+    authService.setSyncService(syncService);
 
     return MultiProvider(
       providers: [
         Provider<ApiClient>.value(value: apiClient),
         Provider<ApiService>.value(value: apiService),
-        ChangeNotifierProvider<AuthService>(create: (_) => AuthService()),
+        ChangeNotifierProvider<AuthService>.value(value: authService),
         ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
         ChangeNotifierProvider<SyncService>.value(value: syncService),
         Provider<DriverLogRepository>.value(value: driverLogRepository),

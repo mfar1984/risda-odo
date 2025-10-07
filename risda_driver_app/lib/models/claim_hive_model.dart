@@ -111,17 +111,27 @@ class ClaimHive extends HiveObject {
   }
 
   factory ClaimHive.fromJson(Map<String, dynamic> json, {required String localId}) {
+    // Handle nested objects (diproses_oleh might be Map)
+    int? diprosesOlehId;
+    if (json['diproses_oleh'] != null) {
+      if (json['diproses_oleh'] is int) {
+        diprosesOlehId = json['diproses_oleh'];
+      } else if (json['diproses_oleh'] is Map) {
+        diprosesOlehId = json['diproses_oleh']['id'];
+      }
+    }
+    
     return ClaimHive(
       id: json['id'],
       logPemanduId: json['log_pemandu_id'],
-      kategori: json['kategori'],
-      jumlah: (json['jumlah'] as num).toDouble(),
+      kategori: json['kategori'] ?? 'others',
+      jumlah: json['jumlah'] != null ? double.tryParse(json['jumlah'].toString()) ?? 0.0 : 0.0,
       resit: json['resit'],
       catatan: json['keterangan'], // MySQL uses 'keterangan'
       status: json['status'] ?? 'pending',
-      diciptaOleh: json['dicipta_oleh'],
+      diciptaOleh: json['dicipta_oleh'] ?? 0,
       dikemaskiniOleh: json['dikemaskini_oleh'],
-      diprosesOleh: json['diproses_oleh'],
+      diprosesOleh: diprosesOlehId,
       tarikhDiproses: json['tarikh_diproses'] != null ? DateTime.parse(json['tarikh_diproses']) : null,
       alasanTolak: json['alasan_tolak'],
       alasanGantung: json['alasan_gantung'],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/connectivity_service.dart';
+import 'dart:developer' as developer;
 
 /// Offline/Online Indicator Widget
 /// Shows animated status before bell icon in AppBar
@@ -28,6 +29,8 @@ class _OfflineIndicatorState extends State<OfflineIndicator>
   void initState() {
     super.initState();
     
+    developer.log('🎯 OfflineIndicator: Widget initialized');
+    
     // Pulse animation (for online status)
     _animationController = AnimationController(
       vsync: this,
@@ -54,6 +57,9 @@ class _OfflineIndicatorState extends State<OfflineIndicator>
       builder: (context, connectivity, child) {
         final isOnline = connectivity.isOnline;
         final isChecking = connectivity.isChecking;
+        
+        // Debug: Log every rebuild
+        developer.log('🎨 OfflineIndicator BUILD: isOnline=$isOnline, isChecking=$isChecking');
         
         return GestureDetector(
           onTap: () => _showConnectionDetails(context, connectivity),
@@ -98,6 +104,18 @@ class _OfflineIndicatorState extends State<OfflineIndicator>
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+                      
+                      // Small manual refresh icon appears if offline
+                      if (!isOnline && !isChecking) ...[
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () {
+                            developer.log('🔁 Manual recheck tapped from indicator');
+                            context.read<ConnectivityService>().checkConnection();
+                          },
+                          child: const Icon(Icons.refresh, color: Colors.white, size: 14),
+                        )
+                      ]
                     ],
                   ),
                 );

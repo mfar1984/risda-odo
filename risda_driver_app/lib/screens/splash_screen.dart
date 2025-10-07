@@ -128,12 +128,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         // Enforce storage limits
         await HiveService.enforceStorageLimits();
       } else if (_steps[i].contains('Synchronizing Data')) {
-        // Real sync - auto-sync pending data if online
+        // Real sync - sync master data to Hive if online
         if (connectivityService.isOnline) {
-          developer.log('🔄 Online detected - syncing pending data...');
+          developer.log('🔄 Online detected - syncing master data to Hive...');
+          
+          // Sync master data (programs, vehicles, journeys, claims) to Hive
+          await syncService.syncAllMasterData();
+          
+          // Then sync pending offline data
           await syncService.syncPendingData();
         } else {
-          developer.log('⚠️ Offline - skip sync on startup');
+          developer.log('⚠️ Offline - will use cached Hive data');
         }
       } else if (_steps[i].contains('Checking Login Status')) {
         // Initialize AuthService (check Hive for cached session)

@@ -70,13 +70,11 @@ export default defineConfig({
                 assetFileNames: 'assets/[name]-[hash].[ext]',
             },
         },
-        // Optimize minification (using esbuild - faster and included)
-        minify: 'esbuild',
-        target: 'es2015',
-        // Remove console logs in production
-        esbuild: {
-            drop: ['console', 'debugger'],
-        },
+        // TEMPORARY: Disable minification to fix Alpine.js errors
+        // TODO: Re-enable with proper config later
+        minify: false,
+        // Use modern target so Alpine's dynamic AsyncFunction yields real Promises
+        target: 'es2017',
         // CSS optimization
         cssMinify: true,
         cssCodeSplit: true,

@@ -61,6 +61,12 @@ class AuthService extends ChangeNotifier {
 
   String? _lastErrorMessage;
   String? get lastErrorMessage => _lastErrorMessage;
+  
+  // Reference to sync service (will be injected)
+  dynamic _syncService;
+  void setSyncService(dynamic syncService) {
+    _syncService = syncService;
+  }
 
   /// Login with credentials (REAL API)
   Future<bool> login(String email, String password, {bool rememberMe = true}) async {
@@ -112,6 +118,17 @@ class AuthService extends ChangeNotifier {
         if (data['user']['staf'] != null) {
           developer.log('👤 Staf: ${data['user']['staf']['no_pekerja']} - ${data['user']['staf']['jawatan']}');
         }
+        
+        // Sync master data after successful login
+        if (_syncService != null) {
+          developer.log('🔄 Triggering post-login data sync...');
+          try {
+            await _syncService.syncAllMasterData();
+          } catch (e) {
+            developer.log('⚠️ Post-login sync failed: $e');
+          }
+        }
+        
         return true;
       }
 

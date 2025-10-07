@@ -48,7 +48,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
+    // Stop polling and detach listener to avoid duplicate callbacks
     _notificationTimer?.cancel();
+    try {
+      context.read<ConnectivityService>().removeListener(_handleConnectivityChange);
+    } catch (_) {}
     super.dispose();
   }
 

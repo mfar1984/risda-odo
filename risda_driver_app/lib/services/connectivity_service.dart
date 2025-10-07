@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import '../core/constants.dart';
@@ -7,11 +8,13 @@ import 'dart:developer' as developer;
 
 /// Service to monitor internet connectivity status
 /// Provides real-time online/offline status and triggers auto-sync
-class ConnectivityService extends ChangeNotifier {
+class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
   // Connectivity instance
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<ConnectivityResult>? _connectivitySubscription;
   Timer? _periodicCheckTimer;
+  Timer? _connectivityDebounceTimer;
+  bool _initialized = false;
   
   // Connection status
   bool _isOnline = true;
@@ -32,6 +35,13 @@ class ConnectivityService extends ChangeNotifier {
   
   /// Initialize connectivity monitoring
   Future<void> initialize() async {
+    // Make idempotent to avoid duplicate timers/subscriptions
+    if (_initialized) {
+      developer.log('ℹ️ ConnectivityService already initialized');
+      return;
+    }
+    // Observe app lifecycle to re-check on resume
+    WidgetsBinding.instance.addObserver(this);
     // Initial check
     await checkConnection();
     
@@ -40,6 +50,7 @@ class ConnectivityService extends ChangeNotifier {
     
     // Start periodic server ping (every 15 seconds)
     _startPeriodicCheck();
+    _initialized = true;
     
     developer.log('✅ ConnectivityService initialized');
   }
@@ -76,18 +87,17 @@ class ConnectivityService extends ChangeNotifier {
     final hasConnection = result != ConnectivityResult.none;
     
     if (hasConnection) {
-      // Network interface available - but need to verify server
+      // Network interface available - verify server reachability
       developer.log('📡 Network interface available - verifying server...');
-      await checkConnection();  // ALWAYS verify with server ping
-      
-      if (_isOnline) {
-        _onBackOnline();
-      }
+      // Debounce slightly to allow interface to settle (IP/DNS)
+      _connectivityDebounceTimer?.cancel();
+      _connectivityDebounceTimer = Timer(const Duration(milliseconds: 800), () {
+        checkConnection(); // Will trigger callbacks via _updateStatus()
+      });
     } else {
       // No network interface - definitely offline
       developer.log('⚠️ No network interface');
-      _updateStatus(false);
-      _onBackOffline();
+      _updateStatus(false);  // Will trigger callbacks via _updateStatus()
     }
   }
   
@@ -167,6 +177,10 @@ class ConnectivityService extends ChangeNotifier {
   /// Update connection status
   void _updateStatus(bool isOnline) {
     final wasOnline = _isOnline;
+    
+    developer.log('🔄 _updateStatus called: wasOnline=$wasOnline, newStatus=$isOnline');
+    
+    // Update status FIRST
     _isOnline = isOnline;
     
     if (isOnline) {
@@ -175,12 +189,22 @@ class ConnectivityService extends ChangeNotifier {
       _lastOfflineTime = DateTime.now();
     }
     
-    // Log status change
-    if (wasOnline != isOnline) {
-      developer.log('📶 Status changed: ${isOnline ? "ONLINE" : "OFFLINE"}');
-    }
-    
+    // Notify UI FIRST so indicator updates immediately
+    developer.log('📡 Calling notifyListeners() - should trigger Consumer rebuild');
     notifyListeners();
+    developer.log('✅ notifyListeners() completed');
+    
+    // THEN trigger callbacks (may kick off async sync work)
+    if (wasOnline != isOnline) {
+      developer.log('📶 Status changed: ${wasOnline ? "ONLINE" : "OFFLINE"} → ${isOnline ? "ONLINE" : "OFFLINE"}');
+      if (isOnline) {
+        _onBackOnline();
+      } else {
+        _onBackOffline();
+      }
+    } else {
+      developer.log('   (Status unchanged: ${isOnline ? "ONLINE" : "OFFLINE"})');
+    }
   }
   
   /// Called when connection is restored
@@ -246,9 +270,20 @@ class ConnectivityService extends ChangeNotifier {
   void dispose() {
     _connectivitySubscription?.cancel();
     _periodicCheckTimer?.cancel();
+    _connectivityDebounceTimer?.cancel();
     _onOnlineCallbacks.clear();
     _onOfflineCallbacks.clear();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  // Re-check connectivity whenever the app returns to foreground
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      developer.log('🔁 App resumed - rechecking connectivity');
+      checkConnection();
+    }
   }
 }
 

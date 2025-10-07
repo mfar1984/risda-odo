@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
+import '../services/hive_service.dart';
+import '../services/connectivity_service.dart';
+import '../models/claim_hive_model.dart';
 import '../core/api_client.dart';
 import '../core/constants.dart';
 import 'claim_screen.dart';
+import 'dart:developer' as developer;
 
 class ClaimMainTab extends StatefulWidget {
   const ClaimMainTab({super.key});
@@ -41,8 +47,35 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
     setState(() => isLoading = true);
     
     try {
-      final response = await _apiService.getClaims();
-      final claims = List<Map<String, dynamic>>.from(response['data'] ?? []);
+      // ============================================
+      // OFFLINE-FIRST: Load from Hive first
+      // ============================================
+      final hiveClaims = HiveService.getAllClaims();
+      
+      // Convert ClaimHive to Map format
+      final claims = hiveClaims.map((c) => {
+        'id': c.id,
+        'log_pemandu_id': c.logPemanduId,
+        'kategori': c.kategori,
+        'kategori_label': _getKategoriLabel(c.kategori),
+        'jumlah': c.jumlah,
+        'keterangan': c.catatan,
+        'resit': c.resit ?? c.resitLocal,  // Use server path or local path
+        'status': c.status,
+        'status_label': _getStatusLabel(c.status),
+        'alasan_tolak': c.alasanTolak,
+        'alasan_gantung': c.alasanGantung,
+        'created_at': c.createdAt?.toIso8601String(),
+        'tarikh_diproses': c.tarikhDiproses?.toIso8601String(),
+        'can_edit': c.status == 'ditolak',
+        'is_synced': c.isSynced,  // Track sync status
+        'local_id': c.localId,
+        'diproses_oleh': null,  // Simplified for now
+        'program': null,  // Simplified for now
+        'log_pemandu': null,  // Simplified for now
+      }).toList();
+      
+      developer.log('📦 Loaded ${claims.length} claims from Hive');
       
       setState(() {
         allClaims = claims;
@@ -51,7 +84,15 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
         approvedClaims = claims.where((c) => c['status'] == 'diluluskan').toList();
         isLoading = false;
       });
+      
+      // If online, sync fresh data from server in background
+      final connectivity = context.read<ConnectivityService>();
+      if (connectivity.isOnline) {
+        developer.log('🔄 Online - syncing claims in background...');
+        _syncClaimsInBackground();
+      }
     } catch (e) {
+      developer.log('❌ Error loading claims from Hive: $e');
       setState(() {
         allClaims = [];
         pendingClaims = [];
@@ -59,12 +100,64 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
         approvedClaims = [];
         isLoading = false;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading claims: $e')),
-        );
-      }
     }
+  }
+  
+  /// Sync claims in background (if online)
+  Future<void> _syncClaimsInBackground() async {
+    try {
+      final response = await _apiService.getClaims();
+      if (response['success'] == true && mounted) {
+        // Update Hive with fresh data
+        final serverClaims = List<Map<String, dynamic>>.from(response['data'] ?? []);
+        
+        // Keep offline claims, update synced ones
+        final unsyncedClaims = HiveService.getPendingSyncClaims();
+        
+        await HiveService.claimBox.clear();
+        
+        // Add server claims
+        for (var claim in serverClaims) {
+          const uuid = Uuid();
+          final claimHive = ClaimHive.fromJson(claim, localId: uuid.v4());
+          await HiveService.saveClaim(claimHive);
+        }
+        
+        // Re-add unsynced offline claims
+        for (var claim in unsyncedClaims) {
+          await HiveService.saveClaim(claim);
+        }
+        
+        // Reload UI
+        _loadClaims();
+      }
+    } catch (e) {
+      developer.log('⚠️ Background sync failed: $e');
+      // Silently fail - user already has Hive data
+    }
+  }
+  
+  String _getKategoriLabel(String kategori) {
+    const kategoriMap = {
+      'tol': 'Tol',
+      'parking': 'Parking',
+      'f&b': 'Food & Beverage',
+      'accommodation': 'Accommodation',
+      'fuel': 'Fuel',
+      'car_maintenance': 'Car Maintenance',
+      'others': 'Others',
+    };
+    return kategoriMap[kategori] ?? kategori;
+  }
+  
+  String _getStatusLabel(String status) {
+    const statusMap = {
+      'pending': 'Pending',
+      'diluluskan': 'Diluluskan',
+      'ditolak': 'Ditolak',
+      'digantung': 'Dibatalkan',
+    };
+    return statusMap[status] ?? status;
   }
 
   Future<void> _navigateToCreateClaim() async {
