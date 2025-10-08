@@ -10,14 +10,25 @@
 
             <!-- Right side - Links -->
             <div class="footer-right">
-                <div class="footer-links">
-                    <a href="#" class="footer-link">Penafian</a>
+                <div class="footer-links" x-data="{
+                    disclaimerModal: false,
+                    privacyModal: false,
+                    termsModal: false,
+                    sitemapModal: false
+                }">
+                    <a href="#" class="footer-link" @click.prevent="disclaimerModal = true">Penafian</a>
                     <span class="footer-separator">/</span>
-                    <a href="#" class="footer-link">Privasi</a>
+                    <a href="#" class="footer-link" @click.prevent="privacyModal = true">Privasi</a>
                     <span class="footer-separator">/</span>
-                    <a href="#" class="footer-link">Terma Penggunaan</a>
+                    <a href="#" class="footer-link" @click.prevent="termsModal = true">Terma Penggunaan</a>
                     <span class="footer-separator">/</span>
-                    <a href="#" class="footer-link">Peta Laman</a>
+                    <a href="#" class="footer-link" @click.prevent="sitemapModal = true">Peta Laman</a>
+
+                    {{-- Inject modals --}}
+                    @include('help.partials.policy-disclaimer-modal')
+                    @include('help.partials.policy-privacy-modal')
+                    @include('help.partials.policy-terms-modal')
+                    @include('help.partials.policy-sitemap-modal')
                 </div>
             </div>
         </div>

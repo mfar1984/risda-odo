@@ -15,17 +15,16 @@
      @toggle-sidebar.window="collapsed = !collapsed">
     <!-- Sidebar Header -->
     <div class="sidebar-header" style="position: relative; z-index: 5000;">
-        <div class="flex items-center justify-between" style="position: relative; z-index: 5000;">
-            <div class="flex items-center">
-                <x-application-logo class="h-8 w-8" />
-                <span x-show="!collapsed" x-transition:enter="transition ease-out duration-100" x-transition:leave="transition ease-in duration-100" class="ml-3 text-lg font-semibold text-gray-800">RISDA ODO</span>
+        <div class="flex items-center justify-center relative" style="position: relative; z-index: 5000;">
+            <div x-show="!collapsed" class="flex items-center absolute left-1/2 top-4 -translate-x-1/2 -translate-y-1/2">
+                <x-application-logo class="h-10 w-10 md:h-16 md:w-16" />
             </div>
             
             <!-- Desktop Toggle Button ONLY (Hidden on Mobile) -->
             <button @click="collapsed = !collapsed; $dispatch('sidebar-toggled', { collapsed: collapsed })" 
-                    class="sidebar-toggle hidden md:flex" 
+                    class="sidebar-toggle hidden md:flex absolute right-0 top-1" 
                     type="button"
-                    style="position: relative; z-index: 5000 !important; pointer-events: auto !important;">
+                    style="z-index: 5000 !important; pointer-events: auto !important;">
                 <!-- Widgets icon when expanded (default state) -->
                 <span x-show="!collapsed" 
                       x-transition:enter="transition ease-out duration-150"
@@ -219,9 +218,7 @@
                     <a href="{{ route('pengurusan.aktiviti-log') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.aktiviti-log') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Aktiviti Log</a>
                     @endif
 
-                    @if($currentUser && $currentUser->adaKebenaran('aktiviti_log_keselamatan', 'lihat'))
-                    <a href="{{ route('pengurusan.aktiviti-log-keselamatan') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.aktiviti-log-keselamatan') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Aktiviti Log Keselamatan</a>
-                    @endif
+                    
                 </div>
             </div>
         </div>

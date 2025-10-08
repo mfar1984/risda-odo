@@ -12,6 +12,10 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified', 'permission:dashboard,lihat'])->name('dashboard');
 
+Route::post('/dashboard/generate-report', [App\Http\Controllers\TuntutanController::class, 'getDashboardReport'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.generate-report');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -285,12 +289,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/aktiviti-log', [App\Http\Controllers\AktivitiLogController::class, 'index'])->name('aktiviti-log');
         });
 
-        // Aktiviti Log Keselamatan Routes (Permission-based)
-        Route::middleware('permission:aktiviti_log_keselamatan,lihat')->group(function () {
-            Route::get('/aktiviti-log-keselamatan', function () {
-                return view('pengurusan.aktiviti-log-keselamatan');
-            })->name('aktiviti-log-keselamatan');
-        });
+        // Aktiviti Log Keselamatan Routes removed as requested
     });
 
     // Help Routes

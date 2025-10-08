@@ -582,4 +582,77 @@ class TuntutanController extends Controller
 
         return $pdf->download($filename);
     }
+
+    /**
+     * Get dashboard report data for Tuntutan
+     */
+    public function getDashboardReport(Request $request)
+    {
+        // Check permission
+        if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'lihat')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses dinafikan'
+            ], 403);
+        }
+
+        $query = Tuntutan::with([
+            'logPemandu.pemandu.risdaStaf',
+            'logPemandu.program',
+            'diprosesOleh.risdaStaf'
+        ])->forCurrentUser();
+
+        // Only show approved claims
+        $query->where('status', 'diluluskan');
+
+        // Apply date range filter
+        if ($request->filled('tarikh_mula') && $request->filled('tarikh_akhir')) {
+            $query->whereBetween('created_at', [
+                $request->tarikh_mula . ' 00:00:00',
+                $request->tarikh_akhir . ' 23:59:59',
+            ]);
+        }
+
+        // Apply staff filter
+        if ($request->filled('staf_id')) {
+            $query->whereHas('logPemandu.pemandu', function ($q) use ($request) {
+                $q->where('id', $request->staf_id);
+            });
+        }
+
+        $tuntutan = $query->orderBy('created_at', 'desc')->get();
+
+        // Format data for dashboard display
+        $rows = $tuntutan->map(function ($t) {
+            $logPemandu = $t->logPemandu;
+            $program = $logPemandu ? $logPemandu->program : null;
+            $pemandu = $logPemandu ? $logPemandu->pemandu : null;
+            $staf = $pemandu ? $pemandu->risdaStaf : null;
+            $diprosesOleh = $t->diprosesOleh ? $t->diprosesOleh->risdaStaf : null;
+
+            return [
+                'tarikh' => $logPemandu && $logPemandu->tarikh_keluar 
+                    ? \Carbon\Carbon::parse($logPemandu->tarikh_keluar)->translatedFormat('j F Y')
+                    : \Carbon\Carbon::parse($t->created_at)->translatedFormat('j F Y'),
+                'program' => $program ? $program->nama_program : '-',
+                'tarikhDituntut' => \Carbon\Carbon::parse($t->created_at)->translatedFormat('j M Y, g:i A'),
+                'jenis' => ucfirst($t->kategori_label),
+                'diluluskanOleh' => $diprosesOleh ? $diprosesOleh->nama_penuh : '-',
+                'jumlah' => (float) $t->jumlah,
+            ];
+        });
+
+        $totalAmount = $tuntutan->sum('jumlah');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'rows' => $rows,
+                'summary' => [
+                    'totalAmount' => (float) $totalAmount,
+                    'totalRecords' => $tuntutan->count(),
+                ]
+            ]
+        ]);
+    }
 }
