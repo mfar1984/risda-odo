@@ -584,9 +584,28 @@ class TuntutanController extends Controller
     }
 
     /**
-     * Get dashboard report data for Tuntutan
+     * Get dashboard report data (Tuntutan or Kenderaan)
      */
     public function getDashboardReport(Request $request)
+    {
+        $jenisLaporan = $request->input('jenis_laporan');
+
+        if ($jenisLaporan === 'tuntutan') {
+            return $this->getTuntutanReport($request);
+        } elseif ($jenisLaporan === 'kenderaan') {
+            return $this->getKenderaanReport($request);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Jenis laporan tidak sah'
+        ], 400);
+    }
+
+    /**
+     * Get Tuntutan report data
+     */
+    private function getTuntutanReport(Request $request)
     {
         // Check permission
         if (!Auth::user()->adaKebenaran('laporan_tuntutan', 'lihat')) {
@@ -630,12 +649,14 @@ class TuntutanController extends Controller
             $staf = $pemandu ? $pemandu->risdaStaf : null;
             $diprosesOleh = $t->diprosesOleh ? $t->diprosesOleh->risdaStaf : null;
 
+            $tarikhPerjalanan = $logPemandu && $logPemandu->tarikh_perjalanan 
+                ? ($logPemandu->tarikh_perjalanan instanceof \Carbon\Carbon ? $logPemandu->tarikh_perjalanan : \Carbon\Carbon::parse($logPemandu->tarikh_perjalanan))
+                : \Carbon\Carbon::parse($t->created_at);
+
             return [
-                'tarikh' => $logPemandu && $logPemandu->tarikh_keluar 
-                    ? \Carbon\Carbon::parse($logPemandu->tarikh_keluar)->translatedFormat('j F Y')
-                    : \Carbon\Carbon::parse($t->created_at)->translatedFormat('j F Y'),
+                'tarikh' => $this->formatTarikhMelayu($tarikhPerjalanan),
                 'program' => $program ? $program->nama_program : '-',
-                'tarikhDituntut' => \Carbon\Carbon::parse($t->created_at)->translatedFormat('j M Y, g:i A'),
+                'tarikhDituntut' => $this->formatTarikhMelayu(\Carbon\Carbon::parse($t->created_at)) . ', ' . \Carbon\Carbon::parse($t->created_at)->format('g:i A'),
                 'jenis' => ucfirst($t->kategori_label),
                 'diluluskanOleh' => $diprosesOleh ? $diprosesOleh->nama_penuh : '-',
                 'jumlah' => (float) $t->jumlah,
@@ -651,6 +672,132 @@ class TuntutanController extends Controller
                 'summary' => [
                     'totalAmount' => (float) $totalAmount,
                     'totalRecords' => $tuntutan->count(),
+                ]
+            ]
+        ]);
+    }
+
+    /**
+     * Helper to format date in Bahasa Melayu
+     */
+    private function formatTarikhMelayu($carbon)
+    {
+        if (!$carbon) return '-';
+        
+        $bulanMelayu = [
+            'January' => 'Januari', 'February' => 'Februari', 'March' => 'Mac', 'April' => 'April',
+            'May' => 'Mei', 'June' => 'Jun', 'July' => 'Julai', 'August' => 'Ogos',
+            'September' => 'September', 'October' => 'Oktober', 'November' => 'November', 'December' => 'Disember'
+        ];
+        
+        $formatted = $carbon->format('j F Y');
+        foreach ($bulanMelayu as $eng => $bm) {
+            $formatted = str_replace($eng, $bm, $formatted);
+        }
+        return $formatted;
+    }
+
+    /**
+     * Get Kenderaan report data
+     */
+    private function getKenderaanReport(Request $request)
+    {
+        // Check permission
+        if (!Auth::user()->adaKebenaran('laporan_kenderaan', 'lihat')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses dinafikan'
+            ], 403);
+        }
+
+        $kenderaanId = $request->input('kenderaan_id');
+        if (!$kenderaanId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sila pilih kenderaan'
+            ], 400);
+        }
+
+        // Get vehicle details
+        $kenderaan = \App\Models\Kenderaan::find($kenderaanId);
+        if (!$kenderaan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kenderaan tidak dijumpai'
+            ], 404);
+        }
+
+        // Get logs for this vehicle
+        $query = LogPemandu::with([
+            'pemandu.risdaStaf',
+            'program',
+            'kenderaan'
+        ])->where('kenderaan_id', $kenderaanId);
+
+        // Apply date range filter
+        if ($request->filled('tarikh_mula') && $request->filled('tarikh_akhir')) {
+            $query->whereBetween('tarikh_perjalanan', [
+                $request->tarikh_mula,
+                $request->tarikh_akhir,
+            ]);
+        }
+
+        // Only completed journeys
+        $query->where('status', 'selesai');
+
+        $logs = $query->orderBy('tarikh_perjalanan', 'desc')->get();
+
+        // Format data for dashboard display
+        $rows = $logs->map(function ($log) {
+            $pemandu = $log->pemandu;
+            $staf = $pemandu ? $pemandu->risdaStaf : null;
+            $program = $log->program;
+
+            // Tarikh sahaja (tanpa masa)
+            $tarikh = $log->tarikh_perjalanan instanceof \Carbon\Carbon 
+                ? $log->tarikh_perjalanan 
+                : \Carbon\Carbon::parse($log->tarikh_perjalanan);
+
+            // Masa check-in dan check-out
+            $masaCheckin = $log->masa_keluar 
+                ? \Carbon\Carbon::parse($log->masa_keluar)->format('g:i A')
+                : '-';
+            $masaCheckout = $log->masa_masuk 
+                ? \Carbon\Carbon::parse($log->masa_masuk)->format('g:i A')
+                : '-';
+
+            return [
+                'tarikhMasa' => $this->formatTarikhMelayu($tarikh),
+                'pemandu' => $staf ? $staf->nama_penuh : ($pemandu ? $pemandu->name : '-'),
+                'program' => $program ? $program->nama_program : '-',
+                'daftarMasukLat' => $log->lokasi_checkin_lat ?? '0',
+                'daftarMasukLong' => $log->lokasi_checkin_long ?? '0',
+                'daftarMasukMasa' => $masaCheckin,
+                'daftarKeluarLat' => $log->lokasi_checkout_lat ?? '0',
+                'daftarKeluarLong' => $log->lokasi_checkout_long ?? '0',
+                'daftarKeluarMasa' => $masaCheckout,
+                'jarak' => (float) ($log->jarak ?? 0),
+            ];
+        });
+
+        $totalDistance = $logs->sum('jarak');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'vehicle' => [
+                    'noPlat' => $kenderaan->no_plat,
+                    'jenama' => $kenderaan->jenama . ' ' . $kenderaan->model,
+                    'noEnjin' => $kenderaan->no_enjin ?? '-',
+                    'noCasis' => $kenderaan->no_casis ?? '-',
+                    'cukaiTamat' => $kenderaan->cukai_tamat_tempoh 
+                        ? $this->formatTarikhMelayu($kenderaan->cukai_tamat_tempoh)
+                        : '-',
+                ],
+                'rows' => $rows,
+                'summary' => [
+                    'totalDistance' => (float) $totalDistance,
+                    'totalRecords' => $logs->count(),
                 ]
             ]
         ]);

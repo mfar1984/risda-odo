@@ -21,6 +21,18 @@
             })
             ->orderBy('name')
             ->get();
+
+        // Get vehicle list for filters
+        $kenderaanList = \App\Models\Kenderaan::query()
+            ->when($currentUser->jenis_organisasi === 'stesen', function($q) use ($currentUser) {
+                $q->where('stesen_id', $currentUser->organisasi_id);
+            })
+            ->when($currentUser->jenis_organisasi === 'bahagian', function($q) use ($currentUser) {
+                $q->where('bahagian_id', $currentUser->organisasi_id);
+            })
+            ->where('status', 'aktif')
+            ->orderBy('no_plat')
+            ->get();
     @endphp
 
     <!-- Dashboard Container -->
@@ -63,6 +75,26 @@
                 this.selectedStaffName = name || '- Semua Staf -';
                 this.staffDropdownOpen = false;
                 this.staffSearch = '';
+            },
+            // Vehicle dropdown with search
+            vehicleList: [
+                @foreach($kenderaanList as $kenderaan)
+                { id: '{{ $kenderaan->id }}', name: '{{ $kenderaan->no_plat }} - {{ $kenderaan->jenama }} {{ $kenderaan->model }}' },
+                @endforeach
+            ],
+            vehicleDropdownOpen: false,
+            vehicleSearch: '',
+            selectedVehicleId: '',
+            selectedVehicleName: '- Pilih Kenderaan -',
+            get filteredVehicle() {
+                if (!this.vehicleSearch) return this.vehicleList;
+                return this.vehicleList.filter(v => v.name.toLowerCase().includes(this.vehicleSearch.toLowerCase()));
+            },
+            selectVehicle(id, name) {
+                this.selectedVehicleId = id;
+                this.selectedVehicleName = name || '- Pilih Kenderaan -';
+                this.vehicleDropdownOpen = false;
+                this.vehicleSearch = '';
             },
             genRef(prefix = 'OT') {
                 const d = new Date();
@@ -150,17 +182,50 @@
                         alert('Ralat semasa menjana laporan. Sila cuba lagi.');
                     }
                 } else if (this.reportType === 'kenderaan') {
-                    // Kenderaan - still dummy for now
+                    // Kenderaan - fetch real data
                     this.vehicle.ref = this.genRef('KD');
-                    this.kenderaanRows = [
-                        { tarikhMasa: '1 Okt 2025, 8:00 pagi', pemandu: 'Mohamad Faizan', program: 'Program Jelajah Sarawak', daftarMasukLat: '37.42199830', daftarMasukLong: '-122.08400000', daftarKeluarLat: '37.42199830', daftarKeluarLong: '-122.08400000', jarak: 45.2 },
-                        { tarikhMasa: '2 Okt 2025, 9:30 pagi', pemandu: 'Siti Aminah', program: 'Program Jelajah Sarawak', daftarMasukLat: '37.42199830', daftarMasukLong: '-122.08400000', daftarKeluarLat: '37.42199830', daftarKeluarLong: '-122.08400000', jarak: 38.5 },
-                        { tarikhMasa: '3 Okt 2025, 10:00 pagi', pemandu: 'Ahmad Zulkifli', program: 'Latihan Dalaman', daftarMasukLat: '37.42199830', daftarMasukLong: '-122.08400000', daftarKeluarLat: '37.42199830', daftarKeluarLong: '-122.08400000', jarak: 22.8 }
-                    ];
-                    this.kenderaanSummary = { 
-                        totalDistance: this.kenderaanRows.reduce((a, r) => a + r.jarak, 0), 
-                        totalRecords: this.kenderaanRows.length 
-                    };
+                    const tarikhMula = document.getElementById('tarikh_mula')?.value || '';
+                    const tarikhAkhir = document.getElementById('tarikh_akhir')?.value || '';
+
+                    const formData = new FormData();
+                    formData.append('jenis_laporan', 'kenderaan');
+                    if (tarikhMula) formData.append('tarikh_mula', tarikhMula);
+                    if (tarikhAkhir) formData.append('tarikh_akhir', tarikhAkhir);
+                    if (this.selectedVehicleId) formData.append('kenderaan_id', this.selectedVehicleId);
+
+                    if (!this.selectedVehicleId) {
+                        alert('Sila pilih kenderaan terlebih dahulu');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('{{ route('dashboard.generate-report') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                            },
+                            body: formData
+                        });
+
+                        const result = await response.json();
+                        if (result.success) {
+                            // Update vehicle header
+                            this.vehicle.noPlat = result.data.vehicle.noPlat;
+                            this.vehicle.jenama = result.data.vehicle.jenama;
+                            this.vehicle.noEnjin = result.data.vehicle.noEnjin;
+                            this.vehicle.noCasis = result.data.vehicle.noCasis;
+                            this.vehicle.cukaiTamat = result.data.vehicle.cukaiTamat;
+                            
+                            this.kenderaanRows = result.data.rows;
+                            this.kenderaanSummary = result.data.summary;
+                        } else {
+                            alert('Gagal menjana laporan: ' + (result.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error generating report:', error);
+                        alert('Ralat semasa menjana laporan. Sila cuba lagi.');
+                    }
                 }
             }
         }">
@@ -236,13 +301,42 @@
                 </template>
 
                 <template x-if="reportType === 'kenderaan'">
-                    <div>
+                    <div class="relative" @click.away="vehicleDropdownOpen = false">
                         <x-forms.input-label for="kenderaan_id" value="Kenderaan" />
-                        <select id="kenderaan_id" name="kenderaan_id" class="form-select mt-1">
-                            <option value="">- Pilih Kenderaan -</option>
-                            <option>Contoh: QAB1234</option>
-                            <option>Contoh: QAE5678</option>
-                        </select>
+                        <div @click="vehicleDropdownOpen = !vehicleDropdownOpen" 
+                             class="form-select mt-1 cursor-pointer flex items-center"
+                             style="padding-right: 2.5rem;">
+                            <span x-text="selectedVehicleName" class="truncate"></span>
+                        </div>
+                        
+                        <!-- Dropdown panel with search -->
+                        <div x-show="vehicleDropdownOpen" 
+                             x-transition
+                             class="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-sm shadow-lg"
+                             style="max-height: 300px;">
+                            <!-- Search input -->
+                            <div class="p-2 border-b border-gray-200">
+                                <input type="text" 
+                                       x-model="vehicleSearch" 
+                                       @click.stop
+                                       placeholder="Cari no plat atau jenama..."
+                                       class="w-full px-2 py-1 text-sm border border-gray-300 rounded-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                                       style="font-family: Poppins, sans-serif; font-size: 12px;">
+                            </div>
+                            <!-- Options list -->
+                            <div class="overflow-y-auto" style="max-height: 240px;">
+                                <template x-for="vehicle in filteredVehicle" :key="vehicle.id">
+                                    <div @click="selectVehicle(vehicle.id, vehicle.name)" 
+                                         class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                         :class="{ 'bg-green-50': selectedVehicleId === vehicle.id }"
+                                         style="font-family: Poppins, sans-serif; font-size: 12px;"
+                                         x-text="vehicle.name"></div>
+                                </template>
+                                <div x-show="filteredVehicle.length === 0" class="px-3 py-2 text-sm text-gray-500 italic" style="font-family: Poppins, sans-serif; font-size: 12px;">
+                                    Tiada kenderaan dijumpai
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </template>
 
@@ -467,12 +561,12 @@
                             <table class="min-w-full table-auto border-collapse">
                                 <thead>
                                     <tr class="bg-gray-100">
-                                        <th class="border border-gray-300 px-3 py-2 text-left text-gray-800" style="font-size: 12px;">Tarikh / Masa</th>
-                                        <th class="border border-gray-300 px-3 py-2 text-left text-gray-800" style="font-size: 12px;">Pemandu</th>
-                                        <th class="border border-gray-300 px-3 py-2 text-left text-gray-800" style="font-size: 12px;">Program</th>
-                                        <th class="border border-gray-300 px-3 py-2 text-left text-gray-800" style="font-size: 12px;">Daftar Masuk</th>
-                                        <th class="border border-gray-300 px-3 py-2 text-left text-gray-800" style="font-size: 12px;">Daftar Keluar</th>
-                                        <th class="border border-gray-300 px-3 py-2 text-right text-gray-800" style="font-size: 12px;">Jarak (KM)</th>
+                                        <th class="border border-gray-300 px-2 py-2 text-left text-gray-800" style="font-size: 12px; width: 10%;">Tarikh</th>
+                                        <th class="border border-gray-300 px-2 py-2 text-left text-gray-800" style="font-size: 12px; width: 15%;">Pemandu</th>
+                                        <th class="border border-gray-300 px-2 py-2 text-left text-gray-800" style="font-size: 12px; width: 20%;">Program</th>
+                                        <th class="border border-gray-300 px-2 py-2 text-left text-gray-800" style="font-size: 12px; width: 22%;">Daftar Masuk</th>
+                                        <th class="border border-gray-300 px-2 py-2 text-left text-gray-800" style="font-size: 12px; width: 22%;">Daftar Keluar</th>
+                                        <th class="border border-gray-300 px-2 py-2 text-right text-gray-800" style="font-size: 12px; width: 11%;">Jarak (KM)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -482,16 +576,22 @@
                                             <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.pemandu"></td>
                                             <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.program"></td>
                                             <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;">
-                                                <a :href="`https://www.google.com/maps?q=${r.daftarMasukLat},${r.daftarMasukLong}`" 
-                                                   target="_blank" 
-                                                   class="text-gray-800 hover:text-gray-900 cursor-pointer"
-                                                   x-text="`${r.daftarMasukLat}, ${r.daftarMasukLong}`"></a>
+                                                <div class="flex flex-col">
+                                                    <a :href="`https://www.google.com/maps?q=${r.daftarMasukLat},${r.daftarMasukLong}`" 
+                                                       target="_blank" 
+                                                       class="text-gray-800 hover:text-gray-900 cursor-pointer text-xs"
+                                                       x-text="`${r.daftarMasukLat}, ${r.daftarMasukLong}`"></a>
+                                                    <span class="text-gray-600 text-xs mt-0.5" x-text="r.daftarMasukMasa"></span>
+                                                </div>
                                             </td>
                                             <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;">
-                                                <a :href="`https://www.google.com/maps?q=${r.daftarKeluarLat},${r.daftarKeluarLong}`" 
-                                                   target="_blank" 
-                                                   class="text-gray-800 hover:text-gray-900 cursor-pointer"
-                                                   x-text="`${r.daftarKeluarLat}, ${r.daftarKeluarLong}`"></a>
+                                                <div class="flex flex-col">
+                                                    <a :href="`https://www.google.com/maps?q=${r.daftarKeluarLat},${r.daftarKeluarLong}`" 
+                                                       target="_blank" 
+                                                       class="text-gray-800 hover:text-gray-900 cursor-pointer text-xs"
+                                                       x-text="`${r.daftarKeluarLat}, ${r.daftarKeluarLong}`"></a>
+                                                    <span class="text-gray-600 text-xs mt-0.5" x-text="r.daftarKeluarMasa"></span>
+                                                </div>
                                             </td>
                                             <td class="border border-gray-300 px-3 py-2 text-right" style="font-size: 12px;" x-text="r.jarak.toFixed(1)"></td>
                                         </tr>
@@ -515,7 +615,7 @@
                     </div>
                 </template>
 
-                <!-- Empty state for no results after generate -->
+                <!-- Empty state for no results after generate (Tuntutan) -->
                 <template x-if="reportType === 'tuntutan' && tuntutanRows.length === 0 && tuntutanSummary.totalRecords === 0">
                     <div class="flex flex-col items-center justify-center py-16 text-gray-500">
                         <span class="material-symbols-outlined text-6xl mb-4 text-gray-300">description</span>
@@ -525,8 +625,18 @@
                     </div>
                 </template>
 
+                <!-- Empty state for no results after generate (Kenderaan) -->
+                <template x-if="reportType === 'kenderaan' && kenderaanRows.length === 0 && kenderaanSummary.totalRecords === 0">
+                    <div class="flex flex-col items-center justify-center py-16 text-gray-500">
+                        <span class="material-symbols-outlined text-6xl mb-4 text-gray-300">directions_car</span>
+                        <p class="text-base font-semibold text-gray-700 mb-1" style="font-family: Poppins, sans-serif;">Tiada Rekod Dijumpai</p>
+                        <p class="text-sm text-gray-500" style="font-family: Poppins, sans-serif;">Tiada log perjalanan untuk kenderaan ini pada tempoh yang dipilih.</p>
+                        <p class="text-xs text-gray-400 mt-2" style="font-family: Poppins, sans-serif;">Sila ubah julat tarikh atau pilih kenderaan lain dan cuba lagi.</p>
+                    </div>
+                </template>
+
                 <!-- Default empty state -->
-                <template x-if="!(reportType === 'ot' && otRows.length) && !(reportType === 'tuntutan' && tuntutanRows.length) && !(reportType === 'kenderaan' && kenderaanRows.length) && !(reportType === 'tuntutan' && tuntutanSummary.totalRecords === 0)">
+                <template x-if="!(reportType === 'ot' && otRows.length) && !(reportType === 'tuntutan' && tuntutanRows.length) && !(reportType === 'kenderaan' && kenderaanRows.length) && !(reportType === 'tuntutan' && tuntutanSummary.totalRecords === 0) && !(reportType === 'kenderaan' && kenderaanSummary.totalRecords === 0)">
                     <div class="flex flex-col items-center justify-center py-12 text-gray-500">
                         <span class="material-symbols-outlined text-5xl mb-3 text-gray-400">filter_alt</span>
                         <p class="text-sm text-gray-600" style="font-family: Poppins, sans-serif;">Tiada hasil. Sila pilih penapis dan klik Generate.</p>
