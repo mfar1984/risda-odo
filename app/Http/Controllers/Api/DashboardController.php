@@ -30,10 +30,10 @@ class DashboardController extends Controller
             $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
             
             // Current Month Stats
-            $currentStats = $this->getMonthStats($user->id, $currentMonthStart, $currentMonthEnd);
+            $currentStats = $this->getMonthStats($user->id, $user->staf_id, $currentMonthStart, $currentMonthEnd);
             
             // Last Month Stats (for comparison)
-            $lastStats = $this->getMonthStats($user->id, $lastMonthStart, $lastMonthEnd);
+            $lastStats = $this->getMonthStats($user->id, $user->staf_id, $lastMonthStart, $lastMonthEnd);
             
             // Calculate percentages
             $tripsChange = $this->calculatePercentageChange($currentStats['total_trips'], $lastStats['total_trips']);
@@ -89,30 +89,30 @@ class DashboardController extends Controller
     /**
      * Get statistics for a specific month
      */
-    private function getMonthStats($userId, $startDate, $endDate)
+    private function getMonthStats($userId, $stafId, $startDate, $endDate)
     {
         // Total trips (completed journeys)
-        $totalTrips = LogPemandu::where('pemandu_id', $userId)
+        $totalTrips = LogPemandu::whereIn('pemandu_id', [$userId, $stafId])
             ->where('status', 'selesai')
             ->whereBetween('tarikh_perjalanan', [$startDate, $endDate])
             ->count();
         
         // Total distance
-        $totalDistance = LogPemandu::where('pemandu_id', $userId)
+        $totalDistance = LogPemandu::whereIn('pemandu_id', [$userId, $stafId])
             ->where('status', 'selesai')
             ->whereBetween('tarikh_perjalanan', [$startDate, $endDate])
             ->sum('jarak') ?? 0;
         
         // Fuel cost (COMBINED: from log_pemandu + fuel claims)
         // 1. Direct fuel cost from End Journey
-        $fuelCostDirect = LogPemandu::where('pemandu_id', $userId)
+        $fuelCostDirect = LogPemandu::whereIn('pemandu_id', [$userId, $stafId])
             ->where('status', 'selesai')
             ->whereBetween('tarikh_perjalanan', [$startDate, $endDate])
             ->sum('kos_minyak') ?? 0;
         
         // 2. Fuel cost from Claims (kategori='fuel')
-        $fuelCostClaims = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $startDate, $endDate) {
-                $query->where('pemandu_id', $userId)
+        $fuelCostClaims = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $stafId, $startDate, $endDate) {
+                $query->whereIn('pemandu_id', [$userId, $stafId])
                       ->whereBetween('tarikh_perjalanan', [$startDate, $endDate]);
             })
             ->where('kategori', 'fuel')
@@ -123,8 +123,8 @@ class DashboardController extends Controller
         $fuelCost = $fuelCostDirect + $fuelCostClaims;
         
         // Maintenance cost (from tuntutan with category 'car_maintenance')
-        $maintenanceCost = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $startDate, $endDate) {
-                $query->where('pemandu_id', $userId)
+        $maintenanceCost = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $stafId, $startDate, $endDate) {
+                $query->whereIn('pemandu_id', [$userId, $stafId])
                       ->whereBetween('tarikh_perjalanan', [$startDate, $endDate]);
             })
             ->where('kategori', 'car_maintenance')
@@ -132,8 +132,8 @@ class DashboardController extends Controller
             ->sum('jumlah') ?? 0;
         
         // Parking cost (from tuntutan with category 'parking')
-        $parkingCost = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $startDate, $endDate) {
-                $query->where('pemandu_id', $userId)
+        $parkingCost = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $stafId, $startDate, $endDate) {
+                $query->whereIn('pemandu_id', [$userId, $stafId])
                       ->whereBetween('tarikh_perjalanan', [$startDate, $endDate]);
             })
             ->where('kategori', 'parking')
@@ -141,8 +141,8 @@ class DashboardController extends Controller
             ->sum('jumlah') ?? 0;
         
         // F&B cost (from tuntutan with category 'f&b')
-        $fnbCost = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $startDate, $endDate) {
-                $query->where('pemandu_id', $userId)
+        $fnbCost = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $stafId, $startDate, $endDate) {
+                $query->whereIn('pemandu_id', [$userId, $stafId])
                       ->whereBetween('tarikh_perjalanan', [$startDate, $endDate]);
             })
             ->where('kategori', 'f&b')
@@ -150,8 +150,8 @@ class DashboardController extends Controller
             ->sum('jumlah') ?? 0;
         
         // Accommodation cost (from tuntutan with category 'accommodation')
-        $accommodationCost = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $startDate, $endDate) {
-                $query->where('pemandu_id', $userId)
+        $accommodationCost = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $stafId, $startDate, $endDate) {
+                $query->whereIn('pemandu_id', [$userId, $stafId])
                       ->whereBetween('tarikh_perjalanan', [$startDate, $endDate]);
             })
             ->where('kategori', 'accommodation')
@@ -159,8 +159,8 @@ class DashboardController extends Controller
             ->sum('jumlah') ?? 0;
         
         // Others cost (from tuntutan with category 'others')
-        $othersCost = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $startDate, $endDate) {
-                $query->where('pemandu_id', $userId)
+        $othersCost = Tuntutan::whereHas('logPemandu', function($query) use ($userId, $stafId, $startDate, $endDate) {
+                $query->whereIn('pemandu_id', [$userId, $stafId])
                       ->whereBetween('tarikh_perjalanan', [$startDate, $endDate]);
             })
             ->where('kategori', 'others')

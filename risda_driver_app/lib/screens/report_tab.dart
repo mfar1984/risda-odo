@@ -7,8 +7,11 @@ import '../core/api_client.dart';
 import '../core/constants.dart';
 import '../services/api_service.dart';
 import '../services/connectivity_service.dart';
+import '../services/hive_service.dart';
+import '../models/journey_hive_model.dart';
 import 'support_create_ticket_screen.dart';
 import 'support_ticket_detail_screen.dart';
+import '../services/hive_service.dart'; // Added for HiveService
  
 
 class ReportTab extends StatefulWidget {
@@ -61,13 +64,204 @@ class _ReportTabState extends State<ReportTab> {
     // Check online first
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
-      
+      // OFFLINE: build reports from Hive caches
+      try {
+        // Journeys for last 60 days already synced to Hive
+        final journeys = HiveService.getAllJourneys();
+        final programs = {for (final p in HiveService.getAllPrograms()) p.id: p};
+        final vehicles = {for (final v in HiveService.getAllVehicles()) v.id: v};
+        final claims = HiveService.getAllClaims();
+
+        // Vehicle report offline: map completed journeys to cards
+        vehicleData = journeys
+            .where((j) => j.status == 'selesai')
+            .map((j) {
+              final prog = programs[j.programId];
+              final veh = vehicles[j.kenderaanId];
+              return {
+                'program': prog?.namaProgram ?? 'Tiada Program',
+                'date': j.tarikhPerjalanan.toIso8601String(),
+                'no_plat': veh?.noPendaftaran,
+                'distance': j.jarak ?? ((j.odometerMasuk ?? j.odometerKeluar) - j.odometerKeluar),
+                'location': prog?.lokasi,
+                // details for modal
+                'program_details': {
+                  'nama_program': prog?.namaProgram,
+                  'lokasi_program': prog?.lokasi,
+                  'permohonan_dari': null,
+                },
+                'vehicle_details': {
+                  'no_plat': veh?.noPendaftaran,
+                  'jenama': veh?.jenisKenderaan,
+                  'model': veh?.model,
+                },
+                'journey_details': {
+                  'tarikh': j.tarikhPerjalanan.toIso8601String(),
+                  'masa_keluar': j.masaKeluar,
+                  'masa_masuk': j.masaMasuk,
+                  'odometer_keluar': j.odometerKeluar,
+                  'odometer_masuk': j.odometerMasuk,
+                  'jarak': j.jarak ?? 0,
+                  'catatan': j.catatan,
+                },
+                'fuel_details': {
+                  'kos_minyak': j.kosMinyak,
+                  'liter_minyak': j.literMinyak,
+                  'stesen_minyak': j.stesenMinyak,
+                },
+                'images': {
+                  'foto_odometer_keluar': j.fotoOdometerKeluarLocal,
+                  'foto_odometer_masuk': j.fotoOdometerMasukLocal,
+                  'resit_minyak': j.resitMinyakLocal,
+                }
+              };
+            }).toList();
+
+        // Cost report offline: use claims + journey fuel
+        costData = [
+          // From claims (fuel)
+          ...claims.where((c) => c.kategori == 'fuel').map((c) {
+            JourneyHive? j;
+            try {
+              j = journeys.firstWhere((x) => x.id == c.logPemanduId);
+            } catch (_) {
+              j = null;
+            }
+            final veh = j != null ? vehicles[j.kenderaanId] : null;
+            final prog = j != null ? programs[j.programId] : null;
+            return {
+              'program': prog?.namaProgram ?? 'Tiada Program',
+              'date': (j?.tarikhPerjalanan ?? DateTime.now()).toIso8601String(),
+              'vehicle': veh?.noPendaftaran,
+              'amount': c.jumlah,
+              'liters': null,
+              'program_details': {
+                'nama_program': prog?.namaProgram,
+                'lokasi_program': prog?.lokasi,
+              },
+              'vehicle_details': {
+                'no_plat': veh?.noPendaftaran,
+                'jenama': veh?.jenisKenderaan,
+                'model': veh?.model,
+              },
+              'journey_details': j == null
+                  ? {}
+                  : {
+                      'tarikh': j.tarikhPerjalanan.toIso8601String(),
+                      'masa_keluar': j.masaKeluar,
+                      'masa_masuk': j.masaMasuk,
+                      'odometer_keluar': j.odometerKeluar,
+                      'odometer_masuk': j.odometerMasuk,
+                      'jarak': j.jarak ?? 0,
+                    },
+              'fuel_details': {
+                'kos_minyak': c.jumlah,
+                'liter_minyak': null,
+                'stesen_minyak': null,
+              },
+              'images': {
+                'foto_odometer_keluar': j?.fotoOdometerKeluarLocal,
+                'foto_odometer_masuk': j?.fotoOdometerMasukLocal,
+                'resit_minyak': c.resitLocal,
+              }
+            };
+          }),
+          // From journey fuel
+          ...journeys.where((j) => j.status == 'selesai' && (j.kosMinyak ?? 0) > 0).map((j) {
+            final veh = vehicles[j.kenderaanId];
+            final prog = programs[j.programId];
+            return {
+              'program': prog?.namaProgram ?? 'Tiada Program',
+              'date': j.tarikhPerjalanan.toIso8601String(),
+              'vehicle': veh?.noPendaftaran,
+              'amount': j.kosMinyak,
+              'liters': j.literMinyak,
+              'program_details': {
+                'nama_program': prog?.namaProgram,
+                'lokasi_program': prog?.lokasi,
+              },
+              'vehicle_details': {
+                'no_plat': veh?.noPendaftaran,
+                'jenama': veh?.jenisKenderaan,
+                'model': veh?.model,
+              },
+              'journey_details': {
+                'tarikh': j.tarikhPerjalanan.toIso8601String(),
+                'masa_keluar': j.masaKeluar,
+                'masa_masuk': j.masaMasuk,
+                'odometer_keluar': j.odometerKeluar,
+                'odometer_masuk': j.odometerMasuk,
+                'jarak': j.jarak ?? 0,
+              },
+              'fuel_details': {
+                'kos_minyak': j.kosMinyak,
+                'liter_minyak': j.literMinyak,
+                'stesen_minyak': j.stesenMinyak,
+              },
+              'images': {
+                'foto_odometer_keluar': j.fotoOdometerKeluarLocal,
+                'foto_odometer_masuk': j.fotoOdometerMasukLocal,
+                'resit_minyak': j.resitMinyakLocal,
+              }
+            };
+          })
+        ];
+
+        // Driver report offline: summarize journeys by program
+        final Map<int?, Map<String, dynamic>> byProgram = {};
+        for (final j in journeys) {
+          final prog = programs[j.programId];
+          final key = j.programId;
+          byProgram.putIfAbsent(key, () => {
+                'program_name': prog?.namaProgram ?? 'Tiada Program',
+                'program_location': prog?.lokasi,
+                'permohonan_dari': null,
+                'total_trips': 0,
+                'completed_count': 0,
+                'check_out_count': 0,
+                'check_in_count': 0,
+                'total_distance': 0,
+                'avg_distance': 0,
+                'trips': <Map<String, dynamic>>[],
+              });
+          final bucket = byProgram[key]!;
+          bucket['total_trips'] = (bucket['total_trips'] as int) + 1;
+          if (j.status == 'selesai') bucket['completed_count'] = (bucket['completed_count'] as int) + 1;
+          if (j.masaKeluar.isNotEmpty) bucket['check_out_count'] = (bucket['check_out_count'] as int) + 1;
+          if (j.masaMasuk != null && j.masaMasuk!.isNotEmpty) bucket['check_in_count'] = (bucket['check_in_count'] as int) + 1;
+          final jarak = j.jarak ?? ((j.odometerMasuk ?? j.odometerKeluar) - j.odometerKeluar);
+          bucket['total_distance'] = (bucket['total_distance'] as int) + (jarak is int ? jarak : (jarak ?? 0));
+          (bucket['trips'] as List).add({
+            'date': j.tarikhPerjalanan.toIso8601String(),
+            'masa_keluar': j.masaKeluar,
+            'masa_masuk': j.masaMasuk,
+            'odometer_keluar': j.odometerKeluar,
+            'odometer_masuk': j.odometerMasuk,
+            'jarak': jarak,
+          });
+        }
+        driverData = byProgram.values.map((e) {
+          final trips = List<Map<String, dynamic>>.from(e['trips'] as List);
+          final totalDistance = (e['total_distance'] as int);
+          final avg = trips.isEmpty ? 0 : (totalDistance / trips.length);
+          e['avg_distance'] = avg is int ? avg : avg.round();
+          return e;
+        }).toList();
+
+        setState(() {
+          isLoadingVehicle = false;
+          isLoadingCost = false;
+          isLoadingDriver = false;
+          isLoadingSupport = false; // Help stays online; we just stop loading
+        });
+      } catch (e) {
       setState(() {
         isLoadingVehicle = false;
         isLoadingCost = false;
         isLoadingDriver = false;
         isLoadingSupport = false;
       });
+      }
       return;
     }
     

@@ -192,11 +192,23 @@ class JourneyHive extends HiveObject {
 
   // Create from API response
   factory JourneyHive.fromJson(Map<String, dynamic> json, {required String localId}) {
+    int parseInt(dynamic v) {
+      if (v == null) return 0;
+      if (v is int) return v;
+      return int.tryParse(v.toString()) ?? 0;
+    }
+    // Derive kenderaan_id and program_id from nested objects if needed
+    final int derivedKenderaanId = json.containsKey('kenderaan_id')
+        ? parseInt(json['kenderaan_id'])
+        : (json['kenderaan'] is Map ? parseInt(json['kenderaan']['id']) : 0);
+    final int? derivedProgramId = json.containsKey('program_id')
+        ? parseInt(json['program_id'])
+        : (json['program'] is Map ? parseInt(json['program']['id']) : null);
     return JourneyHive(
       id: json['id'],
       pemanduId: json['pemandu_id'] ?? 0,
-      kenderaanId: json['kenderaan_id'] ?? 0,
-      programId: json['program_id'],
+      kenderaanId: derivedKenderaanId,
+      programId: derivedProgramId,
       tarikhPerjalanan: json['tarikh_perjalanan'] != null 
           ? DateTime.parse(json['tarikh_perjalanan']) 
           : DateTime.now(),

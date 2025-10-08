@@ -17,11 +17,8 @@ class NotificationController extends Controller
         try {
             $user = Auth::user();
             
-            // Simple query - user's notifications OR global notifications
-            $query = Notification::where(function($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhereNull('user_id');
-            });
+            // Mobile app: return ONLY current user's notifications (exclude global admin notifications)
+            $query = Notification::where('user_id', $user->id);
 
             // Filter by read status BEFORE pagination
             if ($request->has('unread_only') && $request->unread_only) {
@@ -35,12 +32,9 @@ class NotificationController extends Controller
             if ($request->has('unread_only') && $request->unread_only) {
                 $unreadCount = $notifications->total();
             } else {
-                $unreadCount = Notification::where(function($q) use ($user) {
-                    $q->where('user_id', $user->id)
-                      ->orWhereNull('user_id');
-                })
-                ->whereNull('read_at')
-                ->count();
+                $unreadCount = Notification::where('user_id', $user->id)
+                    ->whereNull('read_at')
+                    ->count();
             }
 
             return response()->json([

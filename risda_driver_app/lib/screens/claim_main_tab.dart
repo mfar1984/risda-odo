@@ -125,8 +125,12 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
       // If online, sync fresh data from server in background (one-shot)
       final connectivity = context.read<ConnectivityService>();
       if (triggerBackgroundSync && connectivity.isOnline && !_isSyncingClaims && !_didBackgroundSync) {
-        
-        await _syncClaimsInBackground();
+        // Defer to next frame to avoid setState/notify during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _syncClaimsInBackground();
+          }
+        });
       }
     } catch (e) {
       
@@ -145,6 +149,11 @@ class _ClaimMainTabState extends State<ClaimMainTab> with SingleTickerProviderSt
     try {
       if (_isSyncingClaims) return;
       _isSyncingClaims = true;
+      // First push pending offline claims if any
+      try {
+        final syncService = context.read<SyncService>();
+        await syncService.syncPendingData();
+      } catch (_) {}
       final response = await _apiService.getClaims();
       if (response['success'] == true && mounted) {
         // Update Hive with fresh data

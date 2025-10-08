@@ -4,6 +4,10 @@ import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
 import '../core/api_client.dart';
+import 'package:provider/provider.dart';
+import '../services/connectivity_service.dart';
+import '../services/hive_service.dart';
+import '../models/program_hive_model.dart';
  
 
 class ProgramDetailScreen extends StatefulWidget {
@@ -38,15 +42,89 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
     });
 
     try {
-      final response = await _apiService.getProgramDetail(widget.programId);
+      final isOnline = mounted ? context.read<ConnectivityService>().isOnline : true;
+      if (isOnline) {
+        final response = await _apiService.getProgramDetail(widget.programId);
+        if (response['success'] == true && response['data'] != null) {
+          setState(() {
+            _programData = response['data'];
+            _isLoading = false;
+          });
+          // Cache detail for offline usage
+          try {
+            HiveService.settingsBox.put('program_detail_${widget.programId}', response['data']);
+          } catch (_) {}
+          return;
+        }
+        // If API error, fall through to offline fallback
+      }
 
-      if (response['success'] == true && response['data'] != null) {
+      // OFFLINE or API failed → fallback to Hive cache
+      Map<String, dynamic>? cachedDetail;
+      try {
+        final c = HiveService.settingsBox.get('program_detail_${widget.programId}');
+        if (c is Map) {
+          cachedDetail = Map<String, dynamic>.from(c);
+        }
+      } catch (_) {}
+
+      ProgramHive? p;
+      try {
+        p = HiveService.getAllPrograms().firstWhere((e) => e.id == widget.programId);
+      } catch (_) {
+        p = null;
+      }
+
+      if (cachedDetail != null) {
+        // Enrich cached detail with vehicle info from Hive if missing
+        if ((cachedDetail['kenderaan'] == null || cachedDetail['kenderaan'] is! Map) && p != null) {
+          try {
+            final vehicles = HiveService.getAllVehicles();
+            int? vid;
+            if (p.kenderaanId != null) {
+              final s = p.kenderaanId!.split(',').map((e) => int.tryParse(e.trim())).whereType<int>().toList();
+              if (s.isNotEmpty) vid = s.first;
+            }
+            if (vid != null && vehicles.isNotEmpty) {
+              final matched = vehicles.where((x) => x.id == vid).toList();
+              final v = matched.isNotEmpty ? matched.first : vehicles.first;
+              cachedDetail['kenderaan'] = {
+                'id': v.id,
+                'no_plat': v.noPendaftaran,
+                'jenama': v.jenisKenderaan,
+                'model': v.model,
+              };
+            }
+          } catch (_) {}
+        }
         setState(() {
-          _programData = response['data'];
+          _programData = cachedDetail;
+          _isLoading = false;
+        });
+      } else if (p != null) {
+        final lp = p; // non-null local
+        final statusLabel = lp.status == 'sedang_berlangsung'
+            ? 'Aktif'
+            : (lp.status == 'selesai' ? 'Selesai' : lp.status);
+        setState(() {
+          _programData = {
+            'id': lp.id,
+            'nama_program': lp.namaProgram,
+            'status_label': statusLabel ?? 'N/A',
+            'tarikh_mula': lp.tarikhMula?.toIso8601String(),
+            'tarikh_selesai': lp.tarikhTamat?.toIso8601String(),
+            'lokasi_program': lp.lokasi,
+            'jarak_anggaran': lp.jarakAnggaran,
+            'penerangan': lp.peneranganProgram,
+            // Minimal related info from cache if needed
+            'kenderaan': null,
+            'permohonan_dari': null,
+            'pemandu': null,
+          };
           _isLoading = false;
         });
       } else {
-        throw Exception('Failed to load program details');
+        throw Exception('Butiran program tiada dalam cache (offline)');
       }
     } catch (e) {
       setState(() {

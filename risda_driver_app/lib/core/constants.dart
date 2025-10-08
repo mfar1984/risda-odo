@@ -3,7 +3,7 @@ class ApiConstants {
   // Base URL - UPDATE THIS WHEN DEPLOYING
   // For Development (Android Emulator): 'http://10.0.2.2:8000'
   // For Production: 'https://jara.my' or your domain
-  static const String serverUrl = 'https://jara.my';
+  static const String serverUrl = 'http://10.0.2.2:8000';
   
   // API Base URL
   static String get baseUrl => '$serverUrl/api';

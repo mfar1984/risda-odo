@@ -70,23 +70,55 @@ class _ClaimScreenState extends State<ClaimScreen> {
       // ============================================
       final allJourneys = HiveService.getAllJourneys();
       final allPrograms = HiveService.getAllPrograms();
+      final allVehicles = HiveService.getAllVehicles();
       final programById = {for (var p in allPrograms) p.id: p};
+      final vehicleById = {for (var v in allVehicles) v.id: v};
       
       
-      final completedJourneys = allJourneys.where((j) => j.status == 'selesai').toList();
-      
-      
-      // Convert to Map format for dropdown
-      final logs = completedJourneys.map((j) => {
-        'id': j.id ?? 0,  // May be null if offline journey
-        'program': j.programId != null ? {
-          'id': j.programId,
-          'nama_program': programById[j.programId]?.namaProgram ?? 'Program #${j.programId}',
-          'lokasi_program': programById[j.programId]?.lokasi,
-        } : null,
-        'tarikh_perjalanan': j.tarikhPerjalanan.toIso8601String().split('T')[0],
-        'masa_keluar': j.masaKeluar,
+      // Match online: Only completed journeys WITH server id
+      final completedJourneys = allJourneys.where((j) => j.status == 'selesai' && j.id != null).toList();
+
+      // Convert to Map format for dropdown (with vehicle + normalized datetime)
+      final List<Map<String, dynamic>> logs = completedJourneys.map((j) {
+        DateTime startDt;
+        try {
+          final hm = (j.masaKeluar).split(':');
+          startDt = DateTime(j.tarikhPerjalanan.year, j.tarikhPerjalanan.month, j.tarikhPerjalanan.day,
+              int.tryParse(hm[0]) ?? 0, int.tryParse(hm.length > 1 ? hm[1] : '0') ?? 0);
+        } catch (_) {
+          startDt = DateTime(j.tarikhPerjalanan.year, j.tarikhPerjalanan.month, j.tarikhPerjalanan.day);
+        }
+        final v = vehicleById[j.kenderaanId];
+        return {
+          'id': j.id, // non-null
+          'program': j.programId != null
+              ? {
+                  'id': j.programId,
+                  'nama_program': programById[j.programId]?.namaProgram ?? 'Program #${j.programId}',
+                  'lokasi_program': programById[j.programId]?.lokasi,
+                }
+              : null,
+          'kenderaan': v == null
+              ? null
+              : {
+                  'id': v.id,
+                  'no_plat': v.noPendaftaran,
+                  'jenama': v.jenisKenderaan,
+                  'model': v.model,
+                },
+          'tarikh_perjalanan': j.tarikhPerjalanan.toIso8601String().split('T')[0],
+          'masa_keluar': j.masaKeluar,
+          'start_dt': startDt.toIso8601String(),
+          'is_synced': true,
+        };
       }).toList();
+
+      // Sort newest first
+      logs.sort((a, b) {
+        final ad = DateTime.tryParse(a['start_dt'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bd = DateTime.tryParse(b['start_dt'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return bd.compareTo(ad);
+      });
       
       
       
@@ -508,11 +540,18 @@ class _ClaimScreenState extends State<ClaimScreen> {
         return;
       }
       
-      // Other errors (validation, etc) - show error
+      // Validation errors (e.g., log_pemandu_id not exists) → offer offline save
+      if (e.response?.statusCode == 422) {
+        final auth = context.read<AuthService>();
+        if (auth.userId != null) {
+          await _saveClaimOffline(amount, auth.userId!);
+          return;
+        }
+      }
+
+      // Other errors (validation without offline, server 4xx/5xx) - show error
       setState(() => isSubmitting = false);
-      
       String errorMessage = 'Ralat tidak diketahui';
-      
       if (e.response != null) {
         if (e.response!.data is Map && e.response!.data['message'] != null) {
           errorMessage = e.response!.data['message'];
@@ -525,7 +564,6 @@ class _ClaimScreenState extends State<ClaimScreen> {
       } else {
         errorMessage = e.message ?? errorMessage;
       }
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $errorMessage'), backgroundColor: Colors.red),
@@ -586,6 +624,16 @@ class _ClaimScreenState extends State<ClaimScreen> {
                               border: InputBorder.none,
                               hintText: 'Pilih Log Perjalanan',
                             ),
+                            selectedItemBuilder: (ctx) {
+                              final items = completedLogs ?? [];
+                              return items.map<Widget>((log) {
+                                final programName = log['program']?['nama_program'] ?? 'Tiada Program';
+                                return Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(programName, overflow: TextOverflow.ellipsis, maxLines: 1, style: AppTextStyles.bodyLarge),
+                                );
+                              }).toList();
+                            },
                             items: completedLogs == null || completedLogs!.isEmpty 
                                 ? [DropdownMenuItem<int>(
                                     value: null,
@@ -593,30 +641,23 @@ class _ClaimScreenState extends State<ClaimScreen> {
                                     child: Text('Tiada log perjalanan selesai', style: AppTextStyles.bodyMedium.copyWith(color: Colors.grey)),
                                   )]
                                 : completedLogs!.map((log) {
-                                    // Use masa_keluar (start journey time) instead of tarikh_perjalanan
-                                    String dateStr = log['masa_keluar'] ?? '';
-                                    if (dateStr.isNotEmpty) {
-                                      try {
-                                        final utcDate = DateTime.parse(dateStr);
-                                        // Convert to Malaysia timezone (+8 hours)
-                                        final myDate = utcDate.add(const Duration(hours: 8));
-                                        
-                                        // Month names
-                                        const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                                                       'July', 'August', 'September', 'October', 'November', 'December'];
-                                        
-                                        // 12-hour format with am/pm
-                                        final hour12 = myDate.hour == 0 ? 12 : (myDate.hour > 12 ? myDate.hour - 12 : myDate.hour);
-                                        final ampm = myDate.hour >= 12 ? 'pm' : 'am';
-                                        
-                                        dateStr = '${myDate.day} ${months[myDate.month - 1]} ${myDate.year} - ${hour12.toString().padLeft(2, '0')}:${myDate.minute.toString().padLeft(2, '0')} $ampm';
-                                      } catch (e) {
-                                        // Keep original if parsing fails
-                                      }
+                                    // Build display datetime from normalized start_dt
+                                    String dateStr = '';
+                                    try {
+                                      final myDate = DateTime.parse(log['start_dt']);
+                                      const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                                        'July', 'August', 'September', 'October', 'November', 'December'];
+                                      final hour12 = myDate.hour == 0 ? 12 : (myDate.hour > 12 ? myDate.hour - 12 : myDate.hour);
+                                      final ampm = myDate.hour >= 12 ? 'pm' : 'am';
+                                      dateStr = '${myDate.day} ${months[myDate.month - 1]} ${myDate.year} - ${hour12.toString().padLeft(2, '0')}:${myDate.minute.toString().padLeft(2, '0')} $ampm';
+                                    } catch (_) {
+                                      dateStr = '${log['tarikh_perjalanan']} ${log['masa_keluar'] ?? ''}';
                                     }
                                     
+                                    final isSynced = log['is_synced'] == true && (log['id'] ?? 0) != 0;
                                     return DropdownMenuItem<int>(
-                                      value: log['id'],
+                                      value: isSynced ? (log['id'] as int) : null,
+                                      enabled: isSynced,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -625,8 +666,8 @@ class _ClaimScreenState extends State<ClaimScreen> {
                                             style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w600),
                                           ),
                                           Text(
-                                            '$dateStr - ${log['kenderaan']?['no_plat'] ?? 'N/A'}',
-                                            style: AppTextStyles.bodySmall.copyWith(color: Colors.grey),
+                                            isSynced ? '$dateStr' : 'Belum diselaraskan (tidak boleh hantar tuntutan)',
+                                            style: AppTextStyles.bodySmall.copyWith(color: isSynced ? Colors.grey : Colors.orange),
                                           ),
                                         ],
                                       ),

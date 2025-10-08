@@ -110,18 +110,22 @@ class AuthService extends ChangeNotifier {
         _currentAuth = authData;
         _isLoading = false;
         notifyListeners();
-        
-        
-        
-        
-        // Sync master data after successful login
+
+        // Initialize FCM for this account (register token)
+        try {
+          await FirebaseService().initialize();
+        } catch (e) {
+          // Non-fatal if FCM init fails
+        }
+
+        // Sync master data after successful login (cold sync)
         if (_syncService != null) {
-          
           try {
             await _syncService.syncAllMasterData();
-          } catch (e) {
-            
-          }
+            // Reconcile TripState and ensure odometer cache for offline usage
+            await _syncService.reconcileTripState();
+            await _syncService.ensureVehicleOdometerCache();
+          } catch (e) {}
         }
         
         return true;
@@ -145,7 +149,7 @@ class AuthService extends ChangeNotifier {
   }
 
   /// Logout (REAL API)
-  /// Clears user-specific data but retains master data (programs, vehicles)
+  /// Clears all user-related data (including master caches) to prevent cross-account contamination
   Future<void> logout() async {
     try {
       
@@ -181,13 +185,19 @@ class AuthService extends ChangeNotifier {
       await HiveService.journeyBox.clear();                   // User journeys
       await HiveService.claimBox.clear();                     // User claims
       await HiveService.syncQueueBox.clear();                 // Pending sync
-      
-      // ============================================
-      // KEEP MASTER DATA (shared, not user-specific)
-      // ============================================
-      // ✅ programBox - programs (shared across organization)
-      // ✅ vehicleBox - vehicles (shared across organization)
-      // ✅ settingsBox (other keys) - app settings
+      // Remove cached program details (settings keys)
+      try {
+        final keys = HiveService.settingsBox.keys.toList();
+        for (final k in keys) {
+          if (k is String && k.startsWith('program_detail_')) {
+            await HiveService.settingsBox.delete(k);
+          }
+        }
+      } catch (e) {}
+
+      // Also clear master data to avoid leftover from another account
+      try { await HiveService.programBox.clear(); } catch (e) {}
+      try { await HiveService.vehicleBox.clear(); } catch (e) {}
       
       final programsKept = HiveService.programBox.length;
       final vehiclesKept = HiveService.vehicleBox.length;

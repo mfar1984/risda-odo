@@ -4,13 +4,18 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
-import 'dart:io' show File, Platform;
+import 'dart:io' show File, Platform, Directory;
 import 'dart:typed_data';
+import 'package:provider/provider.dart';
+import 'package:path_provider/path_provider.dart';
  
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../core/api_client.dart';
 import '../services/api_service.dart';
+import '../services/connectivity_service.dart';
+import '../services/hive_service.dart';
+import '../models/journey_hive_model.dart';
 
 class CheckOutScreen extends StatefulWidget {
   const CheckOutScreen({super.key});
@@ -68,6 +73,88 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     _loadActiveTrip();
   }
 
+  Future<void> _saveEndJourneyOffline({
+    required int odometerMasuk,
+    double? liter,
+    double? kos,
+    String? stesen,
+  }) async {
+    try {
+      final journey = HiveService.getActiveJourney();
+      if (journey == null) {
+        setState(() => isSubmitting = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Tiada perjalanan aktif (offline).'), backgroundColor: Colors.orange),
+          );
+        }
+        return;
+      }
+
+      // Persist photos locally if present
+      String? fotoMasukLocal = journey.fotoOdometerMasukLocal;
+      String? resitLocal = journey.resitMinyakLocal;
+      final appDir = await getApplicationDocumentsDirectory();
+      if (odometerPhoto != null) {
+        final dir = Directory('${appDir.path}/journeys/end');
+        await dir.create(recursive: true);
+        final fileName = 'end_${journey.localId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final file = File('${dir.path}/$fileName');
+        final bytes = await odometerPhoto!.readAsBytes();
+        await file.writeAsBytes(bytes);
+        fotoMasukLocal = file.path;
+      }
+      if (fuelReceiptPhoto != null) {
+        final dir = Directory('${appDir.path}/journeys/receipts');
+        await dir.create(recursive: true);
+        final fileName = 'receipt_${journey.localId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final file = File('${dir.path}/$fileName');
+        final bytes = await fuelReceiptPhoto!.readAsBytes();
+        await file.writeAsBytes(bytes);
+        resitLocal = file.path;
+      }
+
+      // Update local journey
+      journey.odometerMasuk = odometerMasuk;
+      // Also set masa_masuk for offline guard consistency
+      try {
+        final now = DateTime.now();
+        journey.masaMasuk = DateFormat('HH:mm').format(now);
+      } catch (_) {}
+      if (journey.odometerKeluar <= odometerMasuk) {
+        journey.jarak = odometerMasuk - journey.odometerKeluar;
+      }
+      journey.literMinyak = liter;
+      journey.kosMinyak = kos;
+      journey.stesenMinyak = stesen;
+      journey.fotoOdometerMasukLocal = fotoMasukLocal;
+      journey.resitMinyakLocal = resitLocal;
+      journey.lokasiCheckoutLat = gpsLatitude;
+      journey.lokasiCheckoutLong = gpsLongitude;
+      journey.status = 'selesai';
+      journey.isSynced = false;
+      journey.updatedAt = DateTime.now();
+      journey.syncError = null;
+      await journey.save();
+      await HiveService.setJourneyActive(false);
+
+      if (mounted) {
+        setState(() => isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Perjalanan ditamatkan (offline). Akan sync bila online.'), backgroundColor: Colors.orange),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal tamat offline: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   void _setCurrentDateTime() {
     final now = DateTime.now();
     final formatter = DateFormat('dd/MM/yyyy HH:mm');
@@ -81,11 +168,14 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       });
 
     try {
-      // Call API to get active journey
-      final response = await _apiService.getActiveJourney();
-      
-      final journey = response['data'];
-      
+      // Connectivity-aware load
+      final isOnline = await context.read<ConnectivityService>().checkConnection();
+      Map<String, dynamic>? journey;
+      if (isOnline) {
+        final response = await _apiService.getActiveJourney();
+        journey = response['data'];
+      }
+
       if (journey != null) {
         // Pre-fill form with active trip data from API
         activeJourneyId = journey['id'] as int;
@@ -119,12 +209,53 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
           hasActiveTrip = true;
         });
       } else {
-        // No active journey
-        setState(() {
-          isLoading = false;
-          hasActiveTrip = false;
-          errorMessage = 'Tiada perjalanan aktif. Sila mulakan perjalanan terlebih dahulu.';
-        });
+        // Offline or API says none -> try local active journey from Hive
+        final j = HiveService.getActiveJourney();
+        if (j != null) {
+          // Prefill from local cache
+          startOdometer = j.odometerKeluar;
+          // Program name & location from ProgramHive or cached detail
+          try {
+            final cached = HiveService.settingsBox.get('program_detail_${j.programId}');
+            if (cached is Map) {
+              final cm = Map<String, dynamic>.from(cached);
+              programNameController.text = cm['nama_program']?.toString() ?? programNameController.text;
+              locationController.text = cm['lokasi_program']?.toString() ?? locationController.text;
+              if (cm['jarak_anggaran'] != null) {
+                estimationKmController.text = '${cm['jarak_anggaran']} km';
+              }
+              final req = cm['permohonan_dari'];
+              if (req is Map) {
+                requestByController.text = req['nama_penuh']?.toString() ?? requestByController.text;
+              }
+              final kd = cm['kenderaan'];
+              if (kd is Map) {
+                vehicleController.text = '${kd['no_plat'] ?? ''} - ${kd['jenama'] ?? ''} ${kd['model'] ?? ''}'.trim();
+              }
+            }
+          } catch (_) {}
+          // Fallback to VehicleHive text if still empty
+          if (vehicleController.text.isEmpty) {
+            try {
+              final vehicles = HiveService.getAllVehicles();
+              final v = vehicles.firstWhere((v) => v.id == j.kenderaanId, orElse: () => vehicles.first);
+              vehicleController.text = '${v.noPendaftaran} - ${v.jenisKenderaan} ${v.model}';
+            } catch (_) {}
+          }
+
+          setState(() {
+            isLoading = false;
+            hasActiveTrip = true; // allow checkout UI offline
+            errorMessage = null;
+            activeJourneyId = j.id; // may be null; online end will be guarded elsewhere
+          });
+        } else {
+          setState(() {
+            isLoading = false;
+            hasActiveTrip = false;
+            errorMessage = 'Tiada perjalanan aktif. Sila mulakan perjalanan terlebih dahulu.';
+          });
+        }
       }
     } catch (e) {
       setState(() {
@@ -171,6 +302,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         timeLimit: const Duration(seconds: 10), // Add timeout
       );
 
+      if (!mounted) return;
       setState(() {
         gpsLatitude = position.latitude;
         gpsLongitude = position.longitude;
@@ -178,6 +310,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         gpsLocationController.text = currentLocation;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         // Keep concise user-facing message
         currentLocation = 'Error getting location';
@@ -339,11 +472,10 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
   }
 
   Future<void> _submitCheckOut() async {
-    // Check if there's an active journey
-    if (activeJourneyId == null) {
-      setState(() {
-        errorMessage = 'Tiada perjalanan aktif untuk ditamatkan';
-      });
+    // Centralized TripState: must be active to allow end
+    final hasAnyActive = HiveService.isJourneyActive();
+    if (!hasAnyActive) {
+      setState(() { errorMessage = 'Tiada perjalanan aktif untuk ditamatkan'; });
       return;
     }
 
@@ -398,6 +530,18 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     });
 
     try {
+      // If offline, immediately save to Hive
+      final isOnline = await context.read<ConnectivityService>().checkConnection();
+      if (!isOnline) {
+        await _saveEndJourneyOffline(
+          odometerMasuk: currentOdometer,
+          liter: addFuelInfo && fuelLitersController.text.isNotEmpty ? double.tryParse(fuelLitersController.text) : null,
+          kos: addFuelInfo && fuelCostController.text.isNotEmpty ? double.tryParse(fuelCostController.text) : null,
+          stesen: addFuelInfo && gasStationController.text.isNotEmpty ? gasStationController.text : null,
+        );
+        await HiveService.setJourneyActive(false);
+        return;
+      }
       // Prepare fuel data (only if checkbox is checked)
       final double? fuelLiters = addFuelInfo && fuelLitersController.text.isNotEmpty
           ? double.tryParse(fuelLitersController.text)
@@ -445,6 +589,27 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
           isSubmitting = false;
         });
 
+      // Update local Hive active journey to selesai so offline TripState inference matches
+      try {
+        final journey = HiveService.getActiveJourney();
+        if (journey != null) {
+          journey.odometerMasuk = currentOdometer;
+          try {
+            final now = DateTime.now();
+            journey.masaMasuk = DateFormat('HH:mm').format(now);
+          } catch (_) {}
+          if (journey.odometerKeluar <= currentOdometer) {
+            journey.jarak = currentOdometer - journey.odometerKeluar;
+          }
+          journey.lokasiCheckoutLat = gpsLatitude;
+          journey.lokasiCheckoutLong = gpsLongitude;
+          journey.status = 'selesai';
+          journey.isSynced = true;
+          journey.updatedAt = DateTime.now();
+          await journey.save();
+        }
+      } catch (_) {}
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(response['message'] ?? 'Perjalanan berjaya ditamatkan!'),
@@ -452,40 +617,20 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         ),
       );
 
+      // Clear TripState (no active)
+      await HiveService.setJourneyActive(false);
+
       Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
-        // Extract detailed error message from DioException
-        String detailedError = e.toString();
-        if (e is DioException) {
-          if (e.response != null && e.response!.data != null) {
-            final errorData = e.response!.data;
-            detailedError = 'Status: ${e.response!.statusCode}\n';
-            
-            if (errorData is Map) {
-              if (errorData['message'] != null) {
-                detailedError += 'Message: ${errorData['message']}\n';
-              }
-              if (errorData['errors'] != null) {
-                detailedError += 'Errors: ${errorData['errors']}\n';
-              }
-            }
-          }
-        }
-        
-      setState(() {
-        isSubmitting = false;
-          errorMessage = 'Gagal menamatkan perjalanan: $detailedError';
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $detailedError'),
-            backgroundColor: Colors.red,
-              duration: const Duration(seconds: 5),
-          ),
+        await _saveEndJourneyOffline(
+          odometerMasuk: int.tryParse(odometerController.text) ?? startOdometer,
+          liter: addFuelInfo && fuelLitersController.text.isNotEmpty ? double.tryParse(fuelLitersController.text) : null,
+          kos: addFuelInfo && fuelCostController.text.isNotEmpty ? double.tryParse(fuelCostController.text) : null,
+          stesen: addFuelInfo && gasStationController.text.isNotEmpty ? gasStationController.text : null,
         );
+        return;
       }
     }
   }

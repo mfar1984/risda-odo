@@ -133,8 +133,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           
           // Then sync pending offline data
           await syncService.syncPendingData();
+          // Reconcile TripState centrally using sync service helper
+          await syncService.reconcileTripState();
         } else {
           // offline path: use cached Hive data
+          await syncService.reconcileTripState();
         }
       } else if (_steps[i].contains('Checking Login Status')) {
         // Initialize AuthService (check Hive for cached session)

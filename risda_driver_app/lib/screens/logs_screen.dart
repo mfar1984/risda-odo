@@ -5,6 +5,12 @@ import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
 import '../core/api_client.dart';
+import 'package:provider/provider.dart';
+import '../services/connectivity_service.dart';
+import '../services/hive_service.dart';
+import '../models/journey_hive_model.dart';
+import '../models/program_hive_model.dart';
+import '../models/vehicle_hive_model.dart';
 
 class LogsScreen extends StatefulWidget {
   const LogsScreen({super.key});
@@ -69,42 +75,149 @@ class _LogsScreenState extends State<LogsScreen> {
     });
     
     try {
-      // Load all logs (filter by date will be done client-side for now)
-      final response = await _apiService.getLogs();
-      
-      if (response['success'] == true) {
-        List<Map<String, dynamic>> allLogs = List<Map<String, dynamic>>.from(response['data'] ?? []);
-        
-        // Filter by date range if selected
-        if (fromDate != null && toDate != null) {
-          allLogs = allLogs.where((log) {
-            if (log['tarikh_perjalanan'] == null) return false;
-            try {
-              final logDate = DateTime.parse(log['tarikh_perjalanan']);
-              return logDate.isAfter(fromDate!.subtract(const Duration(days: 1))) &&
-                     logDate.isBefore(toDate!.add(const Duration(days: 1)));
-            } catch (e) {
-              return false;
-            }
-          }).toList();
+      final isOnline = mounted ? context.read<ConnectivityService>().isOnline : true;
+      if (isOnline) {
+        // Try API first
+        final response = await _apiService.getLogs();
+        if (response['success'] == true) {
+          List<Map<String, dynamic>> allLogs = List<Map<String, dynamic>>.from(response['data'] ?? []);
+          // Client-side date filter
+          if (fromDate != null && toDate != null) {
+            allLogs = allLogs.where((log) {
+              if (log['tarikh_perjalanan'] == null) return false;
+              try {
+                final logDate = DateTime.parse(log['tarikh_perjalanan']);
+                return logDate.isAfter(fromDate!.subtract(const Duration(days: 1))) &&
+                       logDate.isBefore(toDate!.add(const Duration(days: 1)));
+              } catch (e) {
+                return false;
+              }
+            }).toList();
+          }
+          setState(() {
+            completedLogs = allLogs;
+            logsShown = 10;
+            isLoading = false;
+          });
+          return;
         }
-        
-        setState(() {
-          completedLogs = allLogs;
-          logsShown = 10; // Reset to 10 when new data loaded
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          completedLogs = [];
-          errorMessage = response['message'] ?? 'Gagal memuat log';
-          isLoading = false;
-        });
+        // If API returns error, fall through to offline fallback
       }
+
+      // OFFLINE or API failed → build logs from Hive cache
+      final journeys = HiveService.getAllJourneys();
+      final programs = {for (final p in HiveService.getAllPrograms()) p.id: p};
+      final vehicles = {for (final v in HiveService.getAllVehicles()) v.id: v};
+
+      List<Map<String, dynamic>> mapped = journeys.map((JourneyHive j) {
+        // Compose ISO datetime for times
+        DateTime startDt;
+        try {
+          final hm = (j.masaKeluar).split(':');
+          startDt = DateTime(j.tarikhPerjalanan.year, j.tarikhPerjalanan.month, j.tarikhPerjalanan.day,
+              int.tryParse(hm[0]) ?? 0, int.tryParse(hm.length > 1 ? hm[1] : '0') ?? 0);
+        } catch (_) {
+          startDt = DateTime(j.tarikhPerjalanan.year, j.tarikhPerjalanan.month, j.tarikhPerjalanan.day, 0, 0);
+        }
+        DateTime? endDt;
+        if (j.masaMasuk != null) {
+          try {
+            final hm = j.masaMasuk!.split(':');
+            endDt = DateTime(j.tarikhPerjalanan.year, j.tarikhPerjalanan.month, j.tarikhPerjalanan.day,
+                int.tryParse(hm[0]) ?? 0, int.tryParse(hm.length > 1 ? hm[1] : '0') ?? 0);
+          } catch (_) {}
+        }
+
+        final p = programs[j.programId];
+        Map<String, dynamic>? programMap = p == null
+            ? null
+            : {
+                'id': p.id,
+                'nama_program': p.namaProgram,
+                'lokasi_program': p.lokasi,
+              };
+
+        // Fallback to cached program detail if needed (location/vehicle)
+        if (programMap == null || programMap['lokasi_program'] == null) {
+          try {
+            final c = HiveService.settingsBox.get('program_detail_${j.programId}');
+            if (c is Map) {
+              final cm = Map<String, dynamic>.from(c);
+              programMap ??= {};
+              programMap!['id'] = j.programId;
+              programMap!['nama_program'] ??= cm['nama_program'];
+              programMap!['lokasi_program'] ??= cm['lokasi_program'];
+            }
+          } catch (_) {}
+        }
+
+        Map<String, dynamic>? vehicleMap;
+        final v = vehicles[j.kenderaanId];
+        if (v != null) {
+          vehicleMap = {
+            'id': v.id,
+            'no_plat': v.noPendaftaran,
+            'jenama': v.jenisKenderaan,
+            'model': v.model,
+          };
+        } else {
+          // If vehicle not in vehicleBox, try program_detail cache
+          try {
+            final c = HiveService.settingsBox.get('program_detail_${j.programId}');
+            if (c is Map && c['kenderaan'] is Map) {
+              final kv = Map<String, dynamic>.from(c['kenderaan']);
+              vehicleMap = {
+                'id': kv['id'],
+                'no_plat': kv['no_plat'],
+                'jenama': kv['jenama'],
+                'model': kv['model'],
+              };
+            }
+          } catch (_) {}
+        }
+
+        return {
+          'id': j.id ?? j.localId,
+          'program': programMap,
+          'kenderaan': vehicleMap,
+          'tarikh_perjalanan': j.tarikhPerjalanan.toIso8601String(),
+          'masa_keluar': startDt.toIso8601String(),
+          if (endDt != null) 'masa_masuk': endDt.toIso8601String(),
+          'status': j.status,
+          'odometer_keluar': j.odometerKeluar,
+          'odometer_masuk': j.odometerMasuk,
+          'kos_minyak': j.kosMinyak,
+          'liter_minyak': j.literMinyak,
+          'stesen_minyak': j.stesenMinyak,
+          'catatan': j.catatan,
+        };
+      }).toList();
+
+      // Client-side filter by date
+      if (fromDate != null && toDate != null) {
+        mapped = mapped.where((log) {
+          if (log['tarikh_perjalanan'] == null) return false;
+          try {
+            final logDate = DateTime.parse(log['tarikh_perjalanan']);
+            return logDate.isAfter(fromDate!.subtract(const Duration(days: 1))) &&
+                   logDate.isBefore(toDate!.add(const Duration(days: 1)));
+          } catch (e) {
+            return false;
+          }
+        }).toList();
+      }
+
+      setState(() {
+        completedLogs = mapped;
+        logsShown = 10;
+        isLoading = false;
+        errorMessage = null; // no error banner offline
+      });
     } catch (e) {
       setState(() {
+        // As final fallback, show nothing but no scary error
         completedLogs = [];
-        errorMessage = 'Ralat: $e';
+        errorMessage = null;
         isLoading = false;
       });
     }

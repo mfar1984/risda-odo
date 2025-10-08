@@ -85,11 +85,35 @@ class ProgramHive extends HiveObject {
   });
 
   factory ProgramHive.fromJson(Map<String, dynamic> json) {
+    // Normalize pemandu IDs into a comma-separated string to support offline filtering
+    String? normalizedPemanduId;
+    try {
+      if (json.containsKey('pemandu_id') && json['pemandu_id'] != null) {
+        normalizedPemanduId = json['pemandu_id'].toString();
+      } else if (json.containsKey('pemandu_ids') && json['pemandu_ids'] != null) {
+        final v = json['pemandu_ids'];
+        if (v is List) {
+          normalizedPemanduId = v.map((e) => e.toString()).join(',');
+        } else {
+          normalizedPemanduId = v.toString();
+        }
+      } else if (json.containsKey('pemandu')) {
+        final v = json['pemandu'];
+        if (v is Map && v['id'] != null) {
+          normalizedPemanduId = v['id'].toString();
+        } else if (v is List) {
+          normalizedPemanduId = v
+              .map((e) => (e is Map && e['id'] != null) ? e['id'].toString() : null)
+              .where((e) => e != null)
+              .join(',');
+        }
+      }
+    } catch (_) {}
     return ProgramHive(
       id: json['id'] ?? 0,
       namaProgram: json['nama_program'] ?? 'N/A',
       kenderaanId: json['kenderaan_id']?.toString(),
-      pemanduId: json['pemandu_id']?.toString(),
+      pemanduId: normalizedPemanduId,
       tarikhMula: json['tarikh_mula'] != null ? DateTime.parse(json['tarikh_mula']) : null,
       tarikhTamat: json['tarikh_tamat'] != null ? DateTime.parse(json['tarikh_tamat']) : null,
       // Some APIs return 'lokasi_program' instead of 'lokasi'

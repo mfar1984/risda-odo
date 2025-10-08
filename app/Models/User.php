@@ -28,6 +28,7 @@ class User extends Authenticatable
         'password',
         'profile_picture',
         'kumpulan_id',
+        'staf_id',
         'jenis_organisasi',
         'organisasi_id',
         'stesen_akses_ids',

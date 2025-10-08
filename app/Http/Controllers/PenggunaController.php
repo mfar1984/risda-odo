@@ -244,10 +244,18 @@ class PenggunaController extends Controller
         }
 
         if (!$jenisOrganisasi) {
-            $jenisOrganisasi = 'bahagian';
-            $organisasiId = $currentUser && $currentUser->jenis_organisasi !== 'semua'
-                ? (int) $currentUser->organisasi_id
-                : null;
+            // If no stesen selected and bahagian provided, default to bahagian access
+            if ($request->filled('bahagian_akses_id')) {
+                $jenisOrganisasi = 'bahagian';
+                $organisasiId = (int) $request->bahagian_akses_id;
+            } else {
+                // Fallback: inherit creator's scope if not Administrator
+                $currentUser = auth()->user();
+                $jenisOrganisasi = 'bahagian';
+                $organisasiId = $currentUser && $currentUser->jenis_organisasi !== 'semua'
+                    ? (int) $currentUser->organisasi_id
+                    : null;
+            }
         }
 
         // Create user
@@ -256,6 +264,7 @@ class PenggunaController extends Controller
             'email' => $staf->email,
             'password' => $request->password,
             'kumpulan_id' => $request->kumpulan_id,
+            'staf_id' => $staf->id,
             'jenis_organisasi' => $jenisOrganisasi,
             'organisasi_id' => $organisasiId,
             'stesen_akses_ids' => $stesenAksesIds,

@@ -108,6 +108,29 @@ class HiveService {
     return journeyBox.watch();
   }
 
+  // ===== CENTRALIZED TRIP STATE (TripState) =====
+  /// Read centralized journey active flag from settings (default false)
+  static bool isJourneyActive() {
+    final v = settingsBox.get('journey_active');
+    if (v is bool) return v;
+    // Fallback derive from Hive journeys if not set
+    final active = getActiveJourney() != null;
+    settingsBox.put('journey_active', active);
+    return active;
+  }
+
+  /// Set centralized journey active flag
+  static Future<void> setJourneyActive(bool active) async {
+    await settingsBox.put('journey_active', active);
+  }
+
+  /// Recompute journey_active from current Hive journeys and persist
+  static Future<bool> recomputeAndSetJourneyActive() async {
+    final active = getActiveJourney() != null;
+    await settingsBox.put('journey_active', active);
+    return active;
+  }
+
   // ===== PROGRAM OPERATIONS =====
   
   /// Get all programs

@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import '../theme/pastel_colors.dart';
 import '../theme/text_styles.dart';
 import '../services/api_service.dart';
+import '../services/hive_service.dart';
+import '../services/auth_service.dart';
+import '../models/program_hive_model.dart';
+import 'package:intl/intl.dart';
 import '../services/connectivity_service.dart';
 import '../core/api_client.dart';
 import 'checkin_screen.dart';
@@ -52,14 +56,11 @@ class _DoTabState extends State<DoTab> {
     // Check online first
     final connectivity = context.read<ConnectivityService>();
     if (!connectivity.isOnline) {
-      
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Offline - use cached data if available';
-      });
+      await _loadProgramsOffline();
+      // Chart stays empty offline for now
       return;
     }
-    
+
     await Future.wait([
       _loadPrograms(),
       _loadChartData(),
@@ -96,10 +97,140 @@ class _DoTabState extends State<DoTab> {
         });
       }
     } catch (e) {
+      // Fallback to offline cache
+      await _loadProgramsOffline();
+    }
+  }
+
+  Future<void> _loadProgramsOffline() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final auth = context.read<AuthService>();
+      final now = DateTime.now();
+      // Collect identifiers for assignment (user id and staf id)
+      final Set<String> driverIdSet = {};
+      if (auth.userId != null) driverIdSet.add(auth.userId!.toString());
+      try {
+        final user = auth.currentUser;
+        final stafId = user['user']?['staf']?['id'] ?? user['staf']?['id'];
+        if (stafId != null) driverIdSet.add(stafId.toString());
+      } catch (_) {}
+
+      List<ProgramHive> all = HiveService.getAllPrograms();
+      // Only assigned to current driver
+      all = all.where((p) {
+        if (p.pemanduId == null || p.pemanduId!.trim().isEmpty) return false;
+        final assignedIds = p.pemanduId!
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toSet();
+        return driverIdSet.any((id) => assignedIds.contains(id));
+      }).toList();
+
+      String? statusLabelFor(ProgramHive p) {
+        try {
+          final cached = HiveService.settingsBox.get('program_detail_${p.id}');
+          if (cached is Map && cached['status_label'] is String) {
+            return (cached['status_label'] as String);
+          }
+        } catch (_) {}
+        return p.status; // fallback raw status
+      }
+
+      bool isOngoing(ProgramHive p) {
+        final within = (p.tarikhMula == null || !now.isBefore(p.tarikhMula!)) &&
+            (p.tarikhTamat == null || !now.isAfter(p.tarikhTamat!));
+        final label = (statusLabelFor(p) ?? '').toLowerCase();
+        return label.contains('aktif') || within;
+      }
+
+      bool isPast(ProgramHive p) {
+        final label = (statusLabelFor(p) ?? '').toLowerCase();
+        if (label.contains('selesai')) return true;
+        if (p.tarikhTamat != null && now.isAfter(p.tarikhTamat!)) return true;
+        return false;
+      }
+
+      String fmt(DateTime? d) => d == null ? '' : DateFormat('dd/MM/yyyy HH:mm').format(d);
+
+      List<Map<String, dynamic>> mapForUI(Iterable<ProgramHive> list) {
+        return list.map((p) {
+          // Try to get start/end date from cached program detail first (more authoritative)
+          String startStr = '';
+          String endStr = '';
+          try {
+            final detail = HiveService.getSetting('program_detail_${p.id}');
+            if (detail is Map) {
+              DateTime? start;
+              DateTime? end;
+              // common keys
+              if (detail['tarikh_mula'] != null) {
+                start = DateTime.tryParse(detail['tarikh_mula'].toString());
+              } else if (detail['tarikh_mula_aktif'] != null) {
+                start = DateTime.tryParse(detail['tarikh_mula_aktif'].toString());
+              }
+              if (detail['tarikh_selesai'] != null) {
+                end = DateTime.tryParse(detail['tarikh_selesai'].toString());
+              } else if (detail['tarikh_sebenar_selesai'] != null) {
+                end = DateTime.tryParse(detail['tarikh_sebenar_selesai'].toString());
+              }
+              startStr = fmt(start);
+              endStr = fmt(end);
+            }
+          } catch (_) {}
+
+          // Fallback to ProgramHive stored dates if cached detail missing
+          if (startStr.isEmpty) startStr = fmt(p.tarikhMula);
+          if (endStr.isEmpty) endStr = fmt(p.tarikhTamat);
+
+          return {
+            'id': p.id,
+            'nama_program': p.namaProgram,
+            'status_label': statusLabelFor(p) ?? '-',
+            'tarikh_mula_formatted': startStr,
+            'tarikh_selesai_formatted': endStr,
+          };
+        }).toList();
+      }
+
+      // If buckets from sync exist, prefer them to match server filter semantics
+      List<int> bucketCurrent = List<int>.from(HiveService.getSetting('program_bucket_current', defaultValue: []) ?? []);
+      List<int> bucketOngoing = List<int>.from(HiveService.getSetting('program_bucket_ongoing', defaultValue: []) ?? []);
+      List<int> bucketPast = List<int>.from(HiveService.getSetting('program_bucket_past', defaultValue: []) ?? []);
+
+      List<ProgramHive> current;
+      List<ProgramHive> ongoing;
+      List<ProgramHive> past;
+      if (bucketCurrent.isNotEmpty || bucketOngoing.isNotEmpty || bucketPast.isNotEmpty) {
+        final byId = {for (final p in all) p.id: p};
+        current = bucketCurrent.map((id) => byId[id]).whereType<ProgramHive>().toList();
+        ongoing = bucketOngoing.map((id) => byId[id]).whereType<ProgramHive>().toList();
+        past = bucketPast.map((id) => byId[id]).whereType<ProgramHive>().toList();
+      } else {
+        ongoing = all.where(isOngoing).toList();
+        past = all.where(isPast).toList();
+        current = all.where((p) => !isOngoing(p) && !isPast(p)).toList();
+      }
+
+      if (mounted) {
+        setState(() {
+          _currentPrograms = mapForUI(current);
+          _ongoingPrograms = mapForUI(ongoing);
+          _pastPrograms = mapForUI(past);
+          _isLoading = false;
+          _errorMessage = null;
+        });
+      }
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = e.toString();
+          _errorMessage = 'Offline cache not available';
         });
       }
     }

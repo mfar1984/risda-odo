@@ -103,7 +103,10 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
     if (_isChecking) return _isOnline;
     
     _isChecking = true;
-    notifyListeners();
+    // Avoid notifying during build phase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
     
     try {
       // Try to ping the server API with generous timeout
@@ -161,7 +164,9 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
       }
     } finally {
       _isChecking = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
   
@@ -178,8 +183,10 @@ class ConnectivityService extends ChangeNotifier with WidgetsBindingObserver {
       _lastOfflineTime = DateTime.now();
     }
     
-    // Notify UI FIRST so indicator updates immediately
-    notifyListeners();
+    // Notify UI outside build phase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
     
     // THEN trigger callbacks (may kick off async sync work)
     if (wasOnline != isOnline) {

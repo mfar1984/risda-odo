@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import '../services/api_service.dart';
 import '../services/hive_service.dart';
 import '../services/connectivity_service.dart';
@@ -66,7 +67,10 @@ class SyncService extends ChangeNotifier {
     }
     
     _isSyncing = true;
-    notifyListeners();
+    // Defer notification to the end of current frame to avoid build-phase updates
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
     
     
     
@@ -80,29 +84,143 @@ class SyncService extends ChangeNotifier {
       // ============================================
       // STEP 1: Sync Pending Journeys
       // ============================================
-      
+
       final pendingJourneys = HiveService.getPendingSyncJourneys();
-      
-      
+
       for (var journey in pendingJourneys) {
         try {
-          if (journey.id == null) {
-            // New journey - needs to be created on server
-            
-            // TODO: Implement journey sync (will do in next phase)
-            // For now, just log
-            
-          } else {
-            // Existing journey - update on server
-            
-            // TODO: Implement journey update
+          // Helper: read local file bytes
+          Future<List<int>?> readBytes(String? path) async {
+            if (path == null || path.isEmpty) return null;
+            final f = File(path);
+            if (!await f.exists()) return null;
+            return await f.readAsBytes();
           }
+
+          // CREATE (start) if no server id yet
+          if (journey.id == null) {
+            // Require necessary fields
+            if (journey.programId == null || journey.kenderaanId == 0) {
+              journey.syncError = 'Data tidak lengkap (program/kenderaan)';
+              journey.syncRetries += 1;
+              journey.lastSyncAttempt = DateTime.now();
+              await journey.save();
+              journeysFailed++;
+              continue;
+            }
+
+            final fotoStartBytes = await readBytes(journey.fotoOdometerKeluarLocal);
+            final respStart = await _apiService.startJourney(
+              programId: journey.programId!,
+              kenderaanId: journey.kenderaanId,
+              odometerKeluar: journey.odometerKeluar,
+              lokasiKeluarLat: journey.lokasiCheckinLat,
+              lokasiKeluarLong: journey.lokasiCheckinLong,
+              catatan: journey.catatan,
+              fotoOdometerKeluarBytes: fotoStartBytes,
+              fotoOdometerKeluarFilename: journey.fotoOdometerKeluarLocal?.split(Platform.pathSeparator).last,
+            );
+
+            if (respStart['success'] == true) {
+              final data = Map<String, dynamic>.from(respStart['data'] ?? {});
+              journey.id = data['id'] ?? journey.id;
+              journey.isSynced = journey.status != 'selesai';
+              journey.syncError = null;
+              journey.syncRetries = 0;
+              journey.lastSyncAttempt = DateTime.now();
+              await journey.save();
+              // We created (or confirmed) an active journey on server; mark TripState active
+              if (journey.status == 'dalam_perjalanan') {
+                await HiveService.setJourneyActive(true);
+              }
+            } else {
+              journey.syncError = respStart['message']?.toString();
+              journey.syncRetries += 1;
+              journey.lastSyncAttempt = DateTime.now();
+              await journey.save();
+              journeysFailed++;
+              continue;
+            }
+          }
+
+          // UPDATE (end) if journey completed locally
+          if (journey.status == 'selesai' && journey.id != null) {
+            final fotoEndBytes = await readBytes(journey.fotoOdometerMasukLocal);
+            final resitBytes = await readBytes(journey.resitMinyakLocal);
+
+            final respEnd = await _apiService.endJourney(
+              logId: journey.id!,
+              odometerMasuk: journey.odometerMasuk ?? journey.odometerKeluar,
+              lokasiCheckinLat: journey.lokasiCheckoutLat ?? journey.lokasiCheckinLat,
+              lokasiCheckinLong: journey.lokasiCheckoutLong ?? journey.lokasiCheckinLong,
+              catatan: journey.catatan,
+              literMinyak: journey.literMinyak,
+              kosMinyak: journey.kosMinyak,
+              stesenMinyak: journey.stesenMinyak,
+              fotoOdometerMasukBytes: fotoEndBytes,
+              fotoOdometerMasukFilename: journey.fotoOdometerMasukLocal?.split(Platform.pathSeparator).last,
+              resitMinyakBytes: resitBytes,
+              resitMinyakFilename: journey.resitMinyakLocal?.split(Platform.pathSeparator).last,
+            );
+
+            if (respEnd['success'] == true) {
+              final data = Map<String, dynamic>.from(respEnd['data'] ?? {});
+              // Update fields that may be normalized by server
+              journey.jarak = data['jarak'] ?? journey.jarak;
+              journey.isSynced = true;
+              journey.syncError = null;
+              journey.syncRetries = 0;
+              journey.lastSyncAttempt = DateTime.now();
+              await journey.save();
+              // Journey ended on server -> mark TripState inactive
+              await HiveService.setJourneyActive(false);
+            // Update vehicle cached odometer for next suggestions
+            try {
+              final vehicles = HiveService.getAllVehicles();
+              for (final v in vehicles) {
+                if (v.id == journey.kenderaanId) {
+                  final endOdo = journey.odometerMasuk ?? journey.odometerKeluar;
+                  if (endOdo >= (v.bacanOdometerSemasaTerkini ?? 0)) {
+                    v.bacanOdometerSemasaTerkini = endOdo;
+                    await v.save();
+                  }
+                  break;
+                }
+              }
+            } catch (_) {}
+              journeysSynced++;
+              continue;
+            } else {
+              journey.syncError = respEnd['message']?.toString();
+              journey.syncRetries += 1;
+              journey.lastSyncAttempt = DateTime.now();
+              await journey.save();
+              journeysFailed++;
+              continue;
+            }
+          }
+
+          // If reached here: start synced and still active → mark synced
+          if (journey.status == 'dalam_perjalanan') {
+            journey.isSynced = true;
+            journey.syncError = null;
+            journey.syncRetries = 0;
+            journey.lastSyncAttempt = DateTime.now();
+            await journey.save();
+            await HiveService.setJourneyActive(true);
+          }
+
           journeysSynced++;
         } catch (e) {
-          
+          journey.syncRetries += 1;
+          journey.syncError = e.toString();
+          journey.lastSyncAttempt = DateTime.now();
+          try { await journey.save(); } catch (_) {}
           journeysFailed++;
         }
       }
+      // After processing all pending, recompute TripState from Hive as source of truth
+      await HiveService.recomputeAndSetJourneyActive();
       
       // ============================================
       // STEP 2: Sync Pending Claims
@@ -127,8 +245,28 @@ class SyncService extends ChangeNotifier {
           if (claim.id == null) {
             // New claim → create on server
             
+            // Resolve log id if missing (offline-created claim)
+            int resolvedLogId = claim.logPemanduId ?? 0;
+            if (resolvedLogId == 0) {
+              try {
+                // Prefer the most recent completed, synced journey around claim.createdAt
+                final journeys = HiveService.getAllJourneys()
+                    .where((j) => j.status == 'selesai' && j.id != null)
+                    .toList()
+                  ..sort((a, b) {
+                    final aTime = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+                    final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+                    return (claim.createdAt ?? DateTime.now()).difference(aTime).abs().compareTo(
+                           (claim.createdAt ?? DateTime.now()).difference(bTime).abs());
+                  });
+                if (journeys.isNotEmpty) {
+                  resolvedLogId = journeys.first.id!;
+                }
+              } catch (_) {}
+            }
+            
             final resp = await _apiService.createClaim(
-              logPemanduId: claim.logPemanduId ?? 0,
+              logPemanduId: resolvedLogId,
               kategori: claim.kategori,
               jumlah: claim.jumlah,
               keterangan: claim.catatan,
@@ -280,7 +418,9 @@ class SyncService extends ChangeNotifier {
       };
     } finally {
       _isSyncing = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     }
   }
   
@@ -325,13 +465,18 @@ class SyncService extends ChangeNotifier {
       
       List<ProgramHive> allPrograms = [];
       int skippedPrograms = 0;
+      final List<int> currentIds = [];
+      final List<int> ongoingIds = [];
+      final List<int> pastIds = [];
       
       // Convert to ProgramHive (skip bad records)
       if (currentResponse['success'] == true) {
         final programs = List<Map<String, dynamic>>.from(currentResponse['data'] ?? []);
         for (var p in programs) {
           try {
-            allPrograms.add(ProgramHive.fromJson(p));
+            final ph = ProgramHive.fromJson(p);
+            allPrograms.add(ph);
+            currentIds.add(ph.id);
           } catch (e) {
             skippedPrograms++;
           }
@@ -342,7 +487,9 @@ class SyncService extends ChangeNotifier {
         final programs = List<Map<String, dynamic>>.from(ongoingResponse['data'] ?? []);
         for (var p in programs) {
           try {
-            allPrograms.add(ProgramHive.fromJson(p));
+            final ph = ProgramHive.fromJson(p);
+            allPrograms.add(ph);
+            ongoingIds.add(ph.id);
           } catch (e) {
             skippedPrograms++;
           }
@@ -353,7 +500,9 @@ class SyncService extends ChangeNotifier {
         final programs = List<Map<String, dynamic>>.from(pastResponse['data'] ?? []);
         for (var p in programs) {
           try {
-            allPrograms.add(ProgramHive.fromJson(p));
+            final ph = ProgramHive.fromJson(p);
+            allPrograms.add(ph);
+            pastIds.add(ph.id);
           } catch (e) {
             skippedPrograms++;
           }
@@ -366,6 +515,23 @@ class SyncService extends ChangeNotifier {
       
       // Save to Hive (replace all)
       await HiveService.savePrograms(allPrograms);
+      // Persist offline buckets for Do tab
+      try {
+        await HiveService.saveSetting('program_bucket_current', currentIds);
+        await HiveService.saveSetting('program_bucket_ongoing', ongoingIds);
+        await HiveService.saveSetting('program_bucket_past', pastIds);
+      } catch (_) {}
+
+      // Cache detailed program payloads for offline Program Details and Start Journey vehicle odometer
+      // Only cache for programs that belong to the driver; backend already filters.
+      for (final p in allPrograms) {
+        try {
+          final resp = await _apiService.getProgramDetail(p.id);
+          if (resp['success'] == true && resp['data'] is Map) {
+            await HiveService.saveSetting('program_detail_${p.id}', resp['data']);
+          }
+        } catch (_) {}
+      }
       
       
     } catch (e) {
@@ -431,6 +597,25 @@ class SyncService extends ChangeNotifier {
         // Clear and save to Hive
         await HiveService.journeyBox.clear();
         await HiveService.journeyBox.addAll(journeyHives);
+
+        // Update VehicleHive latest odometer based on downloaded journeys
+        try {
+          final byVehicle = <int, int>{};
+          for (final j in journeyHives) {
+            final endOdo = j.odometerMasuk ?? j.odometerKeluar;
+            if (!byVehicle.containsKey(j.kenderaanId) || endOdo > (byVehicle[j.kenderaanId] ?? 0)) {
+              byVehicle[j.kenderaanId] = endOdo;
+            }
+          }
+          final vehicles = HiveService.getAllVehicles();
+          for (final v in vehicles) {
+            final latest = byVehicle[v.id];
+            if (latest != null && (v.bacanOdometerSemasaTerkini == null || latest > v.bacanOdometerSemasaTerkini!)) {
+              v.bacanOdometerSemasaTerkini = latest;
+              await v.save();
+            }
+          }
+        } catch (_) {}
         
         
       }
@@ -515,6 +700,47 @@ class SyncService extends ChangeNotifier {
     };
   }
   
+  /// Reconcile centralized TripState (journey_active) using server if online, otherwise Hive
+  Future<bool> reconcileTripState() async {
+    if (_connectivityService.isOnline) {
+      try {
+        final resp = await _apiService.getActiveJourney();
+        final active = resp['success'] == true && resp['data'] != null;
+        await HiveService.setJourneyActive(active);
+        return active;
+      } catch (e) {
+        return await HiveService.recomputeAndSetJourneyActive();
+      }
+    } else {
+      return await HiveService.recomputeAndSetJourneyActive();
+    }
+  }
+
+  /// Ensure VehicleHive.bacanOdometerSemasaTerkini is populated from local journeys
+  /// Call this after master sync or on login so offline Start can show latest odometer
+  Future<void> ensureVehicleOdometerCache() async {
+    try {
+      final journeys = HiveService.getAllJourneys();
+      if (journeys.isEmpty) return;
+      final byVehicle = <int, int>{};
+      for (final j in journeys) {
+        final endOdo = j.odometerMasuk ?? j.odometerKeluar;
+        final current = byVehicle[j.kenderaanId];
+        if (current == null || endOdo > current) {
+          byVehicle[j.kenderaanId] = endOdo;
+        }
+      }
+      final vehicles = HiveService.getAllVehicles();
+      for (final v in vehicles) {
+        final latest = byVehicle[v.id];
+        if (latest != null && (v.bacanOdometerSemasaTerkini == null || latest > v.bacanOdometerSemasaTerkini!)) {
+          v.bacanOdometerSemasaTerkini = latest;
+          await v.save();
+        }
+      }
+    } catch (_) {}
+  }
+
   /// Force sync now (manual trigger)
   Future<void> forceSyncNow() async {
     
