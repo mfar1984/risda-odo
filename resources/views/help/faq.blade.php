@@ -42,12 +42,12 @@
                     {{-- Stats --}}
                     <div class="faq-stats">
                         <div class="faq-stat-item">
-                            <span class="faq-stat-number">36</span>
+                            <span class="faq-stat-number">47</span>
                             <span class="faq-stat-label">Soalan</span>
                         </div>
                         <div class="faq-stat-divider"></div>
                         <div class="faq-stat-item">
-                            <span class="faq-stat-number">7</span>
+                            <span class="faq-stat-number">8</span>
                             <span class="faq-stat-label">Kategori</span>
                         </div>
                     </div>
@@ -117,6 +117,16 @@
                     </div>
                     <div class="flex-1">
                         <h3 style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 600;">Aplikasi Mobile</h3>
+                        <p style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">4 soalan</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[18px] opacity-50">arrow_forward</span>
+                </a>
+                <a href="#offline" class="faq-category-card faq-card-emerald">
+                    <div class="faq-category-icon">
+                        <span class="material-symbols-outlined text-[24px]">sync_saved_locally</span>
+                    </div>
+                    <div class="flex-1">
+                        <h3 style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 600;">Offline-First</h3>
                         <p style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">4 soalan</p>
                     </div>
                     <span class="material-symbols-outlined text-[18px] opacity-50">arrow_forward</span>
@@ -652,6 +662,77 @@
                             <div x-show="open === 'mobile_4'" x-collapse class="faq-answer">
                                 <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
                                     Anda akan terima notifikasi apabila versi baharu tersedia. Klik notifikasi untuk muat turun dan install versi terkini. Pastikan data anda telah disegerakkan sebelum kemaskini. Versi semasa aplikasi boleh dilihat di menu <strong>Tetapan > Tentang</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Category 8: Offline-First --}}
+                <div id="offline" class="faq-category scroll-mt-6">
+                    <div class="faq-section-header faq-header-emerald">
+                        <span class="material-symbols-outlined text-[20px]">sync_saved_locally</span>
+                        <h2 style="font-family: Poppins, sans-serif !important; font-size: 14px !important; font-weight: 600;">Offline-First</h2>
+                        <span class="faq-count">4</span>
+                    </div>
+
+                    <div class="faq-accordion">
+                        <div class="faq-item" data-category="offline" data-question="Apa maksud Offline-First dalam aplikasi JARA?" data-keywords="offline first maksud">
+                            <button @click="toggle('offline_1')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">29</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Apa maksud Offline-First dalam aplikasi JARA?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'offline_1' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'offline_1'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Offline-First bermaksud aplikasi direka untuk berfungsi penuh tanpa Internet: Start/End Journey, simpan resit, dan lihat data yang telah disegerakkan. Data akan di-sync automatik ke pelayan apabila sambungan Internet kembali.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="offline" data-question="Apa yang berlaku pada data semasa Logout?" data-keywords="logout clear hive kosong data">
+                            <button @click="toggle('offline_2')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">30</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Apa yang berlaku pada data semasa Logout?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'offline_2' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'offline_2'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Semasa Logout, semua data tempatan (Hive) akan dikosongkan untuk keselamatan dan mengelakkan data bercampur antara pengguna. Pastikan semua data telah berjaya sync sebelum Logout.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="offline" data-question="Apa data yang dimuat turun semasa Login?" data-keywords="login sync hive muat turun cache">
+                            <button @click="toggle('offline_3')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">31</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Apa data yang dimuat turun semasa Login?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'offline_3' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'offline_3'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Selepas Login, aplikasi akan memuat turun dan menyimpan ke Hive: program aktif/berkaitan, kenderaan, log perjalanan, tuntutan, dan tetapan pengguna supaya semua ini boleh diakses secara offline.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="faq-item" data-category="offline" data-question="Bagaimana resit dan No. Resit berfungsi secara offline?" data-keywords="resit no resit tuntutan offline">
+                            <button @click="toggle('offline_4')" class="faq-question">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="faq-number">32</span>
+                                    <span style="font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500;">Bagaimana resit dan No. Resit berfungsi secara offline?</span>
+                                </div>
+                                <span class="material-symbols-outlined faq-arrow" :class="{ 'rotate-180': open === 'offline_4' }">expand_more</span>
+                            </button>
+                            <div x-show="open === 'offline_4'" x-collapse class="faq-answer">
+                                <p style="font-family: Poppins, sans-serif !important; font-size: 11px !important; line-height: 1.6;">
+                                    Gambar resit disimpan dalam storan tempatan dan metadata (termasuk <strong>No. Resit</strong>) disimpan dalam Hive. Apabila talian pulih, servis sync akan muat naik resit dan menghantar No. Resit ke pelayan.
                                 </p>
                             </div>
                         </div>

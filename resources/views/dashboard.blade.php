@@ -498,10 +498,21 @@
                     </div>
                 </template>
 
-                <!-- Col 5: Generate Button -->
+                <!-- Col 5: Actions (Generate | Snapshot | Save) -->
                 <div>
-                    <label class="form-label invisible">Action</label>
-                    <button @click="generateReport()" type="button" class="w-full h-8 bg-green-600 text-white rounded-sm hover:bg-green-700 transition-colors mt-1" style="font-family: Poppins, sans-serif; font-size: 12px;">Generate</button>
+                    <label class="form-label invisible">Tindakan</label>
+                    <!-- For Penggunaan Kenderaan: show 3-button layout -->
+                    <template x-if="reportType === 'penggunaan_kenderaan'">
+                        <div class="mt-1 flex items-center gap-2 w-full">
+                            <button @click="generateReport()" type="button" class="h-8 w-28 bg-green-600 text-white rounded-sm hover:bg-green-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;">Generate</button>
+                            <button type="button" class="h-8 w-28 bg-slate-600 text-white rounded-sm hover:bg-slate-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;">Snapshot</button>
+                            <button type="button" x-show="!loadingReport && Array.isArray(penggunaanKenderaanRows) && penggunaanKenderaanRows.length" class="h-8 w-28 bg-amber-600 text-white rounded-sm hover:bg-amber-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;" x-cloak>Save</button>
+                        </div>
+                    </template>
+                    <!-- For other report types: keep original full-width Generate -->
+                    <template x-if="reportType !== 'penggunaan_kenderaan'">
+                        <button @click="generateReport()" type="button" class="w-full h-8 bg-green-600 text-white rounded-sm hover:bg-green-700 transition-colors mt-1" style="font-family: Poppins, sans-serif; font-size: 12px;">Generate</button>
+                    </template>
                 </div>
             </div>
 
@@ -879,10 +890,10 @@
                                                 <div x-text="r.odometerMasuk + ' KM'"></div>
                                             </td>
                                             <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;" x-text="r.jarakPerjalanan + ' KM'"></td>
-                                            <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;"></td>
+                                            <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;" x-text="r.resitNo"></td>
                                             <td class="border border-gray-300 px-2 py-2 text-right" style="font-size: 11px;" x-text="r.resitRM"></td>
                                             <td class="border border-gray-300 px-2 py-2 text-right" style="font-size: 11px;" x-text="r.liter"></td>
-                                            <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;"></td>
+                                            <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;" x-text="r.arahanKhas"></td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -968,6 +979,16 @@
                                 <p>** Formula Pengiraan: Kadar = Jumlah Jarak / Jumlah Liter</p>
                             </div>
                         </div>
+                    </div>
+                </template>
+
+                <!-- Empty state for no results after generate (Penggunaan Kenderaan) -->
+                <template x-if="reportType === 'penggunaan_kenderaan' && penggunaanKenderaanRows.length === 0 && penggunaanKenderaanSummary.totalRecords === 0">
+                    <div class="flex flex-col items-center justify-center py-16 text-gray-500">
+                        <span class="material-symbols-outlined text-6xl mb-4 text-gray-300">local_shipping</span>
+                        <p class="text-base font-semibold text-gray-700 mb-1" style="font-family: Poppins, sans-serif;">Tiada Rekod Dijumpai</p>
+                        <p class="text-sm text-gray-500" style="font-family: Poppins, sans-serif;">Tiada log penggunaan kenderaan pada tempoh yang dipilih.</p>
+                        <p class="text-xs text-gray-400 mt-2" style="font-family: Poppins, sans-serif;">Sila ubah julat tarikh atau pilih kenderaan lain dan cuba lagi.</p>
                     </div>
                 </template>
 

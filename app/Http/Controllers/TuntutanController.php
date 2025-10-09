@@ -722,8 +722,8 @@ class TuntutanController extends Controller
             ], 400);
         }
 
-        // Get vehicle details
-        $kenderaan = \App\Models\Kenderaan::find($kenderaanId);
+        // Get vehicle details (with relations for bahagian/stesen)
+        $kenderaan = \App\Models\Kenderaan::with(['bahagian', 'stesen'])->find($kenderaanId);
         if (!$kenderaan) {
             return response()->json([
                 'success' => false,
@@ -1170,14 +1170,13 @@ class TuntutanController extends Controller
             $masaMulai = $log->masa_keluar;
             $masaHingga = $log->masa_masuk;
 
-            // Format fuel data - split to No. Resit and RM
-            $resitNo = '-';
-            if ($log->resit_minyak) {
-                // If it's a file path like "public/fuel_receipts/xxx.jpg", extract just the filename
+            // Format fuel data - No. Resit, RM, Liter
+            // Prefer explicit no_resit column (as in Laporan Kos), fallback to filename if absent
+            $resitNo = $log->no_resit ?: '-';
+            if ($resitNo === '-' && $log->resit_minyak) {
                 if (str_contains($log->resit_minyak, '/')) {
                     $parts = explode('/', $log->resit_minyak);
                     $filename = end($parts);
-                    // Keep only first 20 chars of filename for display
                     $resitNo = strlen($filename) > 20 ? substr($filename, 0, 17) . '...' : $filename;
                 } else {
                     $resitNo = $log->resit_minyak;
@@ -1192,8 +1191,11 @@ class TuntutanController extends Controller
                 'masaHingga' => $masaHingga ? \Carbon\Carbon::parse($masaHingga)->format('g:i A') : '-',
                 'pemandu' => $staf ? $staf->nama_penuh : ($pemandu ? $pemandu->name : '-'),
                 'tujuan' => $program ? $program->nama_program : '-',
-                'destinasiDari' => $program ? ($program->lokasi_program ?? 'Pejabat') : '-',
-                'destinasiKe' => $log->destinasi ?? ($program ? $program->lokasi_program : '-'),
+                // Tujuan & Destinasi (dari — ke): ambil dari lokasi_mula_perjalanan dan lokasi_tamat_perjalanan
+                'destinasiDari' => $log->lokasi_mula_perjalanan
+                    ?? ($program ? ($program->lokasi_program ?? '-') : '-'),
+                'destinasiKe' => $log->lokasi_tamat_perjalanan
+                    ?? ($program ? ($program->lokasi_program ?? '-') : '-'),
                 'pelulus' => $pelulus ? $pelulus->nama_penuh : ($pemohonUser ? $pemohonUser->name : '-'),
                 'pengguna' => $staf ? $staf->nama_penuh : ($pemandu ? $pemandu->name : '-'),
                 'odometerKeluar' => $log->odometer_keluar ? number_format($log->odometer_keluar, 0) : '-',
@@ -1225,11 +1227,16 @@ class TuntutanController extends Controller
             'success' => true,
             'data' => [
                 'vehicle' => [
+                    // No. Pendaftaran
                     'noPlat' => $kenderaan->no_plat,
-                    'jenama' => $kenderaan->jenama . ' ' . $kenderaan->model,
-                    'jenis' => $kenderaan->jenis_kenderaan ?? 'MPV',
-                    'bahagian' => $kenderaan->bahagian ? $kenderaan->bahagian->nama_bahagian : 
-                                  ($kenderaan->stesen ? $kenderaan->stesen->nama_stesen : '-'),
+                    // Jenis Kenderaan (gabungan Jenama + Model)
+                    'jenis' => trim(((string) ($kenderaan->jenama ?? '')) . ' ' . ((string) ($kenderaan->model ?? ''))) ?: ((string) ($kenderaan->jenama ?? '-')),
+                    // Bahagian/Unit: utamakan stesen jika wujud, jika tidak bahagian, selain itu '-'
+                    'bahagian' => $kenderaan->stesen
+                        ? ('Stesen: ' . ($kenderaan->stesen->nama_stesen ?? '-'))
+                        : ($kenderaan->bahagian
+                            ? ('Bahagian: ' . ($kenderaan->bahagian->nama_bahagian ?? '-'))
+                            : '-'),
                 ],
                 'rows' => $rows,
                 'summary' => [

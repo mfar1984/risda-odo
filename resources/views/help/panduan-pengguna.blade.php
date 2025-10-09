@@ -177,7 +177,7 @@
             </div>
 
             <p class="text-gray-700 mb-4" style="font-family: Poppins, sans-serif !important; font-size: 12px !important; line-height: 1.6;">
-                Aplikasi Android untuk pemandu merekod perjalanan, menghantar tuntutan, dan melihat jadual program.
+                Aplikasi Android untuk pemandu merekod perjalanan, menghantar tuntutan, dan melihat jadual program dengan mod <strong>Offline-First</strong>.
             </p>
 
             <div class="guide-subsection">
@@ -196,7 +196,7 @@
                     </div>
                     <div class="guide-feature-item">
                         <span class="material-symbols-outlined text-green-600">receipt</span>
-                        <span>Hantar Tuntutan dengan Resit</span>
+                        <span>Hantar Tuntutan dengan Resit + <strong>No. Resit</strong></span>
                     </div>
                     <div class="guide-feature-item">
                         <span class="material-symbols-outlined text-green-600">calendar_month</span>
@@ -204,7 +204,7 @@
                     </div>
                     <div class="guide-feature-item">
                         <span class="material-symbols-outlined text-green-600">dashboard</span>
-                        <span>Dashboard & Laporan Peribadi</span>
+                        <span>Dashboard & Laporan Peribadi (cache offline)</span>
                     </div>
                     <div class="guide-feature-item">
                         <span class="material-symbols-outlined text-green-600">notifications</span>
@@ -460,11 +460,18 @@
                             <div class="guide-step-number">4</div>
                             <div class="guide-step-content">
                                 <h4>Rekod Odometer</h4>
-                                <p>Masukkan bacaan odometer mula</p>
+                                <p>Masukkan bacaan odometer mula (tiada auto-prefill, mesti menaik)</p>
                             </div>
                         </div>
                         <div class="guide-step guide-step-green">
                             <div class="guide-step-number">5</div>
+                            <div class="guide-step-content">
+                                <h4>Lokasi & Arahan Khas</h4>
+                                <p>Isi <strong>Lokasi Mula Perjalanan</strong> (opsional) dan rujuk <strong>Arahan Khas Pengguna Kenderaan</strong> jika ada</p>
+                            </div>
+                        </div>
+                        <div class="guide-step guide-step-green">
+                            <div class="guide-step-number">6</div>
                             <div class="guide-step-content">
                                 <h4>Ambil Gambar (Opsional)</h4>
                                 <p>Foto kenderaan atau odometer</p>
@@ -498,14 +505,14 @@
                             <div class="guide-step-number">3</div>
                             <div class="guide-step-content">
                                 <h4>Masukkan Kos Minyak</h4>
-                                <p>Isikan jumlah kos minyak (jika ada)</p>
+                                <p>Isikan jumlah kos minyak dan <strong>No. Resit</strong> (jika ada)</p>
                             </div>
                         </div>
                         <div class="guide-step guide-step-orange">
                             <div class="guide-step-number">4</div>
                             <div class="guide-step-content">
-                                <h4>Tambah Nota</h4>
-                                <p>Tulis nota perjalanan (opsional)</p>
+                                <h4>Lokasi Tamat & Nota</h4>
+                                <p>Isi <strong>Lokasi Tamat Perjalanan</strong> dan nota perjalanan (opsional)</p>
                             </div>
                         </div>
                         <div class="guide-step guide-step-orange">
@@ -680,6 +687,10 @@
                     Jenis Laporan Tersedia
                 </div>
                 <div class="guide-feature-list">
+                    <div class="guide-feature-item">
+                        <span class="material-symbols-outlined text-pink-600">local_shipping</span>
+                        <span><strong>Penggunaan Kenderaan</strong> - Butir penggunaan (tarikh, masa, pemandu, tujuan & destinasi, bacaan odometer, trip meter, pembelian bahan api, arahan khas)</span>
+                    </div>
                     <div class="guide-feature-item">
                         <span class="material-symbols-outlined text-pink-600">receipt_long</span>
                         <span><strong>Laporan Tuntutan</strong> - Senarai semua tuntutan dengan status</span>
