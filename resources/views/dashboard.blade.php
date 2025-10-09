@@ -50,6 +50,12 @@
                 ref: '' 
             },
             loadingReport: false,
+            snapshotModalOpen: false,
+            snapshotList: [
+                // Mockup data; will be replaced with API data later
+                { noSiri: 'A 316321', bulan: '10/2025', noPlat: 'QSR43', jenis: 'Toyota Alphard', disimpanOleh: 'Admin', tarikhSimpan: '09/10/2025 22:30' },
+                { noSiri: 'A 316322', bulan: '10/2025', noPlat: 'QSR43', jenis: 'Toyota Alphard', disimpanOleh: 'Admin', tarikhSimpan: '09/10/2025 22:31' }
+            ],
             vehicle: { noPlat: 'QAB1234', jenama: 'Toyota Alphard', noEnjin: 'Q18150101-HAF18159', noCasis: '749101581', cukaiTamat: '31 Disember 2025', ref: '' },
             otRows: [],
             otSummary: { totalHours: 0, totalRecords: 0 },
@@ -505,7 +511,7 @@
                     <template x-if="reportType === 'penggunaan_kenderaan'">
                         <div class="mt-1 flex items-center gap-2 w-full">
                             <button @click="generateReport()" type="button" class="h-8 w-28 bg-green-600 text-white rounded-sm hover:bg-green-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;">Generate</button>
-                            <button type="button" class="h-8 w-28 bg-slate-600 text-white rounded-sm hover:bg-slate-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;">Snapshot</button>
+                            <button type="button" @click="snapshotModalOpen = true" class="h-8 w-28 bg-slate-600 text-white rounded-sm hover:bg-slate-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;">Snapshot</button>
                             <button type="button" x-show="!loadingReport && Array.isArray(penggunaanKenderaanRows) && penggunaanKenderaanRows.length" class="h-8 w-28 bg-amber-600 text-white rounded-sm hover:bg-amber-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;" x-cloak>Save</button>
                         </div>
                     </template>
@@ -1136,6 +1142,99 @@
                     </template>
                 </div>
             </template>
+            <!-- Snapshot History Modal (Mockup only) using Support modal pattern -->
+            <div x-show="snapshotModalOpen"
+                 x-cloak
+                 @keydown.escape.window="snapshotModalOpen = false"
+                 class="fixed inset-0 overflow-y-auto"
+                 style="display: none; z-index: 9999 !important;">
+                <!-- Backdrop -->
+                <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+                     @click="snapshotModalOpen = false"></div>
+
+                <!-- Modal -->
+                <div class="flex items-center justify-center min-h-screen p-4">
+                    <div class="relative bg-white rounded-sm shadow-xl w-full max-w-5xl max-h-[85vh] my-8"
+                         @click.away="snapshotModalOpen = false">
+
+                        <!-- Header -->
+                        <div class="support-modal-header">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-white text-[20px]">history</span>
+                                <div>
+                                    <h3 class="support-modal-title">Sejarah Snapshot Penggunaan Kenderaan</h3>
+                                    <p class="support-modal-subtitle">Senarai snapshot yang telah disimpan</p>
+                                </div>
+                            </div>
+                            <button @click="snapshotModalOpen = false" class="text-white hover:text-gray-200">
+                                <span class="material-symbols-outlined text-[24px]">close</span>
+                            </button>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="support-modal-body" style="max-height: calc(85vh - 180px);">
+                            <div class="data-table-container">
+                                <x-ui.data-table
+                                    :headers="[
+                                        ['label' => 'No. Siri', 'align' => 'text-left'],
+                                        ['label' => 'Bulan', 'align' => 'text-left'],
+                                        ['label' => 'No. Pendaftaran', 'align' => 'text-left'],
+                                        ['label' => 'Jenis Kenderaan', 'align' => 'text-left'],
+                                        ['label' => 'Disimpan Oleh', 'align' => 'text-left'],
+                                        ['label' => 'Tarikh Simpan', 'align' => 'text-left']
+                                    ]"
+                                >
+                                    <template x-for="(s, idx) in snapshotList" :key="idx">
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;" x-text="s.noSiri"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;" x-text="s.bulan"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;" x-text="s.noPlat"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;" x-text="s.jenis"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;" x-text="s.disimpanOleh"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;" x-text="s.tarikhSimpan"></div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                                <div class="flex justify-center space-x-2">
+                                                    <button type="button" class="text-slate-600 hover:text-slate-900" title="Guna Snapshot">
+                                                        <span class="material-symbols-outlined" style="font-size: 18px;">task_alt</span>
+                                                    </button>
+                                                    <button type="button" class="text-blue-600 hover:text-blue-900" title="Lihat PDF">
+                                                        <span class="material-symbols-outlined" style="font-size: 18px;">picture_as_pdf</span>
+                                                    </button>
+                                                    <button type="button" class="text-red-600 hover:text-red-900" title="Padam">
+                                                        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="!snapshotList || snapshotList.length === 0">
+                                        <td colspan="7" class="px-6 py-6 text-center text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">Tiada snapshot direkodkan.</td>
+                                    </tr>
+                                </x-ui.data-table>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="support-modal-footer">
+                            <div></div>
+                            <button @click="snapshotModalOpen = false" class="support-btn support-btn-secondary">Tutup</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </div>
     </x-ui.page-header>
 </x-dashboard-layout>
