@@ -38,11 +38,13 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
   final TextEditingController notesController = TextEditingController();
   final TextEditingController currentDateTimeController = TextEditingController();
   final TextEditingController gpsLocationController = TextEditingController();
+  final TextEditingController lokasiTamatController = TextEditingController();
 
   // Fuel controllers
   final TextEditingController fuelLitersController = TextEditingController();
   final TextEditingController fuelCostController = TextEditingController();
   final TextEditingController gasStationController = TextEditingController();
+  final TextEditingController noResitController = TextEditingController();
 
   // State
   bool isLoading = true;
@@ -129,6 +131,8 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       journey.stesenMinyak = stesen;
       journey.fotoOdometerMasukLocal = fotoMasukLocal;
       journey.resitMinyakLocal = resitLocal;
+      journey.lokasiTamatPerjalanan = lokasiTamatController.text.isNotEmpty ? lokasiTamatController.text : journey.lokasiTamatPerjalanan;
+      journey.noResit = noResitController.text.isNotEmpty ? noResitController.text : journey.noResit;
       journey.lokasiCheckoutLat = gpsLatitude;
       journey.lokasiCheckoutLong = gpsLongitude;
       journey.status = 'selesai';
@@ -574,10 +578,12 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         odometerMasuk: currentOdometer,
         lokasiCheckinLat: gpsLatitude,
         lokasiCheckinLong: gpsLongitude,
+        lokasiTamatPerjalanan: lokasiTamatController.text.trim().isNotEmpty ? lokasiTamatController.text.trim() : null,
         catatan: notesController.text.isNotEmpty ? notesController.text : null,
         literMinyak: fuelLiters,
         kosMinyak: fuelCost,
         stesenMinyak: gasStation,
+        noResit: noResitController.text.isNotEmpty ? noResitController.text : null,
         fotoOdometerMasukBytes: odometerBytes,
         fotoOdometerMasukFilename: odometerFilename,
         resitMinyakBytes: fuelReceiptBytes,
@@ -646,6 +652,7 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     notesController.dispose();
     currentDateTimeController.dispose();
     gpsLocationController.dispose();
+    lokasiTamatController.dispose();
     fuelLitersController.dispose();
     fuelCostController.dispose();
     gasStationController.dispose();
@@ -1004,6 +1011,26 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                   ),
                   style: AppTextStyles.bodyLarge,
                 ),
+                const SizedBox(height: 12),
+                // Lokasi Tamat Perjalanan (manual text)
+                _fieldLabel('Lokasi Tamat Perjalanan'),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: lokasiTamatController,
+                  decoration: InputDecoration(
+                    hintText: 'Contoh: Dewan Suarah Sibu',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    prefixIcon: Icon(Icons.edit_location_alt, color: PastelColors.primary, size: 20),
+                  ),
+                  style: AppTextStyles.bodyLarge,
+                ),
                 const SizedBox(height: 16),
 
                           // Current Date/Time (Disabled)
@@ -1214,6 +1241,26 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                                             ),
                                           ),
                                         ),
+                                      const SizedBox(height: 12),
+                                      // No. Resit input just after Upload Resit
+                                      _fieldLabel('No. Resit (Optional)'),
+                                      const SizedBox(height: 4),
+                                      TextField(
+                                        controller: noResitController,
+                                        decoration: InputDecoration(
+                                          hintText: 'Contoh: RCPT-2025-0001',
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(3),
+                                          ),
+                                          isDense: true,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 10,
+                                          ),
+                                          prefixIcon: Icon(Icons.confirmation_number, color: PastelColors.primary, size: 20),
+                                        ),
+                                        style: AppTextStyles.bodyLarge,
+                                      ),
                                     ],
                                   ),
                                 ],

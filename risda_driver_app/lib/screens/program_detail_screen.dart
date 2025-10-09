@@ -228,6 +228,7 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
     final location = _programData!['lokasi_program'] ?? 'N/A';
     final distance = _programData!['jarak_anggaran']?.toString() ?? '0';
     final description = _programData!['penerangan'] ?? '-';
+    final arahanKhas = (_programData!['arahan_khas_pengguna_kenderaan'] ?? '').toString().trim();
     
     final vehicle = _programData!['kenderaan'];
     final requestor = _programData!['permohonan_dari'];
@@ -542,6 +543,45 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
                 ),
               ),
             ),
+
+            // Arahan Khas Pengguna Kenderaan (only if available)
+            if (arahanKhas.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade100,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.rule, color: PastelColors.primary),
+                          const SizedBox(width: 8),
+                          Text('Arahan Khas Pengguna Kenderaan', style: AppTextStyles.h3),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        arahanKhas,
+                        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

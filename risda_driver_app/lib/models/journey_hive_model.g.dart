@@ -54,13 +54,16 @@ class JourneyHiveAdapter extends TypeAdapter<JourneyHive> {
       fotoOdometerKeluarLocal: fields[34] as String?,
       fotoOdometerMasukLocal: fields[35] as String?,
       resitMinyakLocal: fields[36] as String?,
+      noResit: fields[37] as String?,
+      lokasiMulaPerjalanan: fields[38] as String?,
+      lokasiTamatPerjalanan: fields[39] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, JourneyHive obj) {
     writer
-      ..writeByte(37)
+      ..writeByte(40)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -134,7 +137,13 @@ class JourneyHiveAdapter extends TypeAdapter<JourneyHive> {
       ..writeByte(35)
       ..write(obj.fotoOdometerMasukLocal)
       ..writeByte(36)
-      ..write(obj.resitMinyakLocal);
+      ..write(obj.resitMinyakLocal)
+      ..writeByte(37)
+      ..write(obj.noResit)
+      ..writeByte(38)
+      ..write(obj.lokasiMulaPerjalanan)
+      ..writeByte(39)
+      ..write(obj.lokasiTamatPerjalanan);
   }
 
   @override

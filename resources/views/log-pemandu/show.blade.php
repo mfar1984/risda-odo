@@ -1,11 +1,21 @@
 @php
     use Illuminate\Support\Facades\Storage;
-    
+    use Illuminate\Support\Str;
+
+    // Helper to normalize stored file paths into valid URLs
+    $resolveUrl = function (?string $path) {
+        if (!$path) return null;
+        if (Str::startsWith($path, ['http://', 'https://'])) return $path;
+        if (Str::startsWith($path, '/')) return $path; // already absolute
+        if (Str::startsWith($path, 'storage/')) return asset($path);
+        if (Str::startsWith($path, 'public/')) return Storage::url(Str::after($path, 'public/'));
+        return Storage::url($path);
+    };
+
     // Check-out = Start Journey (foto_odometer_keluar)
     // Check-in = End Journey (foto_odometer_masuk)
-    // Use Storage::url() for consistent URL generation (same as API)
-    $gambarCheckin = $log->foto_odometer_masuk ? Storage::url($log->foto_odometer_masuk) : null;
-    $gambarCheckout = $log->foto_odometer_keluar ? Storage::url($log->foto_odometer_keluar) : null;
+    $gambarCheckin = $resolveUrl($log->foto_odometer_masuk);
+    $gambarCheckout = $resolveUrl($log->foto_odometer_keluar);
     $tabKembali = request('tab', 'semua');
 @endphp
 
@@ -97,12 +107,22 @@
                     </div>
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">
-                            <x-forms.input-label value="Lokasi Check-in" />
+                            <x-forms.input-label value="Lokasi GPS Mula Perjalanan" />
                             <x-forms.text-input class="mt-1 block w-full" value="{{ $log->lokasi_checkin_label ?? '-' }}" readonly />
                         </div>
                         <div style="flex: 1;">
-                            <x-forms.input-label value="Lokasi Check-out" />
+                            <x-forms.input-label value="Lokasi GPS Tamat Perjalanan" />
                             <x-forms.text-input class="mt-1 block w-full" value="{{ $log->lokasi_checkout_label ?? '-' }}" readonly />
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <x-forms.input-label value="Lokasi Mula Perjalanan" />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ $log->lokasi_mula_perjalanan_label ?? '-' }}" readonly />
+                        </div>
+                        <div style="flex: 1;">
+                            <x-forms.input-label value="Lokasi Tamat Perjalanan" />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ $log->lokasi_tamat_perjalanan_label ?? '-' }}" readonly />
                         </div>
                     </div>
                     <div style="display: flex; gap: 20px;">

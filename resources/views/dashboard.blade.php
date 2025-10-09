@@ -53,10 +53,14 @@
             vehicle: { noPlat: 'QAB1234', jenama: 'Toyota Alphard', noEnjin: 'Q18150101-HAF18159', noCasis: '749101581', cukaiTamat: '31 Disember 2025', ref: '' },
             otRows: [],
             otSummary: { totalHours: 0, totalRecords: 0 },
+            otGroups: [],
             tuntutanRows: [],
             tuntutanSummary: { totalAmount: 0, totalRecords: 0 },
             kenderaanRows: [],
             kenderaanSummary: { totalDistance: 0, totalRecords: 0 },
+            penggunaanKenderaanRows: [],
+            penggunaanKenderaanSummary: { bulan: 0, totalJarak: 0, totalLiter: 0, totalKos: 0, kadarPenggunaan: 0, totalRecords: 0, disahkanOleh: { nama: '-', jawatan: '-' } },
+            penggunaanKenderaanVehicle: { noPlat: '', jenama: '', jenis: '', bahagian: '' },
             // Staff dropdown with search
             staffList: [
                 @foreach($userList as $user)
@@ -161,6 +165,23 @@
                 const m = mins % 60;
                 return `${h}jam ${m}min`;
             },
+            computeOtText(rows) {
+                if (!Array.isArray(rows)) return '0jam 0min';
+                const mins = rows.reduce((acc, r) => {
+                    if (typeof r.jam === 'number') return acc + Math.round(r.jam * 60);
+                    if (typeof r.jamText === 'string') {
+                        const m1 = r.jamText.match(/(\d+)\s*jam/i);
+                        const m2 = r.jamText.match(/(\d+)\s*min/i);
+                        const h = m1 ? parseInt(m1[1]) : 0;
+                        const m = m2 ? parseInt(m2[1]) : 0;
+                        return acc + (h * 60 + m);
+                    }
+                    return acc;
+                }, 0);
+                const h = Math.floor(mins / 60);
+                const m = mins % 60;
+                return `${h}jam ${m}min`;
+            },
             formatRM(amount) {
                 return 'RM' + amount.toFixed(2);
             },
@@ -203,8 +224,14 @@
                         }
                         const result = await response.json();
                         if (result.success) {
-                            this.otRows = result.data.rows;
-                            this.otSummary = result.data.summary;
+                            this.otGroups = Array.isArray(result.data.groups) ? result.data.groups : [];
+                            if (this.otGroups.length) {
+                                this.otRows = [];
+                                this.otSummary = { totalHours: 0, totalRecords: 0 };
+                            } else {
+                                this.otRows = result.data.rows || [];
+                                this.otSummary = result.data.summary || { totalHours: 0, totalRecords: this.otRows.length };
+                            }
                         } else {
                             alert('Gagal menjana laporan: ' + (result.message || 'Unknown error'));
                         }
@@ -250,6 +277,51 @@
                             if (this.tuntutanRows.length === 0) {
                                 // Keep arrays empty so the empty state shows
                             }
+                        } else {
+                            alert('Gagal menjana laporan: ' + (result.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error generating report:', error);
+                        alert('Ralat semasa menjana laporan. Sila cuba lagi.');
+                    } finally {
+                        this.loadingReport = false;
+                    }
+                } else if (this.reportType === 'penggunaan_kenderaan') {
+                    // Penggunaan Kenderaan - fetch real data
+                    const tarikhMula = this.normalizeDateInput(document.getElementById('tarikh_mula')?.value || '');
+                    const tarikhAkhir = this.normalizeDateInput(document.getElementById('tarikh_akhir')?.value || '');
+
+                    const formData = new FormData();
+                    formData.append('jenis_laporan', 'penggunaan_kenderaan');
+                    if (tarikhMula) formData.append('tarikh_mula', tarikhMula);
+                    if (tarikhAkhir) formData.append('tarikh_akhir', tarikhAkhir);
+                    if (this.selectedVehicleId) formData.append('kenderaan_id', this.selectedVehicleId);
+
+                    if (!this.selectedVehicleId) {
+                        alert('Sila pilih kenderaan terlebih dahulu');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('{{ route('dashboard.generate-report') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+
+                        if (!response.ok) {
+                            const text = await response.text();
+                            throw new Error('HTTP ' + response.status + ': ' + text.slice(0, 200));
+                        }
+                        const result = await response.json();
+                        if (result.success) {
+                            this.penggunaanKenderaanVehicle = result.data.vehicle;
+                            this.penggunaanKenderaanRows = result.data.rows;
+                            this.penggunaanKenderaanSummary = result.data.summary;
                         } else {
                             alert('Gagal menjana laporan: ' + (result.message || 'Unknown error'));
                         }
@@ -322,6 +394,7 @@
                     <select x-model="reportType" id="jenis_laporan" name="jenis_laporan" class="form-select mt-1">
                         <option value="ot">Kerja Lebih Masa</option>
                         <option value="kenderaan">Kenderaan</option>
+                        <option value="penggunaan_kenderaan">Penggunaan Kenderaan</option>
                         <option value="tuntutan">Tuntutan</option>
                     </select>
                 </div>
@@ -338,7 +411,7 @@
                     <input type="date" id="tarikh_akhir" name="tarikh_akhir" class="form-input form-date-input-native mt-1" />
                 </div>
 
-                <!-- Col 4: Parameter (Staf untuk OT/Tuntutan, Kenderaan untuk Kenderaan) -->
+                <!-- Col 4: Parameter (dynamic based on report type) -->
                 <template x-if="reportType === 'ot' || reportType === 'tuntutan'">
                     <div class="relative" @click.away="staffDropdownOpen = false">
                         <x-forms.input-label for="staf_id" value="Nama Staf" />
@@ -385,7 +458,7 @@
                     </div>
                 </template>
 
-                <template x-if="reportType === 'kenderaan'">
+                <template x-if="reportType === 'kenderaan' || reportType === 'penggunaan_kenderaan'">
                     <div class="relative" @click.away="vehicleDropdownOpen = false">
                         <x-forms.input-label for="kenderaan_id" value="Kenderaan" />
                         <div @click="vehicleDropdownOpen = !vehicleDropdownOpen" 
@@ -432,8 +505,8 @@
                 </div>
             </div>
 
-            <!-- Result Area (OT Table) -->
-            <div class="mt-6 border border-gray-300 rounded-sm bg-gray-50 p-4 relative">
+            <!-- Result Area (Single-table reports: OT single-staff, Tuntutan, Kenderaan) -->
+            <div class="mt-6 border border-gray-300 rounded-sm bg-gray-50 p-4 relative" x-show="!(reportType === 'ot' && Array.isArray(otGroups) && otGroups.length)">
                 <!-- Loading overlay -->
                 <div x-show="loadingReport" class="absolute inset-0 bg-white/70 flex items-center justify-center z-10" x-cloak>
                     <div class="flex items-center gap-3 text-gray-600">
@@ -441,7 +514,7 @@
                         <span style="font-family: Poppins, sans-serif; font-size: 12px;">Menjana laporan...</span>
                     </div>
                 </div>
-                 <template x-if="reportType === 'ot' && otRows.length">
+                <template x-if="reportType === 'ot' && Array.isArray(otRows) && otRows.length">
                      <div class="space-y-4">
                         <!-- Header block (3-grid) -->
                         <div class="space-y-2 text-gray-800" style="font-size: 12px;">
@@ -540,6 +613,7 @@
                         </div>
                     </div>
                 </template>
+
 
                 <!-- Tuntutan Report -->
                 <template x-if="reportType === 'tuntutan' && tuntutanRows.length">
@@ -727,6 +801,176 @@
                     </div>
                 </template>
 
+                <!-- Penggunaan Kenderaan Report -->
+                <template x-if="reportType === 'penggunaan_kenderaan' && penggunaanKenderaanRows.length">
+                    <div class="space-y-4">
+                        <!-- Header Info -->
+                        <div class="space-y-2 text-gray-800" style="font-size: 12px;">
+                            <div class="flex items-center justify-between mb-3">
+                                <h2 class="text-lg font-bold text-gray-900 flex-1 text-center" style="font-size: 14px;">BUTIR-BUTIR PENGGUNAAN KENDERAAN</h2>
+                                <div class="text-right" style="font-size: 11px;">
+                                    <span class="text-gray-700">No. Siri : </span>
+                                    <span class="text-red-600 font-semibold" style="font-size: 16px;">A 316321</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="flex items-baseline">
+                                    <span class="font-semibold w-40">Jenis Kenderaan</span>
+                                    <span class="w-3 text-center">:</span>
+                                    <span class="text-gray-700" x-text="penggunaanKenderaanVehicle.jenis"></span>
+                                </div>
+                                <div class="flex items-baseline">
+                                    <span class="font-semibold w-40">No. Pendaftaran</span>
+                                    <span class="w-3 text-center">:</span>
+                                    <span class="text-gray-700" x-text="penggunaanKenderaanVehicle.noPlat"></span>
+                                </div>
+                                <div class="flex items-baseline">
+                                    <span class="font-semibold w-40">Bahagian/Unit</span>
+                                    <span class="w-3 text-center">:</span>
+                                    <span class="text-gray-700" x-text="penggunaanKenderaanVehicle.bahagian"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Table with 2-row header -->
+                        <div class="w-full overflow-x-auto">
+                            <table class="min-w-full table-auto border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th rowspan="2" class="border border-gray-300 px-2 py-2 text-left text-gray-800" style="font-size: 11px; min-width: 70px;">Tarikh</th>
+                                        <th colspan="2" class="border border-gray-300 px-2 py-2 text-center text-gray-800" style="font-size: 11px;">Masa</th>
+                                        <th rowspan="2" class="border border-gray-300 px-2 py-2 text-left text-gray-800" style="font-size: 11px; min-width: 120px;">Nama Pemandu</th>
+                                        <th rowspan="2" class="border border-gray-300 px-2 py-2 text-left text-gray-800" style="font-size: 11px; min-width: 150px;">Tujuan & Destinasi (dari — ke)</th>
+                                        <th colspan="2" class="border border-gray-300 px-2 py-2 text-center text-gray-800" style="font-size: 11px;">Nama Tandatangan</th>
+                                        <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-gray-800" style="font-size: 11px; min-width: 80px;">Bacaan Odometer (KM)</th>
+                                        <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-gray-800" style="font-size: 11px; min-width: 90px;">Jarak Perjalanan / Trip Meter (KM)</th>
+                                        <th colspan="3" class="border border-gray-300 px-2 py-2 text-center text-gray-800" style="font-size: 11px;">Pembelian Bahan Api (Petrol/Diesel/Gas)</th>
+                                        <th rowspan="2" class="border border-gray-300 px-2 py-2 text-center text-gray-800" style="font-size: 11px; min-width: 100px;">Arahan Khas Pengguna Kenderaan</th>
+                                    </tr>
+                                    <tr class="bg-gray-100">
+                                        <th class="border border-gray-300 px-2 py-1 text-center text-gray-800" style="font-size: 10px; min-width: 60px;">Mulai</th>
+                                        <th class="border border-gray-300 px-2 py-1 text-center text-gray-800" style="font-size: 10px; min-width: 60px;">Hingga</th>
+                                        <th class="border border-gray-300 px-2 py-1 text-center text-gray-800" style="font-size: 10px; min-width: 140px;">Pelulus</th>
+                                        <th class="border border-gray-300 px-2 py-1 text-center text-gray-800" style="font-size: 10px; min-width: 140px;">Pengguna</th>
+                                        <th class="border border-gray-300 px-2 py-1 text-center text-gray-800" style="font-size: 10px; width: 10%;">No. Resit</th>
+                                        <th class="border border-gray-300 px-2 py-1 text-center text-gray-800" style="font-size: 10px; width: 10%;">RM</th>
+                                        <th class="border border-gray-300 px-2 py-1 text-center text-gray-800" style="font-size: 10px; width: 10%;">Liter</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="(r, idx) in penggunaanKenderaanRows" :key="idx">
+                                        <tr class="odd:bg-white even:bg-gray-50">
+                                            <td class="border border-gray-300 px-2 py-2" style="font-size: 11px;" x-text="r.tarikh"></td>
+                                            <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;" x-text="r.masaMulai"></td>
+                                            <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;" x-text="r.masaHingga"></td>
+                                            <td class="border border-gray-300 px-2 py-2" style="font-size: 11px;" x-text="r.pemandu"></td>
+                                            <td class="border border-gray-300 px-2 py-2" style="font-size: 11px;">
+                                                <div class="text-xs leading-relaxed">
+                                                    <div x-text="r.destinasiDari"></div>
+                                                    <div class="text-gray-500">ke</div>
+                                                    <div x-text="r.destinasiKe"></div>
+                                                </div>
+                                            </td>
+                                            <td class="border border-gray-300 px-2 py-2" style="font-size: 11px;" x-text="r.pelulus"></td>
+                                            <td class="border border-gray-300 px-2 py-2" style="font-size: 11px;"></td>
+                                            <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;">
+                                                <div x-text="r.odometerKeluar + ' KM'"></div>
+                                                <div class="my-1"></div>
+                                                <div x-text="r.odometerMasuk + ' KM'"></div>
+                                            </td>
+                                            <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;" x-text="r.jarakPerjalanan + ' KM'"></td>
+                                            <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;"></td>
+                                            <td class="border border-gray-300 px-2 py-2 text-right" style="font-size: 11px;" x-text="r.resitRM"></td>
+                                            <td class="border border-gray-300 px-2 py-2 text-right" style="font-size: 11px;" x-text="r.liter"></td>
+                                            <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="bg-gray-50">
+                                        <td class="border-t border-gray-300 px-2 py-2" colspan="6"></td>
+                                        <td class="border border-gray-300 px-2 py-2 text-center font-semibold" style="font-size: 11px;">JUMLAH</td>
+                                        <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;"></td>
+                                        <td class="border border-gray-300 px-2 py-2 text-center font-semibold" style="font-size: 11px;" x-text="penggunaanKenderaanSummary.totalJarak.toFixed(0) + ' KM'"></td>
+                                        <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;"></td>
+                                        <td class="border border-gray-300 px-2 py-2 text-right font-semibold" style="font-size: 11px;" x-text="'RM ' + penggunaanKenderaanSummary.totalKos.toFixed(2)"></td>
+                                        <td class="border border-gray-300 px-2 py-2 text-right font-semibold" style="font-size: 11px;" x-text="penggunaanKenderaanSummary.totalLiter.toFixed(2) + ' L'"></td>
+                                        <td class="border border-gray-300 px-2 py-2 text-center" style="font-size: 11px;"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Summary Footer Table -->
+                        <div class="mt-4">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-3 text-center" style="font-size: 12px;">KADAR PENGGUNAAN BAHAN API BULANAN</h3>
+                            <div class="w-full overflow-x-auto">
+                                <table class="min-w-full table-auto border-collapse">
+                                    <thead>
+                                        <tr class="bg-gray-100">
+                                            <th class="border border-gray-300 px-3 py-2 text-center text-gray-800" style="font-size: 11px; width: 8%;">Bulan</th>
+                                            <th class="border border-gray-300 px-3 py-2 text-center text-gray-800" style="font-size: 11px; width: 15%;">
+                                                <div>Jumlah Jarak</div>
+                                                <div>Perjalanan (KM)</div>
+                                            </th>
+                                            <th class="border border-gray-300 px-3 py-2 text-center text-gray-800" style="font-size: 11px; width: 15%;">
+                                                <div>Jumlah Penggunaan</div>
+                                                <div>Bahan Api (Liter)</div>
+                                            </th>
+                                            <th class="border border-gray-300 px-3 py-2 text-center text-gray-800" style="font-size: 11px; width: 15%;">
+                                                <div>Jumlah Pembelian</div>
+                                                <div>Bahan Api (RM)</div>
+                                            </th>
+                                            <th class="border border-gray-300 px-3 py-2 text-center text-gray-800" style="font-size: 11px; width: 15%;">
+                                                <div>Kadar Penggunaan</div>
+                                                <div>Bahan Api (KM/Liter)</div>
+                                            </th>
+                                            <th class="border border-gray-300 px-3 py-2 text-center text-gray-800" style="font-size: 11px; width: 32%;">Disahkan Oleh</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="bg-white">
+                                            <td class="border border-gray-300 px-3 py-2 text-center font-semibold" style="font-size: 11px;" x-text="penggunaanKenderaanSummary.bulan"></td>
+                                            <td class="border border-gray-300 px-3 py-2 text-center font-semibold" style="font-size: 11px;" x-text="penggunaanKenderaanSummary.totalJarak.toFixed(1) + ' KM'"></td>
+                                            <td class="border border-gray-300 px-3 py-2 text-center font-semibold" style="font-size: 11px;" x-text="penggunaanKenderaanSummary.totalLiter.toFixed(2) + ' Liter'"></td>
+                                            <td class="border border-gray-300 px-3 py-2 text-center font-semibold" style="font-size: 11px;" x-text="'RM ' + penggunaanKenderaanSummary.totalKos.toFixed(2)"></td>
+                                            <td class="border border-gray-300 px-3 py-2 text-center font-semibold" style="font-size: 11px;" x-text="penggunaanKenderaanSummary.kadarPenggunaan.toFixed(2) + ' KM/Liter'"></td>
+                                            <td class="border border-gray-300 px-3 py-3 align-bottom" style="font-size: 11px; vertical-align: bottom;">
+                                                <div class="flex flex-col gap-0 text-left" style="min-height: 80px; justify-content: flex-end;">
+                                                    <div class="flex items-baseline py-0.5">
+                                                        <span class="font-medium w-24">Tandatangan</span>
+                                                        <span class="w-3 text-center">:</span>
+                                                        <span class="text-gray-700"></span>
+                                                    </div>
+                                                    <div class="flex items-baseline py-0.5">
+                                                        <span class="font-medium w-24">Nama</span>
+                                                        <span class="w-3 text-center">:</span>
+                                                        <span class="text-gray-700"></span>
+                                                    </div>
+                                                    <div class="flex items-baseline py-0.5">
+                                                        <span class="font-medium w-24">Jawatan</span>
+                                                        <span class="w-3 text-center">:</span>
+                                                        <span class="text-gray-700"></span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Record count & notes -->
+                        <div class="text-gray-800" style="font-size: 12px;">
+                            <div>Jumlah Rekod: <span x-text="penggunaanKenderaanSummary.totalRecords"></span></div>
+                            <div class="mt-2 text-gray-600 italic" style="font-size: 10px;">
+                                <p>* Potong yang tidak berkenaan</p>
+                                <p>** Formula Pengiraan: Kadar = Jumlah Jarak / Jumlah Liter</p>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
                 <!-- Empty state for no results after generate (Tuntutan) -->
                 <template x-if="reportType === 'tuntutan' && tuntutanRows.length === 0 && tuntutanSummary.totalRecords === 0">
                     <div class="flex flex-col items-center justify-center py-16 text-gray-500">
@@ -737,8 +981,8 @@
                     </div>
                 </template>
 
-                <!-- Empty state for no results after generate (OT) -->
-                <template x-if="reportType === 'ot' && otRows.length === 0 && otSummary.totalRecords === 0">
+                <!-- Empty state for no results after generate (OT) - hide when groups exist -->
+                <template x-if="reportType === 'ot' && (!Array.isArray(otGroups) || otGroups.length === 0) && Array.isArray(otRows) && otRows.length === 0 && otSummary.totalRecords === 0">
                     <div class="flex flex-col items-center justify-center py-16 text-gray-500">
                         <span class="material-symbols-outlined text-6xl mb-4 text-gray-300">schedule</span>
                         <p class="text-base font-semibold text-gray-700 mb-1" style="font-family: Poppins, sans-serif;">Tiada Rekod Dijumpai</p>
@@ -758,13 +1002,119 @@
                 </template>
 
                 <!-- Default empty state -->
-                <template x-if="!(reportType === 'ot' && otRows.length) && !(reportType === 'tuntutan' && tuntutanRows.length) && !(reportType === 'kenderaan' && kenderaanRows.length) && otSummary.totalRecords !== 0 && tuntutanSummary.totalRecords !== 0 && kenderaanSummary.totalRecords !== 0">
+                <template x-if="!(reportType === 'ot' && Array.isArray(otRows) && otRows.length) && !(reportType === 'tuntutan' && Array.isArray(tuntutanRows) && tuntutanRows.length) && !(reportType === 'kenderaan' && Array.isArray(kenderaanRows) && kenderaanRows.length) && (otSummary && otSummary.totalRecords !== 0) && (tuntutanSummary && tuntutanSummary.totalRecords !== 0) && (kenderaanSummary && kenderaanSummary.totalRecords !== 0)">
                     <div class="flex flex-col items-center justify-center py-12 text-gray-500">
                         <span class="material-symbols-outlined text-5xl mb-3 text-gray-400">filter_alt</span>
                         <p class="text-sm text-gray-600" style="font-family: Poppins, sans-serif;">Tiada hasil. Sila pilih penapis dan klik Generate.</p>
                     </div>
                 </template>
             </div>
+
+            <!-- OT Grouped (Semua Staf) - each staff in separate grey container outside main Result Area -->
+            <template x-if="reportType === 'ot' && Array.isArray(otGroups) && otGroups.length">
+                <div class="space-y-6 mt-6">
+                    <template x-for="(g, gidx) in otGroups" :key="gidx">
+                        <div class="border border-gray-300 rounded-sm bg-gray-50 p-4">
+                            <div class="space-y-4">
+                                <!-- Header block -->
+                                <div class="space-y-2 text-gray-800" style="font-size: 12px;">
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        <div class="md:col-span-5 flex items-baseline">
+                                            <span class="font-semibold w-32">Nama Penuh</span>
+                                            <span class="w-3 text-center">:</span>
+                                            <span class="text-gray-700" x-text="g.profile.namaPenuh"></span>
+                                        </div>
+                                        <div class="md:col-span-3 flex items-baseline">
+                                            <span class="font-semibold w-28">No Pekerja</span>
+                                            <span class="w-3 text-center">:</span>
+                                            <span class="text-gray-700" x-text="g.profile.noPekerja"></span>
+                                        </div>
+                                        <div class="md:col-span-4 flex items-baseline md:items-center min-w-0">
+                                            <span class="font-semibold w-16">Ref</span>
+                                            <span class="w-3 text-center">:</span>
+                                            <span class="text-gray-700 truncate flex-1" x-text="genRef('OT')"></span>
+                                            <button type="button" class="ml-2 md:ml-3 text-red-600 hover:text-red-700 flex-shrink-0" title="Eksport PDF (Landskap)">
+                                                <span class="material-symbols-outlined" style="font-size: 18px;">picture_as_pdf</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        <div class="md:col-span-5 flex items-baseline">
+                                            <span class="font-semibold w-32">Kad Pengenalan</span>
+                                            <span class="w-3 text-center">:</span>
+                                            <span class="text-gray-700" x-text="g.profile.ic"></span>
+                                        </div>
+                                        <div class="md:col-span-3 flex items-baseline">
+                                            <span class="font-semibold w-28">No Tel</span>
+                                            <span class="w-3 text-center">:</span>
+                                            <span class="text-gray-700" x-text="g.profile.tel"></span>
+                                        </div>
+                                        <div class="md:col-span-4"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Table per staff -->
+                                <div class="w-full overflow-x-auto">
+                                    <table class="min-w-full table-auto border-collapse">
+                                        <thead>
+                                            <tr class="bg-gray-100">
+                                                <th class="border border-gray-300 px-3 py-2 text-left text-gray-800" style="font-size: 12px;">Tarikh</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left text-gray-800" style="font-size: 12px;">Nama Program</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left text-gray-800" style="font-size: 12px;">Masa Mula</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left text-gray-800" style="font-size: 12px;">Masa Tamat</th>
+                                                <th class="border border-gray-300 px-3 py-2 text-left text-gray-800" style="font-size: 12px;">Jam(OT)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(r, idx) in g.rows" :key="idx">
+                                                <tr :class="r.bgColor || 'bg-white'">
+                                                    <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.tarikh"></td>
+                                                    <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.program"></td>
+                                                    <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.mula"></td>
+                                                    <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.tamat"></td>
+                                                    <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;">
+                                                        <div class="flex items-center justify-between">
+                                                            <span x-text="r.jamText"></span>
+                                                            <span class="text-xs text-gray-500 ml-2" x-text="`(${r.multiplier}x)`"></span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="bg-gray-50">
+                                                <td class="border-t border-gray-300 px-3 py-2" colspan="3"></td>
+                                                <td class="border-x border-t border-b border-gray-300 px-3 py-2" style="font-size: 12px; white-space: nowrap;">
+                                                    <span class="font-semibold">Jumlah Jam OT</span>
+                                                </td>
+                                                <td class="border-x border-t border-b border-gray-300 px-3 py-2 font-semibold" style="font-size: 12px;" x-text="computeOtText(g.rows)"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+
+                                <div class="text-gray-800" style="font-size: 12px;">
+                                    <div>Jumlah Rekod: <span x-text="g.summary.totalRecords"></span></div>
+                                    <div class="mt-2 flex items-center gap-4 text-gray-700" style="font-family: Poppins, sans-serif; font-size: 11px;">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-block w-3 h-3 bg-white border border-gray-300 rounded-sm"></span>
+                                            <span>Hari Bekerja (1.5x)</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-block w-3 h-3 bg-yellow-50 border border-yellow-200 rounded-sm"></span>
+                                            <span>Hujung Minggu (2.0x)</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-block w-3 h-3 bg-red-50 border border-red-200 rounded-sm"></span>
+                                            <span>Cuti Umum (3.0x)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
         </div>
     </x-ui.page-header>
 </x-dashboard-layout>

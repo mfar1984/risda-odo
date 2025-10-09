@@ -19,6 +19,7 @@ class Tuntutan extends Model
         'jumlah',
         'keterangan',
         'resit',
+        'no_resit',
         'status',
         'alasan_tolak',
         'alasan_gantung',

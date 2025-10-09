@@ -78,6 +78,7 @@ Route::middleware(['api.token', 'api.cors', 'auth:sanctum'])->group(function () 
         Route::get('/active', [\App\Http\Controllers\Api\LogPemanduController::class, 'getActiveJourney']); // Get active journey
         Route::post('/start', [\App\Http\Controllers\Api\LogPemanduController::class, 'startJourney']); // Start journey (check-out)
         Route::put('/{id}/end', [\App\Http\Controllers\Api\LogPemanduController::class, 'endJourney']); // End journey (check-in)
+        Route::put('/{id}/lokasi', [\App\Http\Controllers\Api\LogPemanduController::class, 'updateLokasi']); // Update start/end textual locations
     });
     
     // Claims/Tuntutan endpoints

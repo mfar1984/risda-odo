@@ -99,6 +99,8 @@ class LogPemanduController extends Controller
         ], 200);
     }
 
+    // show() for single log via API was intentionally removed per request
+
     /**
      * Start Journey (Check-Out)
      * 
@@ -129,6 +131,7 @@ class LogPemanduController extends Controller
             'odometer_keluar' => 'required|numeric|min:0',
             'lokasi_keluar_lat' => 'nullable|numeric',
             'lokasi_keluar_long' => 'nullable|numeric',
+            'lokasi_mula_perjalanan' => 'nullable|string',
             'catatan' => 'nullable|string',
             'foto_odometer_keluar' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // 5MB
         ]);
@@ -168,6 +171,7 @@ class LogPemanduController extends Controller
             'odometer_keluar' => $request->odometer_keluar,
             'lokasi_checkout_lat' => $request->lokasi_keluar_lat,
             'lokasi_checkout_long' => $request->lokasi_keluar_long,
+            'lokasi_mula_perjalanan' => $request->lokasi_mula_perjalanan,
             'foto_odometer_keluar' => $fotoOdometerKeluar,
             'catatan' => $request->catatan,
             'status' => 'dalam_perjalanan',
@@ -260,6 +264,8 @@ class LogPemanduController extends Controller
             'odometer_masuk' => 'required|numeric|min:' . $log->odometer_keluar,
             'lokasi_checkin_lat' => 'nullable|numeric',
             'lokasi_checkin_long' => 'nullable|numeric',
+            'lokasi_tamat_perjalanan' => 'nullable|string',
+            'no_resit' => 'nullable|string|max:255',
             'catatan' => 'nullable|string',
             'foto_odometer_masuk' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             // Fuel fields (optional)
@@ -297,12 +303,14 @@ class LogPemanduController extends Controller
             'odometer_masuk' => $request->odometer_masuk,
             'lokasi_checkin_lat' => $request->lokasi_checkin_lat,
             'lokasi_checkin_long' => $request->lokasi_checkin_long,
+            'lokasi_tamat_perjalanan' => $request->lokasi_tamat_perjalanan,
             'foto_odometer_masuk' => $fotoOdometerMasuk,
             'catatan' => $request->catatan ?? $log->catatan,
             'liter_minyak' => $request->liter_minyak,
             'kos_minyak' => $request->kos_minyak,
             'stesen_minyak' => $request->stesen_minyak,
             'resit_minyak' => $resitMinyak,
+            'no_resit' => $request->no_resit ?? $log->no_resit,
             'status' => 'selesai',
         ]);
 
@@ -384,6 +392,46 @@ class LogPemanduController extends Controller
     }
 
     /**
+     * Update only textual start/end locations for a log (owner driver or admin)
+     */
+    public function updateLokasi(Request $request, $id)
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'lokasi_mula_perjalanan' => 'nullable|string|max:255',
+            'lokasi_tamat_perjalanan' => 'nullable|string|max:255',
+        ]);
+
+        $log = LogPemandu::find($id);
+        if (!$log) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Log tidak dijumpai',
+            ], 404);
+        }
+
+        // Only the owner driver or admin can update
+        $isOwner = (string) $log->pemandu_id === (string) $user->id;
+        $isAdmin = ($user->jenis_organisasi ?? null) === 'semua';
+        if (!$isOwner && !$isAdmin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses dinafikan',
+            ], 403);
+        }
+
+        $log->fill($data);
+        $log->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lokasi berjaya dikemaskini',
+            'data' => $this->formatLogData($log->fresh()),
+        ]);
+    }
+
+    /**
      * Format log data for API response
      * 
      * @param LogPemandu $log
@@ -401,6 +449,7 @@ class LogPemanduController extends Controller
                 'lokasi_lat' => $log->program->lokasi_lat,
                 'lokasi_long' => $log->program->lokasi_long,
                 'jarak_anggaran' => $log->program->jarak_anggaran,
+                'arahan_khas_pengguna_kenderaan' => $log->program->arahan_khas_pengguna_kenderaan,
                 'permohonan_dari' => $log->program->pemohon ? [
                     'id' => $log->program->pemohon->id,
                     'nama_penuh' => $log->program->pemohon->nama_penuh, // Fixed: use nama_penuh
@@ -426,11 +475,14 @@ class LogPemanduController extends Controller
             'lokasi_checkout_long' => $log->lokasi_checkout_long,
             'lokasi_checkin_lat' => $log->lokasi_checkin_lat,
             'lokasi_checkin_long' => $log->lokasi_checkin_long,
+            'lokasi_mula_perjalanan' => $log->lokasi_mula_perjalanan,
+            'lokasi_tamat_perjalanan' => $log->lokasi_tamat_perjalanan,
             'foto_odometer_keluar' => $log->foto_odometer_keluar, // Return relative path only
             'foto_odometer_masuk' => $log->foto_odometer_masuk, // Return relative path only
             'liter_minyak' => $log->liter_minyak,
             'kos_minyak' => $log->kos_minyak,
             'stesen_minyak' => $log->stesen_minyak,
+            'no_resit' => $log->no_resit,
             'resit_minyak' => $log->resit_minyak, // Return relative path only
             'catatan' => $log->catatan,
             'created_at' => $log->created_at?->toISOString(),

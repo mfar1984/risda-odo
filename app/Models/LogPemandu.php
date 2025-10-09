@@ -33,6 +33,7 @@ class LogPemandu extends Model
         'foto_odometer_keluar',  // Start Journey photo
         'foto_odometer_masuk',   // End Journey photo
         'resit_minyak',
+        'no_resit',
         'status',
         'organisasi_id',
         'dicipta_oleh',
@@ -41,6 +42,8 @@ class LogPemandu extends Model
         'lokasi_checkin_long',
         'lokasi_checkout_lat',
         'lokasi_checkout_long',
+        'lokasi_mula_perjalanan',
+        'lokasi_tamat_perjalanan',
     ];
 
     protected $casts = [
@@ -205,6 +208,16 @@ class LogPemandu extends Model
         }
 
         return $this->lokasi_checkout;
+    }
+
+    public function getLokasiMulaPerjalananLabelAttribute(): ?string
+    {
+        return $this->lokasi_mula_perjalanan ?: null;
+    }
+
+    public function getLokasiTamatPerjalananLabelAttribute(): ?string
+    {
+        return $this->lokasi_tamat_perjalanan ?: null;
     }
 
     // Mutators

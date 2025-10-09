@@ -32,6 +32,7 @@ class _ClaimScreenState extends State<ClaimScreen> {
   String? selectedCategory;
   final TextEditingController amountController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController noResitController = TextEditingController();
   
   XFile? receiptImage;
   final ImagePicker _picker = ImagePicker();
@@ -136,6 +137,7 @@ class _ClaimScreenState extends State<ClaimScreen> {
         tempCategory = claim['kategori'];
         amountController.text = claim['jumlah'].toString();
         descriptionController.text = claim['keterangan'] ?? '';
+        noResitController.text = claim['no_resit']?.toString() ?? '';
       }
       
       setState(() {
@@ -274,6 +276,7 @@ class _ClaimScreenState extends State<ClaimScreen> {
         localId: localId,
         isSynced: false,
         createdAt: DateTime.now(),
+        noResit: noResitController.text.isNotEmpty ? noResitController.text : null,
       );
       
       // Save to Hive
@@ -358,6 +361,9 @@ class _ClaimScreenState extends State<ClaimScreen> {
       existing.jumlah = amount;
       existing.catatan = descriptionController.text.isNotEmpty ? descriptionController.text : existing.catatan;
       existing.resitLocal = localPhotoPath; // may be unchanged
+      if (noResitController.text.isNotEmpty) {
+        existing.noResit = noResitController.text;
+      }
       existing.status = 'pending'; // resubmission
       existing.isSynced = false;   // needs sync
       existing.syncRetries = 0;
@@ -478,6 +484,7 @@ class _ClaimScreenState extends State<ClaimScreen> {
           kategori: selectedCategory!,
           jumlah: amount,
           keterangan: descriptionController.text.isNotEmpty ? descriptionController.text : null,
+          noResit: noResitController.text.isNotEmpty ? noResitController.text : null,
           resitBytes: resitBytes,
           resitFilename: resitFilename,
         );
@@ -488,6 +495,7 @@ class _ClaimScreenState extends State<ClaimScreen> {
           kategori: selectedCategory!,
           jumlah: amount,
           keterangan: descriptionController.text.isNotEmpty ? descriptionController.text : null,
+          noResit: noResitController.text.isNotEmpty ? noResitController.text : null,
           resitBytes: resitBytes,
           resitFilename: resitFilename,
         );
@@ -745,6 +753,28 @@ class _ClaimScreenState extends State<ClaimScreen> {
                     maxLines: 3,
                     decoration: InputDecoration(
                       hintText: 'Masukkan keterangan tambahan...',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: PastelColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: PastelColors.border),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // No. Resit (Optional)
+                  Text('No. Resit (Optional)', style: AppTextStyles.h2),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: noResitController,
+                    decoration: InputDecoration(
+                      hintText: 'Contoh: RCPT-2025-0001',
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(

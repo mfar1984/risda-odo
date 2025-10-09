@@ -165,12 +165,12 @@
             </x-ui.card>
             @endif
 
-            {{-- Senarai Tuntutan untuk Program Ini --}}
+            {{-- Senarai Tuntutan --}}
             <x-ui.card>
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
                         <span class="material-symbols-outlined text-blue-600">list_alt</span>
-                        <h3 class="text-base font-semibold text-gray-900">Senarai Tuntutan untuk Program Ini</h3>
+                        <h3 class="text-base font-semibold text-gray-900">Senarai Tuntutan</h3>
                     </div>
                     <div class="text-xs text-gray-500">Jumlah rekod: {{ number_format($relatedClaims->count() + 1) }}</div>
                 </div>
@@ -184,6 +184,8 @@
                         ['label' => 'Kategori', 'align' => 'text-left'],
                         ['label' => 'Jumlah (RM)', 'align' => 'text-right'],
                         ['label' => 'Status', 'align' => 'text-left'],
+                        ['label' => 'No. Resit', 'align' => 'text-left'],
+                        ['label' => 'Resit', 'align' => 'text-center'],
                         ['label' => 'Tindakan', 'align' => 'text-center'],
                     ]"
                     :actions="false"
@@ -211,6 +213,19 @@
                                 :label="$tuntutan->status_label"
                                 :color="$tuntutan->status_badge_color" 
                             />
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            {{ $tuntutan->no_resit ?? '-' }}
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm text-gray-900">
+                            @php $resitUrl = $tuntutan->resit ? Storage::url($tuntutan->resit) : null; @endphp
+                            @if($resitUrl)
+                                <a href="{{ $resitUrl }}" target="_blank" class="inline-flex items-center justify-center p-2 hover:bg-blue-50 rounded-sm" title="Lihat Resit">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">receipt_long</span>
+                                </a>
+                            @else
+                                -
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-center">
                             <span class="text-xs font-medium text-blue-700">⬅ Tuntutan Semasa</span>
@@ -240,6 +255,19 @@
                                     :label="$claim->status_label"
                                     :color="$claim->status_badge_color" 
                                 />
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                {{ $claim->no_resit ?? '-' }}
+                            </td>
+                            <td class="px-6 py-4 text-center text-sm text-gray-900">
+                                @php $claimResitUrl = $claim->resit ? Storage::url($claim->resit) : null; @endphp
+                                @if($claimResitUrl)
+                                    <a href="{{ $claimResitUrl }}" target="_blank" class="inline-flex items-center justify-center p-2 hover:bg-blue-50 rounded-sm" title="Lihat Resit">
+                                        <span class="material-symbols-outlined" style="font-size: 20px;">receipt_long</span>
+                                    </a>
+                                @else
+                                    -
+                                @endif
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <a href="{{ route('laporan.laporan-tuntutan.show', $claim->id) }}" 

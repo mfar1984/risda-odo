@@ -35,6 +35,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
   final TextEditingController requestByController = TextEditingController();
   final TextEditingController notesController = TextEditingController();
   final TextEditingController currentDateTimeController = TextEditingController();
+  final TextEditingController lokasiMulaController = TextEditingController();
   
   // API data
   int? selectedProgramId;
@@ -241,6 +242,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
         masaKeluar: DateFormat('HH:mm').format(now),
         masaMasuk: null,
         destinasi: locationController.text.isNotEmpty ? locationController.text : 'N/A',
+        // store lokasi mula textual (optional) inside catatan or destinasi extension if needed later
         catatan: notesController.text.isNotEmpty ? notesController.text : null,
         odometerKeluar: odometerKeluar,
         odometerMasuk: null,
@@ -260,6 +262,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
         lokasiCheckinLong: gpsLongitude,
         lokasiCheckoutLat: null,
         lokasiCheckoutLong: null,
+        lokasiMulaPerjalanan: lokasiMulaController.text.isNotEmpty ? lokasiMulaController.text : null,
         createdAt: now,
         updatedAt: now,
         localId: localId,
@@ -798,6 +801,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
         odometerKeluar: odometer,
         lokasiKeluarLat: gpsLatitude,
         lokasiKeluarLong: gpsLongitude,
+        lokasiMulaPerjalanan: lokasiMulaController.text.trim().isNotEmpty ? lokasiMulaController.text.trim() : null,
         catatan: notesController.text.isNotEmpty ? notesController.text : null,
         fotoOdometerKeluarBytes: odometerBytes,
         fotoOdometerKeluarFilename: odometerFilename,
@@ -855,6 +859,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
     requestByController.dispose();
     notesController.dispose();
     currentDateTimeController.dispose();
+    lokasiMulaController.dispose();
     super.dispose();
   }
 
@@ -1256,6 +1261,26 @@ class _CheckInScreenState extends State<CheckInScreen> {
                             vertical: 10,
                           ),
                     prefixIcon: Icon(Icons.gps_fixed, color: PastelColors.primary, size: 20),
+                  ),
+                  style: AppTextStyles.bodyLarge,
+                ),
+                const SizedBox(height: 12),
+                // Lokasi Mula Perjalanan (manual text)
+                _fieldLabel('Lokasi Mula Perjalanan'),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: lokasiMulaController,
+                  decoration: InputDecoration(
+                    hintText: 'Contoh: Pejabat RISDA Bahagian Sibu',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    prefixIcon: Icon(Icons.edit_location_alt, color: PastelColors.primary, size: 20),
                   ),
                   style: AppTextStyles.bodyLarge,
                 ),

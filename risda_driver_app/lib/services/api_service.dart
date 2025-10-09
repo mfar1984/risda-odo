@@ -207,6 +207,7 @@ class ApiService {
     required int odometerKeluar,
     double? lokasiKeluarLat,
     double? lokasiKeluarLong,
+    String? lokasiMulaPerjalanan,
     String? catatan,
     List<int>? fotoOdometerKeluarBytes, // Image bytes (works for both web & mobile)
     String? fotoOdometerKeluarFilename,
@@ -219,6 +220,8 @@ class ApiService {
         'odometer_keluar': odometerKeluar,
         if (lokasiKeluarLat != null) 'lokasi_keluar_lat': lokasiKeluarLat,
         if (lokasiKeluarLong != null) 'lokasi_keluar_long': lokasiKeluarLong,
+        if (lokasiMulaPerjalanan != null && lokasiMulaPerjalanan.isNotEmpty)
+          'lokasi_mula_perjalanan': lokasiMulaPerjalanan,
         if (catatan != null) 'catatan': catatan,
         if (fotoOdometerKeluarBytes != null)
           'foto_odometer_keluar': MultipartFile.fromBytes(
@@ -251,10 +254,12 @@ class ApiService {
     required int odometerMasuk,
     double? lokasiCheckinLat,
     double? lokasiCheckinLong,
+    String? lokasiTamatPerjalanan,
     String? catatan,
     double? literMinyak,
     double? kosMinyak,
     String? stesenMinyak,
+    String? noResit,
     List<int>? fotoOdometerMasukBytes, // Image bytes (works for both web & mobile)
     String? fotoOdometerMasukFilename,
     List<int>? resitMinyakBytes, // Image bytes (works for both web & mobile)
@@ -268,10 +273,13 @@ class ApiService {
         'odometer_masuk': odometerMasuk,
         if (lokasiCheckinLat != null) 'lokasi_checkin_lat': lokasiCheckinLat,
         if (lokasiCheckinLong != null) 'lokasi_checkin_long': lokasiCheckinLong,
+        if (lokasiTamatPerjalanan != null && lokasiTamatPerjalanan.isNotEmpty)
+          'lokasi_tamat_perjalanan': lokasiTamatPerjalanan,
         if (catatan != null) 'catatan': catatan,
         if (literMinyak != null) 'liter_minyak': literMinyak,
         if (kosMinyak != null) 'kos_minyak': kosMinyak,
         if (stesenMinyak != null) 'stesen_minyak': stesenMinyak,
+        if (noResit != null && noResit.isNotEmpty) 'no_resit': noResit,
         if (fotoOdometerMasukBytes != null)
           'foto_odometer_masuk': MultipartFile.fromBytes(
             fotoOdometerMasukBytes,
@@ -467,6 +475,7 @@ class ApiService {
     required String kategori,
     required double jumlah,
     String? keterangan,
+    String? noResit,
     List<int>? resitBytes,
     String? resitFilename,
   }) async {
@@ -476,6 +485,7 @@ class ApiService {
         'kategori': kategori,
         'jumlah': jumlah,
         if (keterangan != null) 'keterangan': keterangan,
+        if (noResit != null && noResit.isNotEmpty) 'no_resit': noResit,
         if (resitBytes != null && resitFilename != null)
           'resit': MultipartFile.fromBytes(
             resitBytes,
@@ -500,6 +510,7 @@ class ApiService {
     required String kategori,
     required double jumlah,
     String? keterangan,
+    String? noResit,
     List<int>? resitBytes,
     String? resitFilename,
   }) async {
@@ -509,6 +520,7 @@ class ApiService {
         'kategori': kategori,
         'jumlah': jumlah,
         if (keterangan != null) 'keterangan': keterangan,
+        if (noResit != null && noResit.isNotEmpty) 'no_resit': noResit,
         if (resitBytes != null && resitFilename != null)
           'resit': MultipartFile.fromBytes(
             resitBytes,

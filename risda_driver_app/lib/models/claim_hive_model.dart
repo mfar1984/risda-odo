@@ -68,6 +68,9 @@ class ClaimHive extends HiveObject {
   @HiveField(20)
   DateTime? lastSyncAttempt;
 
+  @HiveField(21)
+  String? noResit; // Receipt number reference (no_resit)
+
   ClaimHive({
     this.id,
     this.logPemanduId,
@@ -90,6 +93,7 @@ class ClaimHive extends HiveObject {
     this.syncRetries = 0,
     this.syncError,
     this.lastSyncAttempt,
+    this.noResit,
   });
 
   Map<String, dynamic> toJson() {
@@ -99,6 +103,7 @@ class ClaimHive extends HiveObject {
       'kategori': kategori,
       'jumlah': jumlah,
       'resit': resit,
+      'no_resit': noResit,
       'keterangan': catatan, // MySQL uses 'keterangan', not 'catatan'
       'status': status,
       'dicipta_oleh': diciptaOleh,
@@ -142,6 +147,7 @@ class ClaimHive extends HiveObject {
       kategori: json['kategori'] ?? 'others',
       jumlah: json['jumlah'] != null ? double.tryParse(json['jumlah'].toString()) ?? 0.0 : 0.0,
       resit: serverResit,
+      noResit: json['no_resit'],
       catatan: json['keterangan'], // MySQL uses 'keterangan'
       status: json['status'] ?? 'pending',
       diciptaOleh: json['dicipta_oleh'] ?? 0,

@@ -91,6 +91,7 @@
                         ['label' => 'Liter (L)', 'align' => 'text-left'],
                         ['label' => 'Catatan', 'align' => 'text-left'],
                         ['label' => 'Status', 'align' => 'text-left'],
+                        ['label' => 'No. Resit', 'align' => 'text-left'],
                         ['label' => 'Resit', 'align' => 'text-center'],
                     ]"
                     :actions="false"
@@ -100,7 +101,7 @@
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 text-sm text-gray-700">
                                 <div>{{ $log->tarikh_perjalanan?->format('d/m/Y') ?? '-' }}</div>
-                                <div class="text-xs text-gray-500">Check-in: {{ $log->masa_keluar?->format('H:i') ?? '-' }}</div>
+                                <div class="text-xs text-gray-500">Check-in: {{ $log->masa_keluar ? \Carbon\Carbon::parse($log->masa_keluar)->format('H:i') : '-' }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <div>{{ $log->pemandu->name ?? '-' }}</div>
@@ -121,6 +122,9 @@
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <x-ui.status-badge :status="$log->status" />
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                {{ $log->no_resit ?? '-' }}
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @if($log->resit_minyak)

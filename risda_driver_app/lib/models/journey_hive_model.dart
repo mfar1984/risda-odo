@@ -117,6 +117,15 @@ class JourneyHive extends HiveObject {
   @HiveField(36)
   String? resitMinyakLocal; // Local receipt path (before upload)
 
+  @HiveField(37)
+  String? noResit; // Fuel receipt reference number (no_resit)
+
+  @HiveField(38)
+  String? lokasiMulaPerjalanan; // Textual start location (lokasi_mula_perjalanan)
+
+  @HiveField(39)
+  String? lokasiTamatPerjalanan; // Textual end location (lokasi_tamat_perjalanan)
+
   JourneyHive({
     this.id,
     required this.pemanduId,
@@ -155,6 +164,9 @@ class JourneyHive extends HiveObject {
     this.fotoOdometerKeluarLocal,
     this.fotoOdometerMasukLocal,
     this.resitMinyakLocal,
+    this.noResit,
+    this.lokasiMulaPerjalanan,
+    this.lokasiTamatPerjalanan,
   });
 
   // Convert to JSON for API
@@ -176,6 +188,9 @@ class JourneyHive extends HiveObject {
       'kos_minyak': kosMinyak,
       'stesen_minyak': stesenMinyak,
       'resit_minyak': resitMinyak,
+      'no_resit': noResit,
+      'lokasi_mula_perjalanan': lokasiMulaPerjalanan,
+      'lokasi_tamat_perjalanan': lokasiTamatPerjalanan,
       'foto_odometer_keluar': fotoOdometerKeluar,
       'foto_odometer_masuk': fotoOdometerMasuk,
       'status': status,
@@ -223,6 +238,9 @@ class JourneyHive extends HiveObject {
       kosMinyak: json['kos_minyak'] != null ? double.tryParse(json['kos_minyak'].toString()) : null,
       stesenMinyak: json['stesen_minyak'],
       resitMinyak: json['resit_minyak'],
+      noResit: json['no_resit'],
+      lokasiMulaPerjalanan: json['lokasi_mula_perjalanan'],
+      lokasiTamatPerjalanan: json['lokasi_tamat_perjalanan'],
       fotoOdometerKeluar: json['foto_odometer_keluar'],
       fotoOdometerMasuk: json['foto_odometer_masuk'],
       status: json['status'] ?? 'selesai',

@@ -168,6 +168,18 @@
                         >{{ $program->penerangan ?? 'Tiada penerangan' }}</textarea>
                     </div>
 
+                    <!-- Row 3b: Arahan Khas Pengguna Kenderaan -->
+                    <div>
+                        <x-forms.input-label for="arahan_khas_pengguna_kenderaan" value="Arahan Khas Pengguna Kenderaan" />
+                        <textarea
+                            id="arahan_khas_pengguna_kenderaan"
+                            name="arahan_khas_pengguna_kenderaan"
+                            class="mt-1 block w-full form-input"
+                            rows="2"
+                            readonly
+                        >{{ $program->arahan_khas_pengguna_kenderaan ?? '-' }}</textarea>
+                    </div>
+
                     <!-- Row 4: Status -->
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">

@@ -594,6 +594,8 @@ class TuntutanController extends Controller
             return $this->getTuntutanReport($request);
         } elseif ($jenisLaporan === 'kenderaan') {
             return $this->getKenderaanReport($request);
+        } elseif ($jenisLaporan === 'penggunaan_kenderaan') {
+            return $this->getPenggunaanKenderaanReport($request);
         } elseif ($jenisLaporan === 'ot') {
             return $this->getOTReport($request);
         }
@@ -873,8 +875,8 @@ class TuntutanController extends Controller
 
         $logs = $query->orderBy('tarikh_perjalanan', 'desc')->get();
 
-        // Format data with OT calculation
-        $rows = $logs->map(function ($log) use ($cutiUmumList) {
+        // Helper to compute one OT row
+        $computeRow = function ($log) use ($cutiUmumList) {
             $pemandu = $log->pemandu;
             $staf = $pemandu ? $pemandu->risdaStaf : null;
             $program = $log->program;
@@ -972,15 +974,55 @@ class TuntutanController extends Controller
                 'jenisHari' => $jenisHari,
                 'bgColor' => $bgColor,
             ];
-        })->filter()->values();
+        };
+
+        // If specific staff selected -> single-table mode
+        if ($request->filled('staf_id')) {
+            $rows = $logs->map($computeRow)->filter()->values();
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'rows' => $rows,
+                    'summary' => [
+                        'totalRecords' => $rows->count(),
+                    ]
+                ]
+            ]);
+        }
+
+        // Grouped mode for "Semua Staf"
+        $groups = $logs->groupBy('pemandu_id')->map(function ($group) use ($computeRow) {
+            $first = $group->first();
+            $user = $first ? $first->pemandu : null;
+            $staf = $user ? $user->risdaStaf : null;
+            $rows = $group->map($computeRow)->filter()->values();
+            return [
+                'profile' => [
+                    'namaPenuh' => $staf ? $staf->nama_penuh : ($user ? $user->name : '-'),
+                    'noPekerja' => $staf ? ($staf->no_pekerja ?? '-') : '-',
+                    'ic' => $staf ? ($staf->no_kad_pengenalan ?? '-') : '-',
+                    'tel' => $staf ? ($staf->no_telefon ?? '-') : '-',
+                ],
+                'rows' => $rows,
+                'summary' => [
+                    'totalRecords' => $rows->count(),
+                ],
+            ];
+        })->values();
+
+        // Also provide flattened rows for backward-compatible single-table UI
+        $allRows = $groups->flatMap(function ($g) {
+            return collect($g['rows']);
+        })->values();
 
         return response()->json([
             'success' => true,
             'data' => [
-                'rows' => $rows,
+                'groups' => $groups,
+                'rows' => $allRows,
                 'summary' => [
-                    'totalRecords' => $rows->count(),
-                ]
+                    'totalRecords' => $allRows->count(),
+                ],
             ]
         ]);
     }
@@ -1060,5 +1102,149 @@ class TuntutanController extends Controller
             ->toArray();
 
         return array_unique(array_merge($cutiList, $manualCuti));
+    }
+
+    /**
+     * Get Penggunaan Kenderaan report data (detailed monthly usage)
+     */
+    private function getPenggunaanKenderaanReport(Request $request)
+    {
+        // Check permission
+        if (!Auth::user()->adaKebenaran('laporan_kenderaan', 'lihat')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses dinafikan'
+            ], 403);
+        }
+
+        $kenderaanId = $request->input('kenderaan_id');
+        if (!$kenderaanId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sila pilih kenderaan'
+            ], 400);
+        }
+
+        // Get vehicle details
+        $kenderaan = \App\Models\Kenderaan::find($kenderaanId);
+        if (!$kenderaan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kenderaan tidak dijumpai'
+            ], 404);
+        }
+
+        // Get logs for this vehicle
+        $query = LogPemandu::with([
+            'pemandu.risdaStaf',
+            'program.pemohon', // Pelulus (pemohon program is User model)
+            'kenderaan'
+        ])->where('kenderaan_id', $kenderaanId);
+
+        // Apply date range filter
+        if ($request->filled('tarikh_mula') && $request->filled('tarikh_akhir')) {
+            $query->whereBetween('tarikh_perjalanan', [
+                $request->tarikh_mula,
+                $request->tarikh_akhir,
+            ]);
+        }
+
+        // Only completed journeys
+        $query->where('status', 'selesai');
+
+        $logs = $query->orderBy('tarikh_perjalanan', 'asc')->get();
+
+        // Format data for display
+        $rows = $logs->map(function ($log) {
+            $pemandu = $log->pemandu;
+            $staf = $pemandu ? $pemandu->risdaStaf : null;
+            $program = $log->program;
+            $pemohonUser = $program ? $program->pemohon : null;
+            $pelulus = $pemohonUser ? $pemohonUser->risdaStaf : null;
+
+            $tarikh = $log->tarikh_perjalanan instanceof \Carbon\Carbon 
+                ? $log->tarikh_perjalanan 
+                : \Carbon\Carbon::parse($log->tarikh_perjalanan);
+
+            // Time formatting
+            $masaMulai = $log->masa_keluar;
+            $masaHingga = $log->masa_masuk;
+
+            // Format fuel data - split to No. Resit and RM
+            $resitNo = '-';
+            if ($log->resit_minyak) {
+                // If it's a file path like "public/fuel_receipts/xxx.jpg", extract just the filename
+                if (str_contains($log->resit_minyak, '/')) {
+                    $parts = explode('/', $log->resit_minyak);
+                    $filename = end($parts);
+                    // Keep only first 20 chars of filename for display
+                    $resitNo = strlen($filename) > 20 ? substr($filename, 0, 17) . '...' : $filename;
+                } else {
+                    $resitNo = $log->resit_minyak;
+                }
+            }
+            
+            $resitRM = $log->kos_minyak ? number_format($log->kos_minyak, 2) : '-';
+
+            return [
+                'tarikh' => $tarikh->format('j.n.Y'),
+                'masaMulai' => $masaMulai ? \Carbon\Carbon::parse($masaMulai)->format('g:i A') : '-',
+                'masaHingga' => $masaHingga ? \Carbon\Carbon::parse($masaHingga)->format('g:i A') : '-',
+                'pemandu' => $staf ? $staf->nama_penuh : ($pemandu ? $pemandu->name : '-'),
+                'tujuan' => $program ? $program->nama_program : '-',
+                'destinasiDari' => $program ? ($program->lokasi_program ?? 'Pejabat') : '-',
+                'destinasiKe' => $log->destinasi ?? ($program ? $program->lokasi_program : '-'),
+                'pelulus' => $pelulus ? $pelulus->nama_penuh : ($pemohonUser ? $pemohonUser->name : '-'),
+                'pengguna' => $staf ? $staf->nama_penuh : ($pemandu ? $pemandu->name : '-'),
+                'odometerKeluar' => $log->odometer_keluar ? number_format($log->odometer_keluar, 0) : '-',
+                'odometerMasuk' => $log->odometer_masuk ? number_format($log->odometer_masuk, 0) : '-',
+                'jarakPerjalanan' => $log->jarak ? number_format($log->jarak, 0) : '-',
+                'resitNo' => $resitNo,
+                'resitRM' => $resitRM,
+                'liter' => $log->liter_minyak ? number_format($log->liter_minyak, 2) : '-',
+                'arahanKhas' => ($program && $program->arahan_khas_pengguna_kenderaan) ? $program->arahan_khas_pengguna_kenderaan : ($log->catatan ?? '-'),
+                // Raw values for calculation
+                'jarak_raw' => (float) ($log->jarak ?? 0),
+                'liter_raw' => (float) ($log->liter_minyak ?? 0),
+                'kos_raw' => (float) ($log->kos_minyak ?? 0),
+            ];
+        });
+
+        // Calculate summary
+        $totalJarak = $logs->sum('jarak');
+        $totalLiter = $logs->sum('liter_minyak');
+        $totalKos = $logs->sum('kos_minyak');
+        $kadarPenggunaan = $totalLiter > 0 ? round($totalJarak / $totalLiter, 2) : 0;
+
+        // Get month from date range
+        $bulan = $request->filled('tarikh_mula') 
+            ? \Carbon\Carbon::parse($request->tarikh_mula)->format('n') 
+            : date('n');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'vehicle' => [
+                    'noPlat' => $kenderaan->no_plat,
+                    'jenama' => $kenderaan->jenama . ' ' . $kenderaan->model,
+                    'jenis' => $kenderaan->jenis_kenderaan ?? 'MPV',
+                    'bahagian' => $kenderaan->bahagian ? $kenderaan->bahagian->nama_bahagian : 
+                                  ($kenderaan->stesen ? $kenderaan->stesen->nama_stesen : '-'),
+                ],
+                'rows' => $rows,
+                'summary' => [
+                    'bulan' => $bulan,
+                    'totalJarak' => (float) $totalJarak,
+                    'totalLiter' => (float) $totalLiter,
+                    'totalKos' => (float) $totalKos,
+                    'kadarPenggunaan' => (float) $kadarPenggunaan,
+                    'totalRecords' => $logs->count(),
+                    'disahkanOleh' => [
+                        'nama' => 'Ahmad Bin Abdullah',
+                        'jawatan' => 'Pengurus Bahagian',
+                    ],
+                ]
+            ]
+        ]);
     }
 }

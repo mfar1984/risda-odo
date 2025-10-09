@@ -223,6 +223,29 @@ class _LogsScreenState extends State<LogsScreen> {
     }
   }
   
+  String _formatTimeSafe(dynamic timeStr, {dynamic dateStr}) {
+    try {
+      if (timeStr == null || (timeStr is String && timeStr.trim().isEmpty)) return '-';
+      // If already ISO-8601, parse directly
+      if (timeStr is String && timeStr.contains('T')) {
+        return DateFormat('HH:mm').format(DateTime.parse(timeStr));
+      }
+      // If time-only like HH:mm or HH:mm:ss, combine with date
+      final String baseDate = (dateStr is String && dateStr.isNotEmpty)
+          ? (dateStr.contains('T') ? dateStr.split('T').first : dateStr)
+          : DateTime.now().toIso8601String().split('T').first;
+      final String time = timeStr.toString();
+      final parts = time.split(':');
+      final hh = parts.isNotEmpty ? int.tryParse(parts[0]) ?? 0 : 0;
+      final mm = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
+      final ss = parts.length > 2 ? int.tryParse(parts[2]) ?? 0 : 0;
+      final dt = DateTime.parse('$baseDate 00:00:00').copyWith(hour: hh, minute: mm, second: ss);
+      return DateFormat('HH:mm').format(dt);
+    } catch (_) {
+      return '-';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -534,14 +557,9 @@ class _LogsScreenState extends State<LogsScreen> {
     final tarikh = log['tarikh_perjalanan'] != null 
         ? DateFormat('dd/MM/yyyy').format(DateTime.parse(log['tarikh_perjalanan']))
         : '-';
-    
-    final masaKeluar = log['masa_keluar'] != null
-        ? DateFormat('HH:mm').format(DateTime.parse(log['masa_keluar']))
-        : '-';
-    
-    final masaMasuk = log['masa_masuk'] != null
-        ? DateFormat('HH:mm').format(DateTime.parse(log['masa_masuk']))
-        : '-';
+
+    final masaKeluar = _formatTimeSafe(log['masa_keluar'], dateStr: log['tarikh_perjalanan']);
+    final masaMasuk  = _formatTimeSafe(log['masa_masuk'],  dateStr: log['tarikh_perjalanan']);
     
     final statusColor = _getStatusColor(log['status']);
     final statusText = _getStatusText(log['status']);
@@ -745,14 +763,9 @@ class _LogsScreenState extends State<LogsScreen> {
     final tarikh = log['tarikh_perjalanan'] != null 
         ? DateFormat('dd/MM/yyyy').format(DateTime.parse(log['tarikh_perjalanan']))
         : '-';
-    
-    final masaKeluar = log['masa_keluar'] != null
-        ? DateFormat('HH:mm').format(DateTime.parse(log['masa_keluar']))
-        : '-';
-    
-    final masaMasuk = log['masa_masuk'] != null
-        ? DateFormat('HH:mm').format(DateTime.parse(log['masa_masuk']))
-        : '-';
+
+    final masaKeluar = _formatTimeSafe(log['masa_keluar'], dateStr: log['tarikh_perjalanan']);
+    final masaMasuk  = _formatTimeSafe(log['masa_masuk'],  dateStr: log['tarikh_perjalanan']);
     
     final odometerKeluar = log['odometer_keluar'] ?? 0;
     final odometerMasuk = log['odometer_masuk'] ?? 0;

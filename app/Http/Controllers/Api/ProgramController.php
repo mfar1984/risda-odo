@@ -124,6 +124,7 @@ class ProgramController extends Controller
             'lokasi_long' => $program->lokasi_long,
             'jarak_anggaran' => (float) $program->jarak_anggaran,
             'penerangan' => $program->penerangan,
+            'arahan_khas_pengguna_kenderaan' => $program->arahan_khas_pengguna_kenderaan,
             
             // Requestor (Pemohon)
             'permohonan_dari' => $program->pemohon ? [

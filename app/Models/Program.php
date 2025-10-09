@@ -27,6 +27,7 @@ class Program extends Model
         'permohonan_dari',
         'pemandu_id',
         'kenderaan_id',
+        'arahan_khas_pengguna_kenderaan',
         'jenis_organisasi',
         'organisasi_id',
         'dicipta_oleh',

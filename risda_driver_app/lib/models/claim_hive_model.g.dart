@@ -38,13 +38,14 @@ class ClaimHiveAdapter extends TypeAdapter<ClaimHive> {
       syncRetries: fields[18] as int,
       syncError: fields[19] as String?,
       lastSyncAttempt: fields[20] as DateTime?,
+      noResit: fields[21] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ClaimHive obj) {
     writer
-      ..writeByte(21)
+      ..writeByte(22)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -86,7 +87,9 @@ class ClaimHiveAdapter extends TypeAdapter<ClaimHive> {
       ..writeByte(19)
       ..write(obj.syncError)
       ..writeByte(20)
-      ..write(obj.lastSyncAttempt);
+      ..write(obj.lastSyncAttempt)
+      ..writeByte(21)
+      ..write(obj.noResit);
   }
 
   @override

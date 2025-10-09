@@ -107,6 +107,8 @@
                 ['label' => 'Tuntutan', 'align' => 'text-left'],
                 ['label' => 'Pemandu & Program', 'align' => 'text-left'],
                 ['label' => 'Jumlah & Status', 'align' => 'text-left'],
+                ['label' => 'No. Resit', 'align' => 'text-left'],
+                ['label' => 'Resit', 'align' => 'text-center'],
             ]"
             empty-message="Tiada tuntutan ditemui untuk penapis semasa."
         >
@@ -155,6 +157,21 @@
                             <div class="text-xs text-gray-400 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
                                 {{ $item->tarikh_diproses->format('d/m/Y') }}
                             </div>
+                        @endif
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ $item->no_resit ?? '-' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                        @php $resitUrl = $item->resit ? Storage::url($item->resit) : null; @endphp
+                        @if($resitUrl)
+                            <button 
+                                onclick="openImageModal('{{ $resitUrl }}', 'Resit Tuntutan - {{ $item->kategori_label }}')"
+                                class="inline-flex items-center justify-center p-2 hover:bg-blue-50 rounded-sm" title="Lihat Resit">
+                                <span class="material-symbols-outlined" style="font-size: 20px;">receipt_long</span>
+                            </button>
+                        @else
+                            -
                         @endif
                     </td>
 
@@ -313,3 +330,49 @@
     @vite('resources/js/tuntutan-actions.js')
     @vite('resources/js/delete-actions.js')
 </x-dashboard-layout>
+
+{{-- Image Modal for Receipt --}}
+<div id="imageModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
+    <span onclick="closeImageModal()" style="position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+    <img id="modalImage" style="margin: auto; display: block; max-width: 90%; max-height: 90%; margin-top: 50px; cursor: zoom-in;" onclick="toggleZoom(this)">
+    <div id="modalCaption" style="margin: auto; display: block; width: 80%; max-width: 700px; text-align: center; color: #ccc; padding: 10px 0; font-size: 16px;"></div>
+</div>
+
+<script>
+    let isZoomed = false;
+    function openImageModal(imageSrc, caption) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        const modalCaption = document.getElementById('modalCaption');
+        modal.style.display = 'block';
+        modalImg.src = imageSrc;
+        modalCaption.innerHTML = caption;
+        isZoomed = false;
+        modalImg.style.cursor = 'zoom-in';
+        modalImg.style.maxWidth = '90%';
+        modalImg.style.maxHeight = '90%';
+        modalImg.style.width = 'auto';
+    }
+    function closeImageModal() {
+        document.getElementById('imageModal').style.display = 'none';
+        isZoomed = false;
+    }
+    function toggleZoom(img) {
+        if (!isZoomed) {
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = 'none';
+            img.style.width = '100%';
+            img.style.cursor = 'zoom-out';
+            isZoomed = true;
+        } else {
+            img.style.maxWidth = '90%';
+            img.style.maxHeight = '90%';
+            img.style.width = 'auto';
+            img.style.cursor = 'zoom-in';
+            isZoomed = false;
+        }
+    }
+    // ESC and outside click
+    document.addEventListener('keydown', function(event) { if (event.key === 'Escape') closeImageModal(); });
+    document.getElementById('imageModal').addEventListener('click', function(event) { if (event.target.id === 'imageModal') closeImageModal(); });
+</script>

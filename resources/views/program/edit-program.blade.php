@@ -203,6 +203,19 @@
                             </select>
                             <x-forms.input-error class="mt-2" :messages="$errors->get('kenderaan_id')" />
                         </div>
+
+                        <!-- Row 3: Arahan Khas Pengguna Kenderaan (Optional) -->
+                        <div>
+                            <x-forms.input-label for="arahan_khas_pengguna_kenderaan" value="Arahan Khas Pengguna Kenderaan (Opsyenal)" />
+                            <textarea
+                                id="arahan_khas_pengguna_kenderaan"
+                                name="arahan_khas_pengguna_kenderaan"
+                                rows="2"
+                                class="form-textarea mt-1"
+                                placeholder="Contoh: Isi minyak di stesen Shell Sg. Merah sebelum bertolak."
+                            >{{ old('arahan_khas_pengguna_kenderaan', $program->arahan_khas_pengguna_kenderaan) }}</textarea>
+                            <x-forms.input-error class="mt-2" :messages="$errors->get('arahan_khas_pengguna_kenderaan')" />
+                        </div>
                     </div>
 
                     <!-- Submit Button -->

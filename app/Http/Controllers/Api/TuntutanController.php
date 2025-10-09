@@ -113,6 +113,7 @@ class TuntutanController extends Controller
                 'jumlah' => 'required|numeric|min:0.01',
                 'keterangan' => 'nullable|string|max:1000',
                 'resit' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // 5MB max
+                'no_resit' => 'nullable|string|max:255',
             ], [
                 'log_pemandu_id.required' => 'Log perjalanan wajib dipilih',
                 'log_pemandu_id.exists' => 'Log perjalanan tidak sah',
@@ -166,6 +167,7 @@ class TuntutanController extends Controller
                 'jumlah' => $request->jumlah,
                 'keterangan' => $request->keterangan,
                 'resit' => $resitPath,
+                'no_resit' => $request->no_resit,
                 'status' => 'pending',
             ]);
 
@@ -242,6 +244,7 @@ class TuntutanController extends Controller
                 'jumlah' => 'required|numeric|min:0.01',
                 'keterangan' => 'nullable|string|max:1000',
                 'resit' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+                'no_resit' => 'nullable|string|max:255',
             ]);
 
             if ($validator->fails()) {
@@ -268,6 +271,7 @@ class TuntutanController extends Controller
                 'jumlah' => $request->jumlah,
                 'keterangan' => $request->keterangan,
                 'resit' => $resitPath,
+                'no_resit' => $request->no_resit,
                 'status' => 'pending', // Reset to pending
                 'alasan_tolak' => null, // Clear rejection reason
                 'diproses_oleh' => null,
@@ -320,6 +324,7 @@ class TuntutanController extends Controller
             'jumlah' => (float) $tuntutan->jumlah,
             'keterangan' => $tuntutan->keterangan,
             'resit' => $tuntutan->resit, // Return relative path only (without full URL)
+            'no_resit' => $tuntutan->no_resit,
             'status' => $tuntutan->status,
             'status_label' => $tuntutan->status_label,
             'status_badge_color' => $tuntutan->status_badge_color,

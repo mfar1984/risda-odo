@@ -50,7 +50,7 @@
                         <div class="space-y-4">
                             <h3 class="text-sm font-medium text-gray-900">Maklumat Lokasi</h3>
                             <div>
-                                <x-forms.input-label value="Check-in" />
+                                <x-forms.input-label value="GPS Mula Perjalanan" />
                                 <x-map.location-picker
                                     :latitude="old('lokasi_checkin_lat', $log->lokasi_checkin_lat)"
                                     :longitude="old('lokasi_checkin_long', $log->lokasi_checkin_long)"
@@ -62,7 +62,7 @@
                             </div>
 
                             <div class="mt-6">
-                                <x-forms.input-label value="Check-out" />
+                                <x-forms.input-label value="GPS Tamat Perjalanan" />
                                 <x-map.location-picker
                                     :latitude="old('lokasi_checkout_lat', $log->lokasi_checkout_lat)"
                                     :longitude="old('lokasi_checkout_long', $log->lokasi_checkout_long)"
@@ -71,6 +71,20 @@
                                 />
                                 <x-forms.input-error class="mt-2" :messages="$errors->get('lokasi_checkout_lat')" />
                                 <x-forms.input-error class="mt-2" :messages="$errors->get('lokasi_checkout_long')" />
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div>
+                                    <x-forms.input-label for="lokasi_mula_perjalanan" value="Lokasi Mula Perjalanan" />
+                                    <x-forms.text-input id="lokasi_mula_perjalanan" name="lokasi_mula_perjalanan" type="text" class="mt-1 block w-full"
+                                        value="{{ old('lokasi_mula_perjalanan', $log->lokasi_mula_perjalanan) }}" />
+                                    <x-forms.input-error class="mt-2" :messages="$errors->get('lokasi_mula_perjalanan')" />
+                                </div>
+                                <div>
+                                    <x-forms.input-label for="lokasi_tamat_perjalanan" value="Lokasi Tamat Perjalanan" />
+                                    <x-forms.text-input id="lokasi_tamat_perjalanan" name="lokasi_tamat_perjalanan" type="text" class="mt-1 block w-full"
+                                        value="{{ old('lokasi_tamat_perjalanan', $log->lokasi_tamat_perjalanan) }}" />
+                                    <x-forms.input-error class="mt-2" :messages="$errors->get('lokasi_tamat_perjalanan')" />
+                                </div>
                             </div>
                     </div>
 

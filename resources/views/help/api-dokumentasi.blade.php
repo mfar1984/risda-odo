@@ -1385,6 +1385,102 @@
                         </div>
                     </div>
 
+                    {{-- Update Lokasi Mula/Tamat Perjalanan Content --}}
+                    <div id="content-update-log-lokasi" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-sm bg-indigo-100 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-indigo-600" style="font-size: 24px;">pin_drop</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="px-2 py-0.5 bg-yellow-600 text-white text-[10px] font-semibold rounded-sm" style="font-family: Poppins, sans-serif;">PUT</span>
+                                        <code class="text-[14px] font-mono text-gray-900">/log-pemandu/<span style="color: #a78bfa;">{id}</span>/lokasi</code>
+                                    </div>
+                                    <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #64748b;">
+                                        Kemaskini <em>lokasi_mula_perjalanan</em> atau <em>lokasi_tamat_perjalanan</em> untuk log perjalanan
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-red-50 text-red-700 text-[10px] font-semibold rounded-sm border border-red-200" style="font-family: Poppins, sans-serif;">
+                                PROTECTED
+                            </span>
+                        </div>
+
+                        {{-- URL Parameters --}}
+                        <div class="mb-6">
+                            <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
+                                URL Parameters:
+                            </h4>
+                            <div class="bg-slate-900 rounded-sm p-4">
+                                <pre class="text-sm overflow-x-auto"><code style="font-family: 'Courier New', monospace; font-size: 11px;"><span style="color: #60a5fa;">{id}</span> - <span style="color: #94a3b8;">ID log perjalanan milik pemandu</span></code></pre>
+                            </div>
+                        </div>
+
+                        {{-- Request Headers --}}
+                        <div class="mb-6">
+                            <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
+                                Request Headers:
+                            </h4>
+                            <div class="bg-slate-900 rounded-sm p-4">
+                                <pre class="text-sm overflow-x-auto"><code style="font-family: 'Courier New', monospace; font-size: 11px;"><span style="color: #60a5fa;">Accept:</span> <span style="color: #34d399;">application/json</span>
+<span style="color: #60a5fa;">X-API-Key:</span> <span style="color: #a78bfa;">YOUR_GLOBAL_API_KEY</span>
+<span style="color: #60a5fa;">Authorization:</span> <span style="color: #34d399;">Bearer YOUR_SANCTUM_TOKEN</span></code></pre>
+                            </div>
+                        </div>
+
+                        {{-- Request Body --}}
+                        <div class="mb-6">
+                            <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">
+                                Request Body (JSON):
+                            </h4>
+                            <div class="bg-slate-900 rounded-sm p-4">
+                                <pre class="text-sm overflow-x-auto"><code style="font-family: 'Courier New', monospace; font-size: 11px;">{
+  <span style="color: #60a5fa;">"lokasi_mula_perjalanan"</span>: <span style="color: #fbbf24;">"Pejabat RISDA Sibu"</span>, <span style="color: #94a3b8;">// optional</span>
+  <span style="color: #60a5fa;">"lokasi_tamat_perjalanan"</span>: <span style="color: #fbbf24;">"Dewan Suarah Sibu"</span> <span style="color: #94a3b8;">// optional</span>
+}</code></pre>
+                            </div>
+                        </div>
+
+                        {{-- Response --}}
+                        <div class="mb-6">
+                            <div class="flex items-center gap-2 mb-3">
+                                <h4 style="font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; color: #1e293b;">
+                                    Response:
+                                </h4>
+                                <span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-semibold rounded-sm border border-green-200" style="font-family: Poppins, sans-serif;">
+                                    200 OK
+                                </span>
+                            </div>
+                            <div class="bg-slate-900 rounded-sm p-4">
+                                <pre class="text-sm overflow-x-auto"><code style="font-family: 'Courier New', monospace; font-size: 11px;">{
+  <span style="color: #60a5fa;">"success"</span>: <span style="color: #34d399;">true</span>,
+  <span style="color: #60a5fa;">"message"</span>: <span style="color: #fbbf24;">"Lokasi berjaya dikemaskini"</span>,
+  <span style="color: #60a5fa;">"data"</span>: {
+    <span style="color: #60a5fa;">"id"</span>: <span style="color: #fb923c;">9</span>,
+    <span style="color: #60a5fa;">"lokasi_mula_perjalanan"</span>: <span style="color: #fbbf24;">"Pejabat RISDA Sibu"</span>,
+    <span style="color: #60a5fa;">"lokasi_tamat_perjalanan"</span>: <span style="color: #fbbf24;">"Dewan Suarah Sibu"</span>
+  }
+}</code></pre>
+                            </div>
+                        </div>
+
+                        {{-- Error Responses --}}
+                        <div class="space-y-2">
+                            <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
+                                    <span style="font-weight: 600;">404 Not Found</span> - Log tidak dijumpai atau bukan milik anda
+                                </p>
+                            </div>
+                            <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-sm">
+                                <p style="font-family: Poppins, sans-serif; font-size: 11px; color: #991b1b;">
+                                    <span style="font-weight: 600;">422 Validation Error</span> - Data tidak sah
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Get Active Journey Content --}}
                     <div id="content-log-active" class="content-section hidden bg-white rounded-sm border shadow-sm p-6">
                         {{-- Header --}}
@@ -1596,7 +1692,8 @@
   <span style="color: #60a5fa;">"odometer_keluar"</span>: <span style="color: #fb923c;">12345</span>,
   <span style="color: #60a5fa;">"lokasi_keluar_lat"</span>: <span style="color: #fb923c;">2.310332</span>,
   <span style="color: #60a5fa;">"lokasi_keluar_long"</span>: <span style="color: #fb923c;">111.831561</span>,
-  <span style="color: #60a5fa;">"catatan"</span>: <span style="color: #fbbf24;">"Start journey from office"</span>
+  <span style="color: #60a5fa;">"catatan"</span>: <span style="color: #fbbf24;">"Start journey from office"</span>,
+  <span style="color: #60a5fa;">"lokasi_mula_perjalanan"</span>: <span style="color: #fbbf24;">"Pejabat RISDA Sibu"</span>
 }</code></pre>
                             </div>
                         </div>
@@ -1685,7 +1782,9 @@
   <span style="color: #60a5fa;">"catatan"</span>: <span style="color: #fbbf24;">"Journey completed"</span>,
   <span style="color: #60a5fa;">"liter_minyak"</span>: <span style="color: #fb923c;">45.5</span>,
   <span style="color: #60a5fa;">"kos_minyak"</span>: <span style="color: #fb923c;">120.50</span>,
-  <span style="color: #60a5fa;">"stesen_minyak"</span>: <span style="color: #fbbf24;">"Petronas Sibu"</span>
+  <span style="color: #60a5fa;">"stesen_minyak"</span>: <span style="color: #fbbf24;">"Petronas Sibu"</span>,
+  <span style="color: #60a5fa;">"lokasi_tamat_perjalanan"</span>: <span style="color: #fbbf24;">"Dewan Suarah Sibu"</span>,
+  <span style="color: #60a5fa;">"no_resit"</span>: <span style="color: #fbbf24;">"RCPT-2025-0001"</span>
 }</code></pre>
                             </div>
                         </div>
@@ -2116,6 +2215,7 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
 <span style="color: #60a5fa;">kategori:</span> <span style="color: #fbbf24;">"fuel"</span> <span style="color: #94a3b8;">(required: tol|parking|f&b|fuel|car_maintenance|others)</span>
 <span style="color: #60a5fa;">jumlah:</span> <span style="color: #fb923c;">30.00</span> <span style="color: #94a3b8;">(required, numeric)</span>
 <span style="color: #60a5fa;">keterangan:</span> <span style="color: #fbbf24;">"Minyak untuk perjalanan"</span> <span style="color: #94a3b8;">(optional)</span>
+<span style="color: #60a5fa;">no_resit:</span> <span style="color: #fbbf24;">"RCPT-2025-0001"</span> <span style="color: #94a3b8;">(optional)</span>
 <span style="color: #60a5fa;">resit:</span> <span style="color: #94a3b8;">[FILE] (optional, jpg|jpeg|png|pdf, max 5MB)</span></code></pre>
                             </div>
                         </div>
@@ -2221,6 +2321,7 @@ Authorization: Bearer YOUR_SANCTUM_TOKEN</code></pre>
                                 <pre class="text-sm overflow-x-auto"><code style="font-family: 'Courier New', monospace; font-size: 11px;"><span style="color: #60a5fa;">kategori:</span> <span style="color: #fbbf24;">"fuel"</span> <span style="color: #94a3b8;">(required: tol|parking|f&b|accommodation|fuel|car_maintenance|others)</span>
 <span style="color: #60a5fa;">jumlah:</span> <span style="color: #fb923c;">30.00</span> <span style="color: #94a3b8;">(required, numeric)</span>
 <span style="color: #60a5fa;">keterangan:</span> <span style="color: #fbbf24;">"Minyak untuk perjalanan ke Sibu - Updated"</span> <span style="color: #94a3b8;">(optional)</span>
+<span style="color: #60a5fa;">no_resit:</span> <span style="color: #fbbf24;">"RCPT-2025-0001"</span> <span style="color: #94a3b8;">(optional)</span>
 <span style="color: #60a5fa;">resit:</span> <span style="color: #94a3b8;">[FILE] (optional, jpg|jpeg|png|pdf, max 5MB)</span></code></pre>
                             </div>
                         </div>
