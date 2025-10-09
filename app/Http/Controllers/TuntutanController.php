@@ -584,7 +584,7 @@ class TuntutanController extends Controller
     }
 
     /**
-     * Get dashboard report data (Tuntutan or Kenderaan)
+     * Get dashboard report data (Tuntutan, Kenderaan, or OT)
      */
     public function getDashboardReport(Request $request)
     {
@@ -594,6 +594,8 @@ class TuntutanController extends Controller
             return $this->getTuntutanReport($request);
         } elseif ($jenisLaporan === 'kenderaan') {
             return $this->getKenderaanReport($request);
+        } elseif ($jenisLaporan === 'ot') {
+            return $this->getOTReport($request);
         }
 
         return response()->json([
@@ -801,5 +803,262 @@ class TuntutanController extends Controller
                 ]
             ]
         ]);
+    }
+
+    /**
+     * Get OT (Kerja Lebih Masa) report data
+     */
+    private function getOTReport(Request $request)
+    {
+        $user = Auth::user();
+
+        // Get negeri for holiday detection
+        // Priority: selected staf's negeri (pemandu), then current viewer
+        if ($request->filled('staf_id')) {
+            $negeri = $this->getNegeriByPemanduId($request->staf_id) ?: $this->getUserNegeri($user);
+        } else {
+            $negeri = $this->getUserNegeri($user);
+        }
+
+        // Get holidays for this negeri
+        $year = $request->filled('tarikh_mula') 
+            ? \Carbon\Carbon::parse($request->tarikh_mula)->year 
+            : date('Y');
+
+        $cutiUmumList = $this->getCutiUmumList($negeri, $year);
+
+        // Get logs for OT calculation
+        $query = LogPemandu::with([
+            'pemandu.risdaStaf',
+            'program',
+        ]);
+
+        // Apply user scope (data isolation)
+        if ($user->jenis_organisasi === 'stesen') {
+            $query->whereHas('pemandu', function ($q) use ($user) {
+                $q->where('organisasi_id', $user->organisasi_id);
+            });
+        } elseif ($user->jenis_organisasi === 'bahagian') {
+            $stesenIds = \App\Models\RisdaStesen::where('bahagian_id', $user->organisasi_id)->pluck('id');
+            $query->whereHas('pemandu', function ($q) use ($stesenIds) {
+                $q->whereIn('organisasi_id', $stesenIds);
+            });
+        }
+
+        // Filter by date range (date-only to avoid time issues)
+        if ($request->filled('tarikh_mula') && $request->filled('tarikh_akhir')) {
+            $start = $request->tarikh_mula;
+            $end = $request->tarikh_akhir;
+            $query->where(function ($q) use ($start, $end) {
+                $q->whereDate('tarikh_perjalanan', '>=', $start)
+                  ->whereDate('tarikh_perjalanan', '<=', $end)
+                  // Fallback: include legacy logs where tarikh_perjalanan might be null but created_at is within range
+                  ->orWhere(function ($qq) use ($start, $end) {
+                      $qq->whereNull('tarikh_perjalanan')
+                         ->whereBetween('created_at', [
+                             $start . ' 00:00:00',
+                             $end . ' 23:59:59',
+                         ]);
+                  });
+            });
+        }
+
+        // Filter by staff
+        if ($request->filled('staf_id')) {
+            $query->where('pemandu_id', $request->staf_id);
+        }
+
+        // Only completed journeys
+        $query->where('status', 'selesai');
+
+        $logs = $query->orderBy('tarikh_perjalanan', 'desc')->get();
+
+        // Format data with OT calculation
+        $rows = $logs->map(function ($log) use ($cutiUmumList) {
+            $pemandu = $log->pemandu;
+            $staf = $pemandu ? $pemandu->risdaStaf : null;
+            $program = $log->program;
+
+            $tarikh = $log->tarikh_perjalanan instanceof \Carbon\Carbon 
+                ? $log->tarikh_perjalanan 
+                : \Carbon\Carbon::parse($log->tarikh_perjalanan);
+
+            // Bind time-only fields to the same date as tarikh_perjalanan to avoid cross-day/timezone issues
+            $masaKeluar = null;
+            $masaMasuk = null;
+            if ($log->masa_keluar) {
+                $keluarRaw = method_exists($log, 'getRawOriginal') ? $log->getRawOriginal('masa_keluar') : (string) $log->masa_keluar;
+                $formatKeluar = strlen($keluarRaw) === 5 ? 'H:i' : 'H:i:s';
+                $masaKeluar = \Carbon\Carbon::createFromFormat($formatKeluar, $keluarRaw, config('app.timezone', 'Asia/Kuala_Lumpur'))
+                    ->setDate($tarikh->year, $tarikh->month, $tarikh->day);
+            }
+            if ($log->masa_masuk) {
+                $masukRaw = method_exists($log, 'getRawOriginal') ? $log->getRawOriginal('masa_masuk') : (string) $log->masa_masuk;
+                $formatMasuk = strlen($masukRaw) === 5 ? 'H:i' : 'H:i:s';
+                $masaMasuk = \Carbon\Carbon::createFromFormat($formatMasuk, $masukRaw, config('app.timezone', 'Asia/Kuala_Lumpur'))
+                    ->setDate($tarikh->year, $tarikh->month, $tarikh->day);
+            }
+
+            if (!$masaKeluar || !$masaMasuk) {
+                return null;
+            }
+
+            // Determine day type and multiplier
+            $tarikhStr = $tarikh->format('Y-m-d');
+            $isCutiUmum = in_array($tarikhStr, $cutiUmumList);
+            $isWeekend = $tarikh->isWeekend();
+
+            if ($isCutiUmum) {
+                $jenisHari = 'cuti_umum';
+                $multiplier = 3.0;
+                $bgColor = 'bg-red-50';
+                $allHoursAreOT = true;
+            } elseif ($isWeekend) {
+                $jenisHari = 'hujung_minggu';
+                $multiplier = 2.0;
+                $bgColor = 'bg-yellow-50';
+                $allHoursAreOT = true;
+            } else {
+                $jenisHari = 'hari_bekerja';
+                $multiplier = 1.5;
+                $bgColor = '';
+                $allHoursAreOT = false;
+            }
+
+            // Normalize possible cross-midnight (checkout earlier than checkin)
+            if ($masaMasuk && $masaKeluar && $masaMasuk->lessThan($masaKeluar)) {
+                $masaMasuk = $masaMasuk->copy()->addDay();
+            }
+
+            // Calculate OT hours
+            if ($allHoursAreOT) {
+                // Weekends/Public Holidays: all hours are OT
+                $otMinutes = $masaMasuk->diffInMinutes($masaKeluar, true);
+            } else {
+                // Weekdays: only time AFTER 17:00 counts as OT.
+                // Compute overlap between [masaKeluar, masaMasuk] and [17:00, end-of-day]
+                $startOfOT = \Carbon\Carbon::parse($tarikhStr . ' 17:00:00');
+                // If checkout is before or at 17:00, no OT
+                if ($masaMasuk->lessThanOrEqualTo($startOfOT)) {
+                    return null;
+                }
+
+                // OT starts at the later of check-in or 17:00
+                $otStart = $masaKeluar->greaterThan($startOfOT) ? $masaKeluar : $startOfOT;
+                // If the computed OT start is not before checkout, no OT
+                if ($otStart->greaterThanOrEqualTo($masaMasuk)) {
+                    return null;
+                }
+
+                $otMinutes = $otStart->diffInMinutes($masaMasuk, true);
+            }
+
+            if ($otMinutes <= 0) {
+                return null;
+            }
+
+            $otHours = floor($otMinutes / 60);
+            $otMins = $otMinutes % 60;
+            $jamText = $otHours . 'jam ' . $otMins . 'min';
+
+            return [
+                'tarikh' => $this->formatTarikhMelayu($tarikh),
+                'program' => $program ? $program->nama_program : '-',
+                'mula' => $masaKeluar->format('g:i A'),
+                'tamat' => $masaMasuk->format('g:i A'),
+                'jamText' => $jamText,
+                'jam' => round($otMinutes / 60, 2),
+                'multiplier' => $multiplier,
+                'jenisHari' => $jenisHari,
+                'bgColor' => $bgColor,
+            ];
+        })->filter()->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'rows' => $rows,
+                'summary' => [
+                    'totalRecords' => $rows->count(),
+                ]
+            ]
+        ]);
+    }
+
+    /**
+     * Get negeri for user based on their stesen/bahagian
+     */
+    private function getUserNegeri($user)
+    {
+        if ($user->jenis_organisasi === 'stesen') {
+            $stesen = \App\Models\RisdaStesen::find($user->organisasi_id);
+            $bahagian = $stesen ? $stesen->bahagian : null;
+        } elseif ($user->jenis_organisasi === 'bahagian') {
+            $bahagian = \App\Models\RisdaBahagian::find($user->organisasi_id);
+        } else {
+            return 'Selangor';
+        }
+
+        return $bahagian ? $bahagian->negeri : 'Selangor';
+    }
+
+    /**
+     * Get negeri by pemandu (user) id
+     */
+    private function getNegeriByPemanduId($pemanduId)
+    {
+        $user = \App\Models\User::find($pemanduId);
+        if (!$user) return null;
+
+        if ($user->jenis_organisasi === 'stesen') {
+            $stesen = \App\Models\RisdaStesen::find($user->organisasi_id);
+            $bahagian = $stesen ? $stesen->bahagian : null;
+        } elseif ($user->jenis_organisasi === 'bahagian') {
+            $bahagian = \App\Models\RisdaBahagian::find($user->organisasi_id);
+        } else {
+            return null;
+        }
+        return $bahagian ? $bahagian->negeri : null;
+    }
+
+    /**
+     * Get list of cuti umum dates for a negeri and year
+     */
+    private function getCutiUmumList($negeri, $year)
+    {
+        // Get from package
+        try {
+            $packageHolidays = \Holiday\MalaysiaHoliday::make()
+                ->fromState($negeri)
+                ->ofYear($year)
+                ->get();
+
+            $cutiList = collect($packageHolidays['data'][0]['collection'][0]['data'])
+                ->where('is_holiday', true)
+                ->pluck('date')
+                ->toArray();
+        } catch (\Exception $e) {
+            $cutiList = [];
+        }
+
+        // Add manual overrides
+        $manualCuti = \App\Models\CutiUmumOverride::aktif()
+            ->forYear($year)
+            ->forNegeri($negeri)
+            ->get()
+            ->flatMap(function ($c) {
+                $dates = [];
+                $current = $c->tarikh_mula instanceof \Carbon\Carbon ? $c->tarikh_mula : \Carbon\Carbon::parse($c->tarikh_mula);
+                $end = $c->tarikh_akhir instanceof \Carbon\Carbon ? $c->tarikh_akhir : \Carbon\Carbon::parse($c->tarikh_akhir);
+                
+                while ($current <= $end) {
+                    $dates[] = $current->format('Y-m-d');
+                    $current->addDay();
+                }
+                return $dates;
+            })
+            ->toArray();
+
+        return array_unique(array_merge($cutiList, $manualCuti));
     }
 }

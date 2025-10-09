@@ -78,6 +78,15 @@
                         <span class="material-symbols-outlined" style="font-size: 16px;">mail</span>
                         Email (SMTP)
                     </button>
+                    @if($isAdministrator)
+                    <button @click="activeTab = 'cuti'"
+                            :class="activeTab === 'cuti' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="whitespace-nowrap py-3 px-2 font-medium transition-colors duration-200 flex items-center gap-2"
+                            :style="activeTab === 'cuti' ? 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid #2563eb !important; color: #2563eb !important;' : 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid transparent !important;'">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">event</span>
+                        Cuti Umum
+                    </button>
+                    @endif
                 </nav>
             </div>
 
@@ -834,6 +843,11 @@
                         </form>
                     </x-ui.container>
                 </div>
+
+                <!-- Cuti Umum Tab -->
+                @if($isAdministrator)
+                @include('pengurusan.partials.cuti-umum-tab')
+                @endif
             </div>
         </div>
     </x-ui.page-header>
@@ -898,5 +912,12 @@
             }
         }
     </script>
+
+    <!-- Cuti Umum Tab (Administrator Only) -->
+    @if($isAdministrator)
+    <script>
+        // Will add Cuti Umum tab content here
+    </script>
+    @endif
 </x-dashboard-layout>
 

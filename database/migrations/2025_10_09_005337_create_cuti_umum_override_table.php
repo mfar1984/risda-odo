@@ -13,7 +13,17 @@ return new class extends Migration
     {
         Schema::create('cuti_umum_override', function (Blueprint $table) {
             $table->id();
+            $table->date('tarikh_mula');
+            $table->date('tarikh_akhir');
+            $table->string('nama_cuti');
+            $table->string('negeri'); // 'Semua', 'Sarawak', 'Sabah', etc
+            $table->text('catatan')->nullable();
+            $table->boolean('aktif')->default(true);
+            $table->unsignedBigInteger('dicipta_oleh')->nullable();
             $table->timestamps();
+
+            $table->foreign('dicipta_oleh')->references('id')->on('users')->onDelete('set null');
+            $table->index(['tarikh_mula', 'tarikh_akhir', 'negeri']);
         });
     }
 

@@ -49,6 +49,7 @@
                 tel: '{{ $currentStaf ? $currentStaf->no_telefon : "-" }}', 
                 ref: '' 
             },
+            loadingReport: false,
             vehicle: { noPlat: 'QAB1234', jenama: 'Toyota Alphard', noEnjin: 'Q18150101-HAF18159', noCasis: '749101581', cukaiTamat: '31 Disember 2025', ref: '' },
             otRows: [],
             otSummary: { totalHours: 0, totalRecords: 0 },
@@ -59,7 +60,13 @@
             // Staff dropdown with search
             staffList: [
                 @foreach($userList as $user)
-                { id: '{{ $user->id }}', name: '{{ $user->risdaStaf ? $user->risdaStaf->nama_penuh : $user->name }}' },
+                { 
+                    id: '{{ $user->id }}', 
+                    name: '{{ $user->risdaStaf ? addslashes($user->risdaStaf->nama_penuh) : addslashes($user->name) }}',
+                    ic: '{{ $user->risdaStaf ? $user->risdaStaf->no_kad_pengenalan : '-' }}',
+                    tel: '{{ $user->risdaStaf ? $user->risdaStaf->no_telefon : '-' }}',
+                    noPekerja: '{{ $user->risdaStaf ? $user->risdaStaf->no_pekerja : '-' }}'
+                },
                 @endforeach
             ],
             staffDropdownOpen: false,
@@ -75,6 +82,16 @@
                 this.selectedStaffName = name || '- Semua Staf -';
                 this.staffDropdownOpen = false;
                 this.staffSearch = '';
+                // Update profile header when a specific staff is chosen
+                if (id) {
+                    const s = this.staffList.find(x => String(x.id) === String(id));
+                    if (s) {
+                        this.profile.namaPenuh = s.name || this.profile.namaPenuh;
+                        this.profile.noPekerja = s.noPekerja || '-';
+                        this.profile.ic = s.ic || '-';
+                        this.profile.tel = s.tel || '-';
+                    }
+                }
             },
             // Vehicle dropdown with search
             vehicleList: [
@@ -101,6 +118,27 @@
                 const p = (n) => String(n).padStart(2, '0');
                 const stamp = `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
                 return `${prefix}-${stamp}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+            },
+            // Normalize browser date input (handles 'YYYY-MM-DD' and 'DD - MM - YYYY')
+            normalizeDateInput(value) {
+                if (!value) return '';
+                // Already ISO
+                if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+                // Pattern like '01 - 09 - 2025'
+                const m = value.match(/^(\d{1,2})\s*-\s*(\d{1,2})\s*-\s*(\d{4})$/);
+                if (m) {
+                    const d = m[1].padStart(2, '0');
+                    const mo = m[2].padStart(2, '0');
+                    const y = m[3];
+                    return `${y}-${mo}-${d}`;
+                }
+                // Fallback try parse
+                const dt = new Date(value);
+                if (!isNaN(dt.getTime())) {
+                    const p = (n) => String(n).padStart(2, '0');
+                    return `${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())}`;
+                }
+                return value;
             },
             // Helpers to compute total as hours+minutes (e.g., 5jam 45min)
             parseJamTextToMinutes(txt) {
@@ -134,20 +172,53 @@
                 this.tuntutanSummary = { totalAmount: 0, totalRecords: 0 };
                 this.kenderaanRows = [];
                 this.kenderaanSummary = { totalDistance: 0, totalRecords: 0 };
+                this.loadingReport = true;
 
                 if (this.reportType === 'ot') {
-                    // OT - still dummy for now
+                    // OT - fetch real data
                     this.profile.ref = this.genRef('OT');
-                    this.otRows = [
-                        { tarikh: '1 Oktober 2025', program: 'Program Jelajah Sarawak', mula: '17:00 ptg', tamat: '20:30 ptg', jamText: '3jam 30min', jam: 3.5 },
-                        { tarikh: '2 Oktober 2025', program: 'Program Jelajah Sarawak', mula: '20:00 ptg', tamat: '11:15 ptg', jamText: '2jam 15min', jam: 2.25 }
-                    ];
-                    this.otSummary = { totalHours: this.otRows.reduce((a, r) => a + (r.jam || 0), 0), totalRecords: this.otRows.length };
+                    const tarikhMula = this.normalizeDateInput(document.getElementById('tarikh_mula')?.value || '');
+                    const tarikhAkhir = this.normalizeDateInput(document.getElementById('tarikh_akhir')?.value || '');
+
+                    const formData = new FormData();
+                    formData.append('jenis_laporan', 'ot');
+                    if (tarikhMula) formData.append('tarikh_mula', tarikhMula);
+                    if (tarikhAkhir) formData.append('tarikh_akhir', tarikhAkhir);
+                    if (this.selectedStaffId) formData.append('staf_id', this.selectedStaffId);
+
+                    try {
+                        const response = await fetch('{{ route('dashboard.generate-report') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+
+                        if (!response.ok) {
+                            const text = await response.text();
+                            throw new Error('HTTP ' + response.status + ': ' + text.slice(0, 200));
+                        }
+                        const result = await response.json();
+                        if (result.success) {
+                            this.otRows = result.data.rows;
+                            this.otSummary = result.data.summary;
+                        } else {
+                            alert('Gagal menjana laporan: ' + (result.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error generating report:', error);
+                        alert('Ralat semasa menjana laporan. Sila cuba lagi.');
+                    } finally {
+                        this.loadingReport = false;
+                    }
                 } else if (this.reportType === 'tuntutan') {
                     // Tuntutan - fetch real data
                     this.profile.ref = this.genRef('TT');
-                    const tarikhMula = document.getElementById('tarikh_mula')?.value || '';
-                    const tarikhAkhir = document.getElementById('tarikh_akhir')?.value || '';
+                    const tarikhMula = this.normalizeDateInput(document.getElementById('tarikh_mula')?.value || '');
+                    const tarikhAkhir = this.normalizeDateInput(document.getElementById('tarikh_akhir')?.value || '');
 
                     const formData = new FormData();
                     formData.append('jenis_laporan', 'tuntutan');
@@ -161,10 +232,15 @@
                             headers: {
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                                 'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
                             },
                             body: formData
                         });
 
+                        if (!response.ok) {
+                            const text = await response.text();
+                            throw new Error('HTTP ' + response.status + ': ' + text.slice(0, 200));
+                        }
                         const result = await response.json();
                         if (result.success) {
                             this.tuntutanRows = result.data.rows;
@@ -180,12 +256,14 @@
                     } catch (error) {
                         console.error('Error generating report:', error);
                         alert('Ralat semasa menjana laporan. Sila cuba lagi.');
+                    } finally {
+                        this.loadingReport = false;
                     }
                 } else if (this.reportType === 'kenderaan') {
                     // Kenderaan - fetch real data
                     this.vehicle.ref = this.genRef('KD');
-                    const tarikhMula = document.getElementById('tarikh_mula')?.value || '';
-                    const tarikhAkhir = document.getElementById('tarikh_akhir')?.value || '';
+                    const tarikhMula = this.normalizeDateInput(document.getElementById('tarikh_mula')?.value || '');
+                    const tarikhAkhir = this.normalizeDateInput(document.getElementById('tarikh_akhir')?.value || '');
 
                     const formData = new FormData();
                     formData.append('jenis_laporan', 'kenderaan');
@@ -204,10 +282,15 @@
                             headers: {
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                                 'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
                             },
                             body: formData
                         });
 
+                        if (!response.ok) {
+                            const text = await response.text();
+                            throw new Error('HTTP ' + response.status + ': ' + text.slice(0, 200));
+                        }
                         const result = await response.json();
                         if (result.success) {
                             // Update vehicle header
@@ -225,6 +308,8 @@
                     } catch (error) {
                         console.error('Error generating report:', error);
                         alert('Ralat semasa menjana laporan. Sila cuba lagi.');
+                    } finally {
+                        this.loadingReport = false;
                     }
                 }
             }
@@ -348,7 +433,14 @@
             </div>
 
             <!-- Result Area (OT Table) -->
-            <div class="mt-6 border border-gray-300 rounded-sm bg-gray-50 p-4">
+            <div class="mt-6 border border-gray-300 rounded-sm bg-gray-50 p-4 relative">
+                <!-- Loading overlay -->
+                <div x-show="loadingReport" class="absolute inset-0 bg-white/70 flex items-center justify-center z-10" x-cloak>
+                    <div class="flex items-center gap-3 text-gray-600">
+                        <span class="material-symbols-outlined animate-spin">progress_activity</span>
+                        <span style="font-family: Poppins, sans-serif; font-size: 12px;">Menjana laporan...</span>
+                    </div>
+                </div>
                  <template x-if="reportType === 'ot' && otRows.length">
                      <div class="space-y-4">
                         <!-- Header block (3-grid) -->
@@ -402,12 +494,17 @@
                                 </thead>
                                 <tbody>
                                     <template x-for="(r, idx) in otRows" :key="idx">
-                                        <tr class="odd:bg-white even:bg-gray-50">
+                                        <tr :class="r.bgColor || 'bg-white'">
                                             <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.tarikh"></td>
                                             <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.program"></td>
                                             <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.mula"></td>
                                             <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.tamat"></td>
-                                            <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;" x-text="r.jamText"></td>
+                                            <td class="border border-gray-300 px-3 py-2" style="font-size: 12px;">
+                                                <div class="flex items-center justify-between">
+                                                    <span x-text="r.jamText"></span>
+                                                    <span class="text-xs text-gray-500 ml-2" x-text="`(${r.multiplier}x)`"></span>
+                                                </div>
+                                            </td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -425,6 +522,21 @@
  
                         <div class="text-gray-800" style="font-size: 12px;">
                             <div>Jumlah Rekod: <span x-text="otSummary.totalRecords"></span></div>
+                            <!-- Legend for OT row highlights -->
+                            <div class="mt-2 flex items-center gap-4 text-gray-700" style="font-family: Poppins, sans-serif; font-size: 11px;">
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-block w-3 h-3 bg-white border border-gray-300 rounded-sm"></span>
+                                    <span>Hari Bekerja (1.5x)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-block w-3 h-3 bg-yellow-50 border border-yellow-200 rounded-sm"></span>
+                                    <span>Hujung Minggu (2.0x)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-block w-3 h-3 bg-red-50 border border-red-200 rounded-sm"></span>
+                                    <span>Cuti Umum (3.0x)</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -625,6 +737,16 @@
                     </div>
                 </template>
 
+                <!-- Empty state for no results after generate (OT) -->
+                <template x-if="reportType === 'ot' && otRows.length === 0 && otSummary.totalRecords === 0">
+                    <div class="flex flex-col items-center justify-center py-16 text-gray-500">
+                        <span class="material-symbols-outlined text-6xl mb-4 text-gray-300">schedule</span>
+                        <p class="text-base font-semibold text-gray-700 mb-1" style="font-family: Poppins, sans-serif;">Tiada Rekod Dijumpai</p>
+                        <p class="text-sm text-gray-500" style="font-family: Poppins, sans-serif;">Tiada kerja lebih masa untuk tempoh yang dipilih.</p>
+                        <p class="text-xs text-gray-400 mt-2" style="font-family: Poppins, sans-serif;">Sila ubah julat tarikh atau pilihan staf dan cuba lagi.</p>
+                    </div>
+                </template>
+
                 <!-- Empty state for no results after generate (Kenderaan) -->
                 <template x-if="reportType === 'kenderaan' && kenderaanRows.length === 0 && kenderaanSummary.totalRecords === 0">
                     <div class="flex flex-col items-center justify-center py-16 text-gray-500">
@@ -636,7 +758,7 @@
                 </template>
 
                 <!-- Default empty state -->
-                <template x-if="!(reportType === 'ot' && otRows.length) && !(reportType === 'tuntutan' && tuntutanRows.length) && !(reportType === 'kenderaan' && kenderaanRows.length) && !(reportType === 'tuntutan' && tuntutanSummary.totalRecords === 0) && !(reportType === 'kenderaan' && kenderaanSummary.totalRecords === 0)">
+                <template x-if="!(reportType === 'ot' && otRows.length) && !(reportType === 'tuntutan' && tuntutanRows.length) && !(reportType === 'kenderaan' && kenderaanRows.length) && otSummary.totalRecords !== 0 && tuntutanSummary.totalRecords !== 0 && kenderaanSummary.totalRecords !== 0">
                     <div class="flex flex-col items-center justify-center py-12 text-gray-500">
                         <span class="material-symbols-outlined text-5xl mb-3 text-gray-400">filter_alt</span>
                         <p class="text-sm text-gray-600" style="font-family: Poppins, sans-serif;">Tiada hasil. Sila pilih penapis dan klik Generate.</p>

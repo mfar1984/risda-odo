@@ -276,6 +276,12 @@ Route::middleware('auth')->group(function () {
         Route::middleware('admin')->group(function () {
             Route::post('/integrasi/generate-api-token', [App\Http\Controllers\IntegrasiController::class, 'generateApiToken'])->name('generate-api-token');
             Route::put('/integrasi/cors', [App\Http\Controllers\IntegrasiController::class, 'updateCors'])->name('update-integrasi-cors');
+            
+            // Cuti Umum Management
+            Route::get('/integrasi/cuti-umum/preview', [App\Http\Controllers\IntegrasiController::class, 'cutiUmumPreview'])->name('integrasi.cuti-umum-preview');
+            Route::post('/integrasi/cuti-umum/tambah', [App\Http\Controllers\IntegrasiController::class, 'tambahCutiKhas'])->name('integrasi.tambah-cuti-khas');
+            Route::put('/integrasi/cuti-umum/{id}', [App\Http\Controllers\IntegrasiController::class, 'updateCutiKhas'])->name('integrasi.update-cuti-khas');
+            Route::delete('/integrasi/cuti-umum/{id}', [App\Http\Controllers\IntegrasiController::class, 'deleteCutiKhas'])->name('integrasi.delete-cuti-khas');
         });
         
         // Weather & Email Configuration (Permission-based for all users based on their organisation - Multi-tenancy)

@@ -19,11 +19,15 @@ class IntegrasiController extends Controller
         $integrasi = IntegrasiConfig::get();
         $weatherConfig = WeatherConfig::getForCurrentUser();
         $emailConfig = EmailConfig::getForCurrentUser();
+        
+        // Get manual cuti overrides
+        $cutiOverrides = \App\Models\CutiUmumOverride::orderBy('tarikh_mula', 'desc')->get();
 
         return view('pengurusan.integrasi', [
             'integrasi' => $integrasi,
             'weatherConfig' => $weatherConfig,
             'emailConfig' => $emailConfig,
+            'cutiOverrides' => $cutiOverrides,
         ]);
     }
 
@@ -302,6 +306,213 @@ class IntegrasiController extends Controller
 
         return redirect()->route('pengurusan.integrasi', ['tab' => 'email'])
             ->with('success', 'Konfigurasi email berjaya dikemaskini.');
+    }
+
+    /**
+     * Preview cuti umum from package (AJAX)
+     */
+    public function cutiUmumPreview(Request $request)
+    {
+        $year = $request->input('year', date('Y'));
+        $mode = $request->input('mode', 'all'); // 'all' or 'single'
+        $negeri = $request->input('negeri', 'Sarawak');
+
+        try {
+            if ($mode === 'all') {
+                // Get holidays from all states and merge
+                $allStates = ['Johor', 'Kedah', 'Kelantan', 'Melaka', 'Negeri Sembilan', 'Pahang', 
+                             'Penang', 'Perak', 'Perlis', 'Sabah', 'Sarawak', 'Selangor', 
+                             'Terengganu', 'Kuala Lumpur', 'Labuan', 'Putrajaya'];
+                
+                $allHolidays = [];
+                foreach ($allStates as $state) {
+                    $data = \Holiday\MalaysiaHoliday::make()->fromState($state)->ofYear($year)->get();
+                    if ($data['status']) {
+                        foreach ($data['data'][0]['collection'][0]['data'] as $h) {
+                            if ($h['is_holiday']) {
+                                if (!isset($allHolidays[$h['date']])) {
+                                    $allHolidays[$h['date']] = [
+                                        'date' => $h['date'],
+                                        'day' => $h['day'],
+                                        'name' => $h['name'],
+                                        'states' => []
+                                    ];
+                                }
+                                $allHolidays[$h['date']]['states'][] = $state;
+                            }
+                        }
+                    }
+                }
+                
+                ksort($allHolidays);
+                
+                return response()->json([
+                    'success' => true,
+                    'mode' => 'all',
+                    'data' => array_values($allHolidays)
+                ]);
+            } else {
+                // Get holidays for single state
+                $data = \Holiday\MalaysiaHoliday::make()->fromState($negeri)->ofYear($year)->get();
+                
+                if ($data['status']) {
+                    $holidays = collect($data['data'][0]['collection'][0]['data'])
+                        ->where('is_holiday', true)
+                        ->map(function ($h) {
+                            return [
+                                'date' => $h['date'],
+                                'day' => $h['day'],
+                                'name' => $h['name'],
+                                'type' => $h['type']
+                            ];
+                        })
+                        ->values();
+                    
+                    return response()->json([
+                        'success' => true,
+                        'mode' => 'single',
+                        'negeri' => $negeri,
+                        'data' => $holidays
+                    ]);
+                }
+            }
+            
+            return response()->json(['success' => false, 'message' => 'Gagal mendapatkan data cuti'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Add custom holiday override
+     */
+    public function tambahCutiKhas(Request $request)
+    {
+        $validated = $request->validate([
+            'tarikh_mula' => 'required|date',
+            'tarikh_akhir' => 'required|date|after_or_equal:tarikh_mula',
+            'nama_cuti' => 'required|string|max:255',
+            'negeri' => 'nullable|array',
+            'semuaNegeri' => 'boolean',
+            'catatan' => 'nullable|string',
+        ]);
+
+        // Determine which states to apply
+        $negeriList = [];
+        if ($request->input('semuaNegeri', false)) {
+            $negeriList = ['Semua'];
+        } else {
+            $negeriList = $validated['negeri'] ?? [];
+        }
+
+        if (empty($negeriList)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sila pilih sekurang-kurangnya satu negeri atau "Semua Negeri"'
+            ], 400);
+        }
+
+        // Create one record for each selected state
+        $created = [];
+        foreach ($negeriList as $negeri) {
+            $cuti = \App\Models\CutiUmumOverride::create([
+                'tarikh_mula' => $validated['tarikh_mula'],
+                'tarikh_akhir' => $validated['tarikh_akhir'],
+                'nama_cuti' => $validated['nama_cuti'],
+                'negeri' => $negeri,
+                'catatan' => $validated['catatan'] ?? null,
+                'aktif' => true,
+                'dicipta_oleh' => auth()->id(),
+            ]);
+            $created[] = $cuti;
+        }
+
+        // Log activity
+        $negeriStr = implode(', ', $negeriList);
+        activity('integrasi')
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'tarikh_mula' => $validated['tarikh_mula'],
+                'tarikh_akhir' => $validated['tarikh_akhir'],
+                'nama_cuti' => $validated['nama_cuti'],
+                'negeri' => $negeriStr,
+                'count' => count($created),
+            ])
+            ->event('created_holiday_override')
+            ->log("Cuti khas '{$validated['nama_cuti']}' telah ditambah untuk {$negeriStr} (" . count($created) . " rekod)");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cuti khas berjaya ditambah untuk ' . count($created) . ' negeri',
+            'data' => $created
+        ]);
+    }
+
+    /**
+     * Update custom holiday override
+     */
+    public function updateCutiKhas(Request $request, $id)
+    {
+        $cuti = \App\Models\CutiUmumOverride::findOrFail($id);
+
+        $validated = $request->validate([
+            'tarikh_mula' => 'required|date',
+            'tarikh_akhir' => 'required|date|after_or_equal:tarikh_mula',
+            'nama_cuti' => 'required|string|max:255',
+            'negeri' => 'required|string',
+            'catatan' => 'nullable|string',
+            'aktif' => 'boolean',
+        ]);
+
+        $cuti->update($validated);
+
+        // Log activity
+        activity('integrasi')
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'cuti_id' => $cuti->id,
+                'nama_cuti' => $cuti->nama_cuti,
+            ])
+            ->event('updated_holiday_override')
+            ->log("Cuti khas '{$cuti->nama_cuti}' telah dikemaskini");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cuti khas berjaya dikemaskini',
+            'data' => $cuti
+        ]);
+    }
+
+    /**
+     * Delete custom holiday override
+     */
+    public function deleteCutiKhas($id)
+    {
+        $cuti = \App\Models\CutiUmumOverride::findOrFail($id);
+        $namaCuti = $cuti->nama_cuti;
+        
+        $cuti->delete();
+
+        // Log activity
+        activity('integrasi')
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'cuti_id' => $id,
+                'nama_cuti' => $namaCuti,
+            ])
+            ->event('deleted_holiday_override')
+            ->log("Cuti khas '{$namaCuti}' telah dipadam");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cuti khas berjaya dipadam'
+        ]);
     }
 }
 

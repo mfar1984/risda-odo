@@ -45,8 +45,9 @@ class LogPemandu extends Model
 
     protected $casts = [
         'tarikh_perjalanan' => 'date',
-        'masa_keluar' => 'datetime:H:i',
-        'masa_masuk' => 'datetime:H:i',
+        // Stored as TIME-only in DB; keep as raw string to avoid timezone/date shifts
+        'masa_keluar' => 'string',
+        'masa_masuk' => 'string',
         'odometer_keluar' => 'integer',
         'odometer_masuk' => 'integer',
         'jarak' => 'integer',
