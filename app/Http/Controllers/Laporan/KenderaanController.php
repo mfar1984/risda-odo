@@ -278,17 +278,13 @@ class KenderaanController extends Controller
         }
 
         if ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = collect($user->stesen_akses_ids ?? [])
-                ->map(fn ($id) => (string) $id)
-                ->filter();
+            $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
 
             $query->where(function ($inner) use ($user, $stesenIds) {
                 $inner->where('bahagian_id', (string) $user->organisasi_id);
 
                 if ($stesenIds->isNotEmpty()) {
-                    $inner->orWhereIn('stesen_id', $stesenIds->all());
-                } else {
-                    $inner->orWhereNull('stesen_id');
+                    $inner->orWhereIn('stesen_id', $stesenIds->map(fn ($id) => (string) $id)->all());
                 }
             });
 
@@ -300,6 +296,22 @@ class KenderaanController extends Controller
                 ->orWhere('stesen_id', (string) $user->organisasi_id)
                 ->orWhereNull('stesen_id');
         });
+    }
+
+    /**
+     * Get stesen IDs for a bahagian. If stesen_akses_ids is empty, returns ALL stesen under bahagian.
+     */
+    private function getStesenIdsForBahagian($bahagianId, $stesenAksesIds = null)
+    {
+        $userStesenIds = collect($stesenAksesIds ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter();
+
+        if ($userStesenIds->isNotEmpty()) {
+            return $userStesenIds;
+        }
+
+        return \App\Models\RisdaStesen::where('risda_bahagian_id', $bahagianId)->pluck('id');
     }
 
     private function applyLogScope($query, ?User $user): void
@@ -314,12 +326,13 @@ class KenderaanController extends Controller
         }
 
         if ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = collect($user->stesen_akses_ids ?? [])
-                ->map(fn ($id) => (string) $id)
-                ->filter();
+            $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
 
             if ($stesenIds->isNotEmpty()) {
-                $query->whereIn('organisasi_id', $stesenIds->all());
+                $query->where(function ($q) use ($user, $stesenIds) {
+                    $q->where('organisasi_id', (string) $user->organisasi_id)
+                      ->orWhereIn('organisasi_id', $stesenIds->map(fn ($id) => (string) $id)->all());
+                });
             } else {
                 $query->where('organisasi_id', (string) $user->organisasi_id);
             }
@@ -357,9 +370,7 @@ class KenderaanController extends Controller
         }
 
         if ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = collect($user->stesen_akses_ids ?? [])
-                ->map(fn ($id) => (string) $id)
-                ->filter();
+            $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
 
             $query->where(function ($inner) use ($user, $stesenIds) {
                 $inner->where(function ($q) use ($user) {
@@ -400,12 +411,10 @@ class KenderaanController extends Controller
         }
 
         if ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = collect($user->stesen_akses_ids ?? [])
-                ->map(fn ($id) => (string) $id)
-                ->filter();
+            $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
 
             $isBahagian = (string) $kenderaan->bahagian_id === (string) $user->organisasi_id;
-            $isStesen = $stesenIds->isNotEmpty() && $stesenIds->contains((string) $kenderaan->stesen_id);
+            $isStesen = $stesenIds->contains((int) $kenderaan->stesen_id);
             $isTanpaStesen = !$kenderaan->stesen_id;
 
             if (!$isBahagian && !$isStesen && !$isTanpaStesen) {

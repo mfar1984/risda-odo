@@ -11,13 +11,36 @@ use Illuminate\Support\Facades\Validator;
 class RisdaStafController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource with organizational filtering.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $stafs = RisdaStaf::with(['bahagian', 'stesen'])
-                         ->orderBy('created_at', 'desc')
-                         ->get();
+        $currentUser = auth()->user();
+        
+        $query = RisdaStaf::with(['bahagian', 'stesen']);
+
+        // Apply organizational scope with hierarchy
+        if (!$this->isAdministrator()) {
+            $this->applyOrganizationalScope($query, $currentUser);
+        }
+
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama_penuh', 'like', "%{$search}%")
+                  ->orWhere('no_pekerja', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('jawatan', 'like', "%{$search}%");
+            });
+        }
+
+        // Apply status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $stafs = $query->orderBy('created_at', 'desc')->get();
 
         return view('pengurusan.senarai-risda', compact('stafs'));
     }
@@ -27,13 +50,13 @@ class RisdaStafController extends Controller
      */
     public function create()
     {
-        $bahagians = RisdaBahagian::where('status_dropdown', 'aktif')
-                                 ->orderBy('nama_bahagian')
-                                 ->get();
-
-        $stesens = RisdaStesen::where('status_dropdown', 'aktif')
-                             ->orderBy('nama_stesen')
-                             ->get();
+        $currentUser = auth()->user();
+        
+        // Get bahagians based on user access
+        $bahagians = $this->getBahagianForCurrentUser();
+        
+        // Get stesens based on user access
+        $stesens = $this->getStesenForCurrentUser();
 
         return view('pengurusan.tambah-staf', compact('bahagians', 'stesens'));
     }
@@ -97,6 +120,9 @@ class RisdaStafController extends Controller
      */
     public function show(RisdaStaf $risdaStaf)
     {
+        // Check access permission
+        $this->checkStafAccess($risdaStaf);
+        
         $risdaStaf->load(['bahagian', 'stesen']);
         return view('pengurusan.show-staf', compact('risdaStaf'));
     }
@@ -106,13 +132,14 @@ class RisdaStafController extends Controller
      */
     public function edit(RisdaStaf $risdaStaf)
     {
-        $bahagians = RisdaBahagian::where('status_dropdown', 'aktif')
-                                 ->orderBy('nama_bahagian')
-                                 ->get();
-
-        $stesens = RisdaStesen::where('status_dropdown', 'aktif')
-                             ->orderBy('nama_stesen')
-                             ->get();
+        // Check access permission
+        $this->checkStafAccess($risdaStaf);
+        
+        // Get bahagians based on user access
+        $bahagians = $this->getBahagianForCurrentUser();
+        
+        // Get stesens based on user access
+        $stesens = $this->getStesenForCurrentUser();
 
         return view('pengurusan.edit-staf', compact('risdaStaf', 'bahagians', 'stesens'));
     }
@@ -181,6 +208,9 @@ class RisdaStafController extends Controller
      */
     public function destroy(RisdaStaf $risdaStaf)
     {
+        // Check access permission
+        $this->checkStafAccess($risdaStaf);
+        
         $id = $risdaStaf->id;
         $name = $risdaStaf->nama_penuh;
         $risdaStaf->delete();
@@ -199,5 +229,152 @@ class RisdaStafController extends Controller
 
         return redirect()->route('pengurusan.senarai-risda')
             ->with('success', 'RISDA Staf berjaya dipadam!');
+    }
+
+    /**
+     * Check if current user is Administrator.
+     */
+    private function isAdministrator()
+    {
+        $user = auth()->user();
+        return $user && $user->jenis_organisasi === 'semua';
+    }
+
+    /**
+     * Get stesen IDs for a bahagian with optional filtering by stesen_akses_ids.
+     */
+    private function getStesenIdsForBahagian($bahagianId, $stesenAksesIds = null)
+    {
+        $userStesenIds = collect($stesenAksesIds ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter();
+
+        if ($userStesenIds->isNotEmpty()) {
+            return $userStesenIds;
+        }
+
+        return RisdaStesen::where('risda_bahagian_id', $bahagianId)
+            ->pluck('id');
+    }
+
+    /**
+     * Apply organizational scope to query with hierarchy support.
+     */
+    private function applyOrganizationalScope($query, $currentUser)
+    {
+        if ($currentUser->jenis_organisasi === 'bahagian') {
+            $stesenIds = $this->getStesenIdsForBahagian($currentUser->organisasi_id, $currentUser->stesen_akses_ids);
+            
+            $query->where(function ($q) use ($currentUser, $stesenIds) {
+                // Staf directly under bahagian (no stesen)
+                $q->where(function ($inner) use ($currentUser) {
+                    $inner->where('bahagian_id', $currentUser->organisasi_id)
+                          ->whereNull('stesen_id');
+                });
+                
+                // Staf under any stesen in this bahagian
+                if ($stesenIds->isNotEmpty()) {
+                    $q->orWhereIn('stesen_id', $stesenIds->all());
+                }
+            });
+        } elseif ($currentUser->jenis_organisasi === 'stesen') {
+            $query->where('stesen_id', $currentUser->organisasi_id);
+        }
+    }
+
+    /**
+     * Check if current user has access to the staf with hierarchy support.
+     */
+    private function checkStafAccess(RisdaStaf $staf)
+    {
+        $currentUser = auth()->user();
+
+        if ($this->isAdministrator()) {
+            return;
+        }
+
+        if ($currentUser->jenis_organisasi === 'bahagian') {
+            $stesenIds = $this->getStesenIdsForBahagian($currentUser->organisasi_id, $currentUser->stesen_akses_ids);
+            
+            // Allow if staf is directly under bahagian
+            if ($staf->bahagian_id == $currentUser->organisasi_id && !$staf->stesen_id) {
+                return;
+            }
+            
+            // Allow if staf is under any stesen in this bahagian
+            if ($staf->stesen_id && $stesenIds->contains($staf->stesen_id)) {
+                return;
+            }
+            
+            abort(403, 'Anda tidak mempunyai kebenaran untuk mengakses staf ini.');
+        }
+
+        if ($currentUser->jenis_organisasi === 'stesen') {
+            if ($staf->stesen_id != $currentUser->organisasi_id) {
+                abort(403, 'Anda tidak mempunyai kebenaran untuk mengakses staf ini.');
+            }
+        }
+    }
+
+    /**
+     * Get bahagian list for current user.
+     */
+    private function getBahagianForCurrentUser()
+    {
+        $currentUser = auth()->user();
+        
+        if ($this->isAdministrator()) {
+            return RisdaBahagian::where('status_dropdown', 'aktif')
+                               ->orderBy('nama_bahagian')
+                               ->get();
+        }
+
+        if ($currentUser->jenis_organisasi === 'bahagian') {
+            return RisdaBahagian::where('id', $currentUser->organisasi_id)
+                               ->where('status_dropdown', 'aktif')
+                               ->get();
+        }
+
+        if ($currentUser->jenis_organisasi === 'stesen') {
+            $stesen = RisdaStesen::find($currentUser->organisasi_id);
+            if ($stesen) {
+                return RisdaBahagian::where('id', $stesen->risda_bahagian_id)
+                                   ->where('status_dropdown', 'aktif')
+                                   ->get();
+            }
+        }
+
+        return collect();
+    }
+
+    /**
+     * Get stesen list for current user.
+     */
+    private function getStesenForCurrentUser()
+    {
+        $currentUser = auth()->user();
+        
+        if ($this->isAdministrator()) {
+            return RisdaStesen::where('status_dropdown', 'aktif')
+                             ->orderBy('nama_stesen')
+                             ->get();
+        }
+
+        if ($currentUser->jenis_organisasi === 'bahagian') {
+            $stesenIds = $this->getStesenIdsForBahagian($currentUser->organisasi_id, $currentUser->stesen_akses_ids);
+            
+            return RisdaStesen::whereIn('id', $stesenIds->all())
+                             ->where('status_dropdown', 'aktif')
+                             ->orderBy('nama_stesen')
+                             ->get();
+        }
+
+        if ($currentUser->jenis_organisasi === 'stesen') {
+            return RisdaStesen::where('id', $currentUser->organisasi_id)
+                             ->where('status_dropdown', 'aktif')
+                             ->get();
+        }
+
+        return collect();
     }
 }

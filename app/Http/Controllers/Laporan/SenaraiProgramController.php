@@ -266,9 +266,7 @@ class SenaraiProgramController extends Controller
         }
 
         if ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = collect($user->stesen_akses_ids ?? [])
-                ->map(fn ($id) => (string) $id)
-                ->filter();
+            $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
 
             $query->where(function ($inner) use ($user, $stesenIds) {
                 $inner->where(function ($q) use ($user) {
@@ -293,6 +291,22 @@ class SenaraiProgramController extends Controller
         });
     }
 
+    /**
+     * Get stesen IDs for a bahagian. If stesen_akses_ids is empty, returns ALL stesen under bahagian.
+     */
+    private function getStesenIdsForBahagian($bahagianId, $stesenAksesIds = null)
+    {
+        $userStesenIds = collect($stesenAksesIds ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter();
+
+        if ($userStesenIds->isNotEmpty()) {
+            return $userStesenIds;
+        }
+
+        return \App\Models\RisdaStesen::where('risda_bahagian_id', $bahagianId)->pluck('id');
+    }
+
     private function applyLogScope($query, ?User $user): void
     {
         if (!$user || $user->jenis_organisasi === 'semua') {
@@ -305,12 +319,13 @@ class SenaraiProgramController extends Controller
         }
 
         if ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = collect($user->stesen_akses_ids ?? [])
-                ->map(fn ($id) => (string) $id)
-                ->filter();
+            $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
 
             if ($stesenIds->isNotEmpty()) {
-                $query->whereIn('organisasi_id', $stesenIds->all());
+                $query->where(function ($q) use ($user, $stesenIds) {
+                    $q->where('organisasi_id', (string) $user->organisasi_id)
+                      ->orWhereIn('organisasi_id', $stesenIds->map(fn ($id) => (string) $id)->all());
+                });
             } else {
                 $query->where('organisasi_id', (string) $user->organisasi_id);
             }
@@ -335,15 +350,13 @@ class SenaraiProgramController extends Controller
         }
 
         if ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = collect($user->stesen_akses_ids ?? [])
-                ->map(fn ($id) => (string) $id)
-                ->filter();
+            $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
 
             $isSameBahagian = $program->jenis_organisasi === 'bahagian'
                 && (string) $program->organisasi_id === (string) $user->organisasi_id;
 
             $isWithinStesen = $program->jenis_organisasi === 'stesen'
-                && ($stesenIds->isNotEmpty() && $stesenIds->contains((string) $program->organisasi_id));
+                && $stesenIds->contains((int) $program->organisasi_id);
 
             if (!$isSameBahagian && !$isWithinStesen) {
                 abort(403, 'Anda tidak mempunyai kebenaran untuk melihat program ini.');

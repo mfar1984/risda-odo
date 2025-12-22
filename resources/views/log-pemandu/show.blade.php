@@ -1,21 +1,10 @@
 @php
-    use Illuminate\Support\Facades\Storage;
-    use Illuminate\Support\Str;
-
-    // Helper to normalize stored file paths into valid URLs
-    $resolveUrl = function (?string $path) {
-        if (!$path) return null;
-        if (Str::startsWith($path, ['http://', 'https://'])) return $path;
-        if (Str::startsWith($path, '/')) return $path; // already absolute
-        if (Str::startsWith($path, 'storage/')) return asset($path);
-        if (Str::startsWith($path, 'public/')) return Storage::url(Str::after($path, 'public/'));
-        return Storage::url($path);
-    };
+    use App\Support\Media;
 
     // Check-out = Start Journey (foto_odometer_keluar)
     // Check-in = End Journey (foto_odometer_masuk)
-    $gambarCheckin = $resolveUrl($log->foto_odometer_masuk);
-    $gambarCheckout = $resolveUrl($log->foto_odometer_keluar);
+    $gambarCheckin = Media::url($log->foto_odometer_masuk);
+    $gambarCheckout = Media::url($log->foto_odometer_keluar);
     $tabKembali = request('tab', 'semua');
 @endphp
 

@@ -271,9 +271,7 @@ class KilometerController extends Controller
         }
 
         if ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = collect($user->stesen_akses_ids ?? [])
-                ->map(fn ($id) => (string) $id)
-                ->filter();
+            $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
 
             $query->where(function ($inner) use ($user, $stesenIds) {
                 $inner->where(function ($q) use ($user) {
@@ -296,6 +294,22 @@ class KilometerController extends Controller
             ->where('jenis_organisasi', $user->jenis_organisasi);
     }
 
+    /**
+     * Get stesen IDs for a bahagian. If stesen_akses_ids is empty, returns ALL stesen under bahagian.
+     */
+    private function getStesenIdsForBahagian($bahagianId, $stesenAksesIds = null)
+    {
+        $userStesenIds = collect($stesenAksesIds ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter();
+
+        if ($userStesenIds->isNotEmpty()) {
+            return $userStesenIds;
+        }
+
+        return \App\Models\RisdaStesen::where('risda_bahagian_id', $bahagianId)->pluck('id');
+    }
+
     private function applyLogScope($query, ?User $user): void
     {
         if (!$user || $user->jenis_organisasi === 'semua') {
@@ -308,15 +322,15 @@ class KilometerController extends Controller
         }
 
         if ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = collect($user->stesen_akses_ids ?? [])
-                ->map(fn ($id) => (string) $id)
-                ->filter();
+            $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
 
-            if ($stesenIds->isNotEmpty()) {
-                $query->whereIn('organisasi_id', $stesenIds->all());
-            } else {
-                $query->where('organisasi_id', (string) $user->organisasi_id);
-            }
+            $query->where(function ($q) use ($user, $stesenIds) {
+                $q->where('organisasi_id', (string) $user->organisasi_id);
+                
+                if ($stesenIds->isNotEmpty()) {
+                    $q->orWhereIn('organisasi_id', $stesenIds->map(fn ($id) => (string) $id)->all());
+                }
+            });
 
             return;
         }
@@ -356,12 +370,10 @@ class KilometerController extends Controller
         }
 
         if ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = collect($user->stesen_akses_ids ?? [])
-                ->map(fn ($id) => (string) $id)
-                ->filter();
+            $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
 
             $isBahagian = $program->jenis_organisasi === 'bahagian' && (string) $program->organisasi_id === (string) $user->organisasi_id;
-            $isStesen = $program->jenis_organisasi === 'stesen' && $stesenIds->contains((string) $program->organisasi_id);
+            $isStesen = $program->jenis_organisasi === 'stesen' && $stesenIds->contains((int) $program->organisasi_id);
 
             if (!$isBahagian && !$isStesen) {
                 abort(403, 'Anda tidak mempunyai kebenaran untuk melihat program ini.');

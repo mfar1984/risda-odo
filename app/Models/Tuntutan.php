@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\RisdaStaf;
+use App\Models\RisdaStesen;
 
 class Tuntutan extends Model
 {
@@ -86,7 +87,7 @@ class Tuntutan extends Model
     }
 
     /**
-     * Scope: Filter by current user's organization (multi-tenancy)
+     * Scope: Filter by current user's organization (multi-tenancy) with hierarchy support
      */
     public function scopeForCurrentUser($query)
     {
@@ -101,18 +102,42 @@ class Tuntutan extends Model
             return $query;
         }
 
-        // Filter by organization
+        // Filter by organization with hierarchy
         return $query->whereHas('logPemandu', function ($q) use ($user) {
-            $q->whereHas('pemandu', function ($pq) use ($user) {
-                if ($user->jenis_organisasi === 'bahagian') {
-                    // See same bahagian
-                    return $pq->where('organisasi_id', $user->organisasi_id);
-                } else {
-                    // See same stesen
-                    return $pq->where('organisasi_id', $user->organisasi_id);
-                }
-            });
+            if ($user->jenis_organisasi === 'bahagian') {
+                // Get all stesen IDs under this bahagian
+                $stesenIds = $this->getStesenIdsForBahagian($user->organisasi_id, $user->stesen_akses_ids);
+                
+                $q->where(function ($inner) use ($user, $stesenIds) {
+                    // Logs from bahagian directly
+                    $inner->where('organisasi_id', $user->organisasi_id);
+                    
+                    // Logs from any stesen under this bahagian
+                    if ($stesenIds->isNotEmpty()) {
+                        $inner->orWhereIn('organisasi_id', $stesenIds->map(fn ($id) => (string) $id)->all());
+                    }
+                });
+            } else {
+                // Stesen user - only see logs from their stesen
+                $q->where('organisasi_id', $user->organisasi_id);
+            }
         });
+    }
+
+    /**
+     * Get stesen IDs for a bahagian. If stesen_akses_ids is empty, returns ALL stesen under bahagian.
+     */
+    private function getStesenIdsForBahagian($bahagianId, $stesenAksesIds = null)
+    {
+        $userStesenIds = collect($stesenAksesIds ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter();
+
+        if ($userStesenIds->isNotEmpty()) {
+            return $userStesenIds;
+        }
+
+        return RisdaStesen::where('risda_bahagian_id', $bahagianId)->pluck('id');
     }
 
     /**

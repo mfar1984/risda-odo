@@ -5,7 +5,9 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return auth()->check()
+        ? redirect()->route('dashboard')
+        : view('auth.login');
 });
 
 Route::get('/dashboard', function () {
@@ -357,6 +359,13 @@ Route::middleware('auth')->group(function () {
     // Internal API routes (for AJAX calls)
     Route::prefix('api')->middleware('auth')->group(function () {
         Route::get('/users/list', [App\Http\Controllers\Api\UserController::class, 'list'])->name('api.users.list');
+
+        // Vehicle Usage Report Snapshots
+        Route::get('/snapshots/vehicle-usage', [App\Http\Controllers\VehicleUsageReportController::class, 'index'])->name('api.snapshots.vehicle-usage.index');
+        Route::get('/snapshots/vehicle-usage/{id}', [App\Http\Controllers\VehicleUsageReportController::class, 'show'])->name('api.snapshots.vehicle-usage.show');
+        Route::post('/snapshots/vehicle-usage', [App\Http\Controllers\VehicleUsageReportController::class, 'store'])->name('api.snapshots.vehicle-usage.store');
+        Route::delete('/snapshots/vehicle-usage/{id}', [App\Http\Controllers\VehicleUsageReportController::class, 'destroy'])->name('api.snapshots.vehicle-usage.destroy');
+        Route::get('/snapshots/vehicle-usage/{id}/pdf', [App\Http\Controllers\VehicleUsageReportController::class, 'pdf'])->name('api.snapshots.vehicle-usage.pdf');
     });
 });
 

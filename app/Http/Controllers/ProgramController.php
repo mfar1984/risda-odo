@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Program;
 use App\Models\RisdaStaf;
+use App\Models\RisdaStesen;
 use App\Models\Kenderaan;
 use App\Models\User;
 use App\Services\FirebaseService;
@@ -22,20 +23,9 @@ class ProgramController extends Controller
         // Start building query
         $query = Program::with(['pemohon', 'pemandu', 'kenderaan', 'pencipta']);
 
-        // Apply organizational scope
-        if ($this->isAdministrator()) {
-            // Administrator can see all programs
-        } else {
-            // Regular users can only see programs within their organizational scope
-            $query->where(function($q) use ($currentUser) {
-                if ($currentUser->jenis_organisasi === 'bahagian') {
-                    $q->where('jenis_organisasi', 'bahagian')
-                      ->where('organisasi_id', $currentUser->organisasi_id);
-                } elseif ($currentUser->jenis_organisasi === 'stesen') {
-                    $q->where('jenis_organisasi', 'stesen')
-                      ->where('organisasi_id', $currentUser->organisasi_id);
-                }
-            });
+        // Apply organizational scope with hierarchy
+        if (!$this->isAdministrator()) {
+            $this->applyOrganizationalScope($query, $currentUser);
         }
 
         // Apply filters
@@ -319,25 +309,38 @@ class ProgramController extends Controller
     }
 
     /**
-     * Get staff for current user based on organizational access.
+     * Get staff for current user based on organizational access with hierarchy.
+     * Bahagian user can see all staf under bahagian AND all stesen under that bahagian.
      */
     private function getStafForCurrentUser()
     {
         $currentUser = auth()->user();
 
         if ($currentUser->jenis_organisasi === 'semua') {
-            // Administrator can see all active staff
             return RisdaStaf::where('status', 'aktif')
                            ->with(['bahagian', 'stesen'])
                            ->orderBy('nama_penuh')
                            ->get();
         }
 
-        // Filter staff based on user's organization
         $query = RisdaStaf::where('status', 'aktif');
 
         if ($currentUser->jenis_organisasi === 'bahagian') {
-            $query->where('bahagian_id', $currentUser->organisasi_id);
+            // Get all stesen IDs under this bahagian
+            $stesenIds = $this->getStesenIdsForBahagian($currentUser->organisasi_id, $currentUser->stesen_akses_ids);
+            
+            $query->where(function ($q) use ($currentUser, $stesenIds) {
+                // Staf directly under bahagian (no stesen assigned)
+                $q->where(function ($inner) use ($currentUser) {
+                    $inner->where('bahagian_id', $currentUser->organisasi_id)
+                          ->whereNull('stesen_id');
+                });
+                
+                // Staf under any stesen in this bahagian
+                if ($stesenIds->isNotEmpty()) {
+                    $q->orWhereIn('stesen_id', $stesenIds->all());
+                }
+            });
         } elseif ($currentUser->jenis_organisasi === 'stesen') {
             $query->where('stesen_id', $currentUser->organisasi_id);
         }
@@ -568,7 +571,8 @@ class ProgramController extends Controller
     }
 
     /**
-     * Check if current user has access to the program.
+     * Check if current user has access to the program with hierarchy support.
+     * Bahagian user can access programs from bahagian AND all stesen under it.
      */
     private function checkProgramAccess(Program $program)
     {
@@ -579,9 +583,27 @@ class ProgramController extends Controller
             return;
         }
 
-        // Check if program belongs to user's organization
+        // Check hierarchical access
+        if ($currentUser->jenis_organisasi === 'bahagian') {
+            // Get all stesen IDs under this bahagian
+            $stesenIds = $this->getStesenIdsForBahagian($currentUser->organisasi_id, $currentUser->stesen_akses_ids);
+            
+            // Allow if program is from same bahagian
+            if ($program->jenis_organisasi === 'bahagian' && $program->organisasi_id == $currentUser->organisasi_id) {
+                return;
+            }
+            
+            // Allow if program is from any stesen under this bahagian
+            if ($program->jenis_organisasi === 'stesen' && $stesenIds->contains($program->organisasi_id)) {
+                return;
+            }
+            
+            abort(403, 'Anda tidak mempunyai kebenaran untuk mengakses program ini.');
+        }
+
+        // Stesen user - strict match only
         if ($program->jenis_organisasi !== $currentUser->jenis_organisasi ||
-            $program->organisasi_id !== $currentUser->organisasi_id) {
+            $program->organisasi_id != $currentUser->organisasi_id) {
             abort(403, 'Anda tidak mempunyai kebenaran untuk mengakses program ini.');
         }
     }
@@ -593,5 +615,57 @@ class ProgramController extends Controller
     {
         $user = auth()->user();
         return $user && $user->jenis_organisasi === 'semua';
+    }
+
+    /**
+     * Get stesen IDs for a bahagian with optional filtering by stesen_akses_ids.
+     * If stesen_akses_ids is empty/null, returns ALL stesen under the bahagian.
+     */
+    private function getStesenIdsForBahagian($bahagianId, $stesenAksesIds = null)
+    {
+        // If user has specific stesen access, use those
+        $userStesenIds = collect($stesenAksesIds ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter();
+
+        if ($userStesenIds->isNotEmpty()) {
+            return $userStesenIds;
+        }
+
+        // Otherwise, get ALL stesen under this bahagian
+        return RisdaStesen::where('risda_bahagian_id', $bahagianId)
+            ->pluck('id');
+    }
+
+    /**
+     * Apply organizational scope to query with hierarchy support.
+     * Bahagian user can see programs from bahagian AND all stesen under it.
+     */
+    private function applyOrganizationalScope($query, $currentUser)
+    {
+        $query->where(function($q) use ($currentUser) {
+            if ($currentUser->jenis_organisasi === 'bahagian') {
+                // Get all stesen IDs under this bahagian
+                $stesenIds = $this->getStesenIdsForBahagian($currentUser->organisasi_id, $currentUser->stesen_akses_ids);
+                
+                $q->where(function ($inner) use ($currentUser) {
+                    // Programs directly from bahagian
+                    $inner->where('jenis_organisasi', 'bahagian')
+                          ->where('organisasi_id', $currentUser->organisasi_id);
+                });
+                
+                // Programs from any stesen under this bahagian
+                if ($stesenIds->isNotEmpty()) {
+                    $q->orWhere(function ($inner) use ($stesenIds) {
+                        $inner->where('jenis_organisasi', 'stesen')
+                              ->whereIn('organisasi_id', $stesenIds->all());
+                    });
+                }
+            } elseif ($currentUser->jenis_organisasi === 'stesen') {
+                // Stesen user - only see programs from their stesen
+                $q->where('jenis_organisasi', 'stesen')
+                  ->where('organisasi_id', $currentUser->organisasi_id);
+            }
+        });
     }
 }

@@ -1171,17 +1171,8 @@ class TuntutanController extends Controller
             $masaHingga = $log->masa_masuk;
 
             // Format fuel data - No. Resit, RM, Liter
-            // Prefer explicit no_resit column (as in Laporan Kos), fallback to filename if absent
+            // For Penggunaan Kenderaan, ONLY show explicit no_resit; do not fallback to filename
             $resitNo = $log->no_resit ?: '-';
-            if ($resitNo === '-' && $log->resit_minyak) {
-                if (str_contains($log->resit_minyak, '/')) {
-                    $parts = explode('/', $log->resit_minyak);
-                    $filename = end($parts);
-                    $resitNo = strlen($filename) > 20 ? substr($filename, 0, 17) . '...' : $filename;
-                } else {
-                    $resitNo = $log->resit_minyak;
-                }
-            }
             
             $resitRM = $log->kos_minyak ? number_format($log->kos_minyak, 2) : '-';
 

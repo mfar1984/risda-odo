@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 class UserGroupController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource with organizational hierarchy.
      */
     public function index(Request $request)
     {
@@ -21,9 +21,9 @@ class UserGroupController extends Controller
         // Start building query
         $query = UserGroup::with('pencipta');
 
-        // Apply organizational scope
+        // Apply organizational scope with hierarchy
         if (!$this->isAdministrator()) {
-            $query->where('dicipta_oleh', $currentUser->id);
+            $this->applyOrganizationalScope($query, $currentUser);
         }
 
         // Apply filters
@@ -54,6 +54,61 @@ class UserGroupController extends Controller
     {
         $user = auth()->user();
         return $user && $user->jenis_organisasi === 'semua';
+    }
+
+    /**
+     * Get stesen IDs for a bahagian with optional filtering by stesen_akses_ids.
+     */
+    private function getStesenIdsForBahagian($bahagianId, $stesenAksesIds = null)
+    {
+        $userStesenIds = collect($stesenAksesIds ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter();
+
+        if ($userStesenIds->isNotEmpty()) {
+            return $userStesenIds;
+        }
+
+        return RisdaStesen::where('risda_bahagian_id', $bahagianId)
+            ->pluck('id');
+    }
+
+    /**
+     * Apply organizational scope to query with hierarchy support.
+     * Bahagian user can see groups created by themselves OR groups used by users in their hierarchy.
+     */
+    private function applyOrganizationalScope($query, $currentUser)
+    {
+        $query->where(function ($q) use ($currentUser) {
+            // Groups created by current user
+            $q->where('dicipta_oleh', $currentUser->id);
+            
+            // Groups used by users in same organizational hierarchy
+            $q->orWhereHas('pengguna', function ($userQuery) use ($currentUser) {
+                if ($currentUser->jenis_organisasi === 'bahagian') {
+                    $stesenIds = $this->getStesenIdsForBahagian($currentUser->organisasi_id, $currentUser->stesen_akses_ids);
+                    
+                    $userQuery->where(function ($inner) use ($currentUser, $stesenIds) {
+                        // Users directly under bahagian
+                        $inner->where(function ($bahagianQuery) use ($currentUser) {
+                            $bahagianQuery->where('jenis_organisasi', 'bahagian')
+                                         ->where('organisasi_id', $currentUser->organisasi_id);
+                        });
+                        
+                        // Users under any stesen in this bahagian
+                        if ($stesenIds->isNotEmpty()) {
+                            $inner->orWhere(function ($stesenQuery) use ($stesenIds) {
+                                $stesenQuery->where('jenis_organisasi', 'stesen')
+                                           ->whereIn('organisasi_id', $stesenIds->all());
+                            });
+                        }
+                    });
+                } elseif ($currentUser->jenis_organisasi === 'stesen') {
+                    $userQuery->where('jenis_organisasi', 'stesen')
+                             ->where('organisasi_id', $currentUser->organisasi_id);
+                }
+            });
+        });
     }
 
     /**

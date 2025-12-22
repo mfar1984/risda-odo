@@ -96,13 +96,24 @@ class PenggunaController extends Controller
                 $currentUser = auth()->user();
 
                 if ($currentUser->jenis_organisasi === 'bahagian') {
+                    // Get stesen IDs - if empty, get ALL stesen under bahagian
                     $stesenIds = collect($currentUser->stesen_akses_ids ?? [])
                         ->map(fn ($id) => (int) $id)
                         ->filter();
 
-                    $query->where(function ($inner) use ($currentUser, $stesenIds) {
-                        $inner->where('bahagian_id', $currentUser->organisasi_id);
+                    if ($stesenIds->isEmpty()) {
+                        $stesenIds = RisdaStesen::where('risda_bahagian_id', $currentUser->organisasi_id)
+                            ->pluck('id');
+                    }
 
+                    $query->where(function ($inner) use ($currentUser, $stesenIds) {
+                        // Staf directly under bahagian (no stesen)
+                        $inner->where(function ($q) use ($currentUser) {
+                            $q->where('bahagian_id', $currentUser->organisasi_id)
+                              ->whereNull('stesen_id');
+                        });
+
+                        // Staf under any stesen in this bahagian
                         if ($stesenIds->isNotEmpty()) {
                             $inner->orWhereIn('stesen_id', $stesenIds->all());
                         }
@@ -119,27 +130,30 @@ class PenggunaController extends Controller
         $kumpulans = UserGroup::query()
             ->where('status', 'aktif')
             ->when(!$this->isAdministrator(), function ($query) use ($currentUser) {
-                $query->where(function ($inner) use ($currentUser) {
+                // Get stesen IDs - if empty, get ALL stesen under bahagian
+                $stesenIds = collect($currentUser->stesen_akses_ids ?? [])
+                    ->map(fn ($id) => (int) $id)
+                    ->filter();
+
+                if ($stesenIds->isEmpty() && $currentUser->jenis_organisasi === 'bahagian') {
+                    $stesenIds = RisdaStesen::where('risda_bahagian_id', $currentUser->organisasi_id)
+                        ->pluck('id');
+                }
+
+                $query->where(function ($inner) use ($currentUser, $stesenIds) {
                     $inner->where('dicipta_oleh', $currentUser->id)
-                        ->orWhereHas('pengguna', function ($sub) use ($currentUser) {
+                        ->orWhereHas('pengguna', function ($sub) use ($currentUser, $stesenIds) {
                             if ($currentUser->jenis_organisasi === 'bahagian') {
-                                $sub->where(function ($userQuery) use ($currentUser) {
+                                $sub->where(function ($userQuery) use ($currentUser, $stesenIds) {
                                     $userQuery->where('jenis_organisasi', 'bahagian')
                                         ->where('organisasi_id', $currentUser->organisasi_id);
 
-                                    $userQuery->orWhere(function ($stesenQuery) use ($currentUser) {
-                                        $stesenIds = collect($currentUser->stesen_akses_ids ?? [])
-                                            ->map(fn ($id) => (int) $id)
-                                            ->filter();
-
-                                        if ($stesenIds->isNotEmpty()) {
+                                    if ($stesenIds->isNotEmpty()) {
+                                        $userQuery->orWhere(function ($stesenQuery) use ($stesenIds) {
                                             $stesenQuery->where('jenis_organisasi', 'stesen')
                                                 ->whereIn('organisasi_id', $stesenIds->all());
-                                        } else {
-                                            $stesenQuery->where('jenis_organisasi', 'stesen')
-                                                ->where('organisasi_id', 0);
-                                        }
-                                    });
+                                        });
+                                    }
                                 });
                             } elseif ($currentUser->jenis_organisasi === 'stesen') {
                                 $sub->where('jenis_organisasi', 'stesen')
@@ -167,17 +181,18 @@ class PenggunaController extends Controller
             ->where('status_dropdown', 'aktif')
             ->when(!$this->isAdministrator(), function ($query) use ($currentUser) {
                 if ($currentUser->jenis_organisasi === 'bahagian') {
+                    // Get stesen IDs - if empty, get ALL stesen under bahagian
                     $stesenIds = collect($currentUser->stesen_akses_ids ?? [])
                         ->map(fn ($id) => (int) $id)
                         ->filter();
 
-                    $query->where(function ($inner) use ($currentUser, $stesenIds) {
-                        $inner->where('risda_bahagian_id', $currentUser->organisasi_id);
-
-                        if ($stesenIds->isNotEmpty()) {
-                            $inner->orWhereIn('id', $stesenIds->all());
-                        }
-                    });
+                    if ($stesenIds->isEmpty()) {
+                        // Show ALL stesen under this bahagian
+                        $query->where('risda_bahagian_id', $currentUser->organisasi_id);
+                    } else {
+                        // Show only specific stesen
+                        $query->whereIn('id', $stesenIds->all());
+                    }
                 } elseif ($currentUser->jenis_organisasi === 'stesen') {
                     $query->where('id', $currentUser->organisasi_id);
                 }
@@ -223,6 +238,10 @@ class PenggunaController extends Controller
         }
 
         // Determine organisation type and ID
+        // Logic:
+        // - If "semua" stesen selected OR no specific stesen selected -> bahagian level access
+        // - If specific stesen(s) selected -> bahagian level access with stesen_akses_ids filter
+        // - If only 1 stesen selected -> stesen level access (for backward compatibility)
         $jenisOrganisasi = null;
         $organisasiId = null;
         $stesenAksesIds = null;
@@ -230,32 +249,36 @@ class PenggunaController extends Controller
         if ($request->filled('stesen_akses_ids')) {
             $decoded = json_decode($request->stesen_akses_ids, true) ?? [];
             if (in_array('semua', $decoded)) {
+                // "Semua Stesen" selected - bahagian level with full access
                 $jenisOrganisasi = 'bahagian';
                 $organisasiId = (int) $request->bahagian_akses_id;
-                $stesenAksesIds = null;
-            } elseif (!empty($decoded)) {
+                $stesenAksesIds = null; // null means all stesen
+            } elseif (count($decoded) > 1) {
+                // Multiple stesen selected - bahagian level with filtered stesen access
+                $jenisOrganisasi = 'bahagian';
+                $organisasiId = (int) $request->bahagian_akses_id;
+                $stesenAksesIds = array_map('intval', $decoded);
+            } elseif (count($decoded) === 1) {
+                // Single stesen selected - stesen level access
                 $jenisOrganisasi = 'stesen';
                 $organisasiId = (int) $decoded[0];
-                $stesenAksesIds = $decoded;
+                $stesenAksesIds = null;
             }
-        } elseif ($request->filled('bahagian_akses_id')) {
+        }
+        
+        // If no stesen selected but bahagian provided, default to bahagian access
+        if (!$jenisOrganisasi && $request->filled('bahagian_akses_id')) {
             $jenisOrganisasi = 'bahagian';
             $organisasiId = (int) $request->bahagian_akses_id;
         }
 
         if (!$jenisOrganisasi) {
-            // If no stesen selected and bahagian provided, default to bahagian access
-            if ($request->filled('bahagian_akses_id')) {
-                $jenisOrganisasi = 'bahagian';
-                $organisasiId = (int) $request->bahagian_akses_id;
-            } else {
-                // Fallback: inherit creator's scope if not Administrator
-                $currentUser = auth()->user();
-                $jenisOrganisasi = 'bahagian';
-                $organisasiId = $currentUser && $currentUser->jenis_organisasi !== 'semua'
-                    ? (int) $currentUser->organisasi_id
-                    : null;
-            }
+            // Fallback: inherit creator's scope if not Administrator
+            $currentUser = auth()->user();
+            $jenisOrganisasi = 'bahagian';
+            $organisasiId = $currentUser && $currentUser->jenis_organisasi !== 'semua'
+                ? (int) $currentUser->organisasi_id
+                : null;
         }
 
         // Create user

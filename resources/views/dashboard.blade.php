@@ -67,6 +67,49 @@
             penggunaanKenderaanRows: [],
             penggunaanKenderaanSummary: { bulan: 0, totalJarak: 0, totalLiter: 0, totalKos: 0, kadarPenggunaan: 0, totalRecords: 0, disahkanOleh: { nama: '-', jawatan: '-' } },
             penggunaanKenderaanVehicle: { noPlat: '', jenama: '', jenis: '', bahagian: '' },
+            // Snapshots
+            async fetchSnapshots() {
+                try {
+                    const url = '{{ route('api.snapshots.vehicle-usage.index') }}';
+                    const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    const json = await res.json();
+                    if (json.success) this.snapshotList = json.data; else this.snapshotList = [];
+                } catch (e) { console.error(e); this.snapshotList = []; }
+            },
+            async saveSnapshot() {
+                try {
+                    const body = {
+                        kenderaan_id: this.selectedVehicleId,
+                        bulan: (this.penggunaanKenderaanSummary && this.penggunaanKenderaanSummary.bulan_iso) || (new Date()).toISOString().slice(0,10),
+                        header: this.penggunaanKenderaanVehicle,
+                        rows: this.penggunaanKenderaanRows,
+                        summary: this.penggunaanKenderaanSummary,
+                    };
+                    const res = await fetch('{{ route('api.snapshots.vehicle-usage.store') }}', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        body: JSON.stringify(body)
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                        await this.fetchSnapshots();
+                        const d = json.data;
+                        const msg = d.numPages && d.numPages > 1
+                            ? `Snapshot disimpan: ${d.noSiri} (${d.numPages} halaman, ${d.noSiriFrom} - ${d.noSiriTo})`
+                            : `Snapshot disimpan: ${d.noSiri}`;
+                        alert(msg);
+                    } else {
+                        alert('Gagal simpan snapshot');
+                    }
+                } catch (e) { console.error(e); alert('Ralat simpan snapshot'); }
+            },
+            async deleteSnapshot(id) {
+                if (!confirm('Padam snapshot ini?')) return;
+                try {
+                    await fetch(`{{ url('/api/snapshots/vehicle-usage') }}/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
+                    await this.fetchSnapshots();
+                } catch (e) { console.error(e); }
+            },
             // Staff dropdown with search
             staffList: [
                 @foreach($userList as $user)
@@ -511,8 +554,8 @@
                     <template x-if="reportType === 'penggunaan_kenderaan'">
                         <div class="mt-1 flex items-center gap-2 w-full">
                             <button @click="generateReport()" type="button" class="h-8 w-28 bg-green-600 text-white rounded-sm hover:bg-green-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;">Generate</button>
-                            <button type="button" @click="snapshotModalOpen = true" class="h-8 w-28 bg-slate-600 text-white rounded-sm hover:bg-slate-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;">Snapshot</button>
-                            <button type="button" x-show="!loadingReport && Array.isArray(penggunaanKenderaanRows) && penggunaanKenderaanRows.length" class="h-8 w-28 bg-amber-600 text-white rounded-sm hover:bg-amber-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;" x-cloak>Save</button>
+                            <button type="button" @click="snapshotModalOpen = true; fetchSnapshots()" class="h-8 w-28 bg-slate-600 text-white rounded-sm hover:bg-slate-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;">Snapshot</button>
+                            <button type="button" @click="saveSnapshot()" x-show="!loadingReport && Array.isArray(penggunaanKenderaanRows) && penggunaanKenderaanRows.length" class="h-8 w-28 bg-amber-600 text-white rounded-sm hover:bg-amber-700 transition-colors" style="font-family: Poppins, sans-serif; font-size: 12px;" x-cloak>Save</button>
                         </div>
                     </template>
                     <!-- For other report types: keep original full-width Generate -->
@@ -1187,7 +1230,12 @@
                                     <template x-for="(s, idx) in snapshotList" :key="idx">
                                         <tr class="hover:bg-gray-50">
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;" x-text="s.noSiri"></div>
+                                                <div class="text-sm text-gray-900 flex items-center gap-2" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
+                                                    <span x-text="s.noSiri"></span>
+                                                    <template x-if="s.noSiriFrom && s.noSiriTo && s.noSiriFrom !== s.noSiriTo">
+                                                        <span class="text-xs text-gray-500" x-text="`(${s.noSiriFrom} - ${s.noSiriTo})`"></span>
+                                                    </template>
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;" x-text="s.bulan"></div>
@@ -1206,13 +1254,13 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                                 <div class="flex justify-center space-x-2">
-                                                    <button type="button" class="text-slate-600 hover:text-slate-900" title="Guna Snapshot">
+                                                    <button type="button" class="text-slate-600 hover:text-slate-900" title="Guna Snapshot" @click="(async () => { try { const res = await fetch(`{{ url('/api/snapshots/vehicle-usage') }}/${s.id}`); const json = await res.json(); if (json.success) { const data = json.data; reportType = 'penggunaan_kenderaan'; penggunaanKenderaanVehicle = data.header || penggunaanKenderaanVehicle; penggunaanKenderaanRows = data.rows || []; penggunaanKenderaanSummary = Object.assign({}, penggunaanKenderaanSummary, data.summary || {}); snapshotModalOpen = false; } else { alert('Gagal memuat snapshot'); } } catch(e){ console.error(e); alert('Ralat memuat snapshot'); } })()">
                                                         <span class="material-symbols-outlined" style="font-size: 18px;">task_alt</span>
                                                     </button>
-                                                    <button type="button" class="text-blue-600 hover:text-blue-900" title="Lihat PDF">
+                                                    <a :href="`{{ url('/api/snapshots/vehicle-usage') }}/${s.id}/pdf`" target="_blank" class="text-blue-600 hover:text-blue-900" title="Lihat PDF">
                                                         <span class="material-symbols-outlined" style="font-size: 18px;">picture_as_pdf</span>
-                                                    </button>
-                                                    <button type="button" class="text-red-600 hover:text-red-900" title="Padam">
+                                                    </a>
+                                                    <button type="button" class="text-red-600 hover:text-red-900" title="Padam" @click="deleteSnapshot(s.id)">
                                                         <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                                                     </button>
                                                 </div>
