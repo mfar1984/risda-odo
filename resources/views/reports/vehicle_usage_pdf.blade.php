@@ -178,5 +178,73 @@
         <div class="page-break"></div>
     @endif
 @endforeach
+
+{{-- OVERALL SUMMARY (at the end of PDF, after all pages) --}}
+@php
+    $overallJarak = 0;
+    $overallLiter = 0;
+    $overallRM = 0;
+    foreach($pages as $pg) {
+        $overallJarak += $pg['totals']['jarak'] ?? 0;
+        $overallLiter += $pg['totals']['liter'] ?? 0;
+        $overallRM += $pg['totals']['rm'] ?? 0;
+    }
+    $overallKadar = $overallLiter > 0 ? ($overallJarak / max($overallLiter, 0.000001)) : 0;
+@endphp
+
+<div class="page-break"></div>
+
+<section>
+    <div style="position: relative; margin-bottom: 16px;">
+        <div class="title" style="text-align: center;">BUTIR-BUTIR PENGGUNAAN KENDERAAN</div>
+        <div style="position: absolute; right: 0; top: 0; font-size: 9px; white-space: nowrap;"><strong>No. Siri</strong> : <span class="serial" style="display:inline-block; text-align: right; line-height: 1; vertical-align: text-bottom;">KESELURUHAN</span></div>
+    </div>
+    <table style="border: none; margin-bottom: 8px;">
+        <tr style="border: none;">
+            <td style="border: none; width: 33%; font-size: 11px;"><strong>Jenis Kenderaan</strong> : {{ $header['jenis'] ?? '-' }}</td>
+            <td style="border: none; width: 33%; font-size: 11px;"><strong>No. Pendaftaran</strong> : {{ $header['noPlat'] ?? '-' }}</td>
+            <td style="border: none; width: 34%; font-size: 11px;"><strong>Bahagian/Unit</strong> : {{ $header['bahagian'] ?? '-' }}</td>
+        </tr>
+    </table>
+</section>
+
+<div class="footer-summary" style="margin-top: 6px;">
+    <h3>KADAR PENGGUNAAN BAHAN API BULANAN KESELURUHAN</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 8%;">Bulan</th>
+                <th style="width: 15%;">Jumlah Jarak Perjalanan<br/>(KM)</th>
+                <th style="width: 15%;">Jumlah Penggunaan Bahan Api<br/>(Liter)</th>
+                <th style="width: 15%;">Jumlah Pembelian Bahan Api<br/>(RM)</th>
+                <th style="width: 15%;">Kadar Penggunaan Bahan Api<br/>(KM/Liter)</th>
+                <th style="width: 32%;">Disahkan Oleh</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="center" style="font-size: 9px; vertical-align: middle;">{{ $summary['bulan'] ?? '-' }}</td>
+                <td class="center" style="font-size: 9px; vertical-align: middle;">{{ number_format($overallJarak, 1) }} KM</td>
+                <td class="center" style="font-size: 9px; vertical-align: middle;">{{ number_format($overallLiter, 2) }} Liter</td>
+                <td class="center" style="font-size: 9px; vertical-align: middle;">RM {{ number_format($overallRM, 2) }}</td>
+                <td class="center" style="font-size: 9px; vertical-align: middle;">{{ number_format($overallKadar, 2) }} KM/Liter</td>
+                <td style="font-size: 8px; vertical-align: bottom; padding: 8px 4px; text-align: left;">
+                    <div style="display: flex; flex-direction: column; gap: 2px; min-height: 40px; justify-content: flex-end;">
+                        <div><span style="display: inline-block; width: 70px;">Tandatangan</span><span>:</span></div><br>
+                        <div><span style="display: inline-block; width: 70px;">Nama</span><span>:</span></div><br>
+                        <div><span style="display: inline-block; width: 70px;">Jawatan</span><span>:</span></div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div style="font-size: 8px; margin-top: 6px; color: #666;">
+        <div>Jumlah Rekod (keseluruhan): {{ array_sum(array_map(fn($p) => count($p['rows'] ?? []), $pages)) }}</div>
+        <div>Jumlah Halaman: {{ count($pages) }}</div>
+        <div style="font-style: italic; margin-top: 2px;">* Potong yang tidak berkenaan</div>
+        <div style="font-style: italic;">** Formula Pengiraan: Kadar = Jumlah Jarak / Jumlah Liter</div>
+    </div>
+</div>
+
 </body>
 </html>
