@@ -31,12 +31,12 @@
     >
         <!-- Overall Statistics -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-            <x-ui.stat-card icon="event" icon-color="text-blue-600" :value="number_format($overallStats['total_program'])" label="Jumlah Program" />
-            <x-ui.stat-card icon="history" icon-color="text-green-600" :value="number_format($overallStats['total_log'])" label="Jumlah Log" />
-            <x-ui.stat-card icon="build" icon-color="text-purple-600" :value="number_format($overallStats['total_maintenance'])" label="Jumlah Selenggara" />
-            <x-ui.stat-card icon="payments" icon-color="text-red-500" :value="number_format($overallStats['jumlah_kos'], 2)" prefix="RM " label="Jumlah Kos" />
-            <x-ui.stat-card icon="local_gas_station" icon-color="text-emerald-600" :value="number_format($overallStats['jumlah_liter'], 2)" suffix=" L" label="Jumlah Liter" />
-            <x-ui.stat-card icon="equalizer" icon-color="text-indigo-600" :value="number_format($overallStats['purata_kos_log'], 2)" prefix="RM " label="Purata Kos/Log" />
+            <x-ui.stat-card icon="event" icon-color="text-blue-600" :value="formatNombor($overallStats['total_program'])" label="Jumlah Program" />
+            <x-ui.stat-card icon="history" icon-color="text-green-600" :value="formatNombor($overallStats['total_log'])" label="Jumlah Log" />
+            <x-ui.stat-card icon="build" icon-color="text-purple-600" :value="formatNombor($overallStats['total_maintenance'])" label="Jumlah Selenggara" />
+            <x-ui.stat-card icon="payments" icon-color="text-red-500" :value="formatWang($overallStats['jumlah_kos'])" label="Jumlah Kos" />
+            <x-ui.stat-card icon="local_gas_station" icon-color="text-emerald-600" :value="formatNombor($overallStats['jumlah_liter'], 2)" suffix=" L" label="Jumlah Liter" />
+            <x-ui.stat-card icon="equalizer" icon-color="text-indigo-600" :value="formatWang($overallStats['purata_kos_log'])" label="Purata Kos/Log" />
         </div>
 
         <!-- Cost Breakdown -->
@@ -46,7 +46,7 @@
                     <span class="material-symbols-outlined text-blue-600 mr-3" style="font-size: 32px;">local_gas_station</span>
                     <div>
                         <p class="text-sm text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Kos Bahan Api</p>
-                        <p class="text-2xl font-bold text-blue-600" style="font-family: Poppins, sans-serif !important;">RM {{ number_format($overallStats['jumlah_kos_minyak'], 2) }}</p>
+                        <p class="text-2xl font-bold text-blue-600" style="font-family: Poppins, sans-serif !important;">{{ formatWang($overallStats['jumlah_kos_minyak']) }}</p>
                     </div>
                 </div>
             </div>
@@ -55,7 +55,7 @@
                     <span class="material-symbols-outlined text-purple-600 mr-3" style="font-size: 32px;">build</span>
                     <div>
                         <p class="text-sm text-gray-600" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">Kos Penyelenggaraan</p>
-                        <p class="text-2xl font-bold text-purple-600" style="font-family: Poppins, sans-serif !important;">RM {{ number_format($overallStats['jumlah_kos_selenggara'], 2) }}</p>
+                        <p class="text-2xl font-bold text-purple-600" style="font-family: Poppins, sans-serif !important;">{{ formatWang($overallStats['jumlah_kos_selenggara']) }}</p>
                     </div>
                 </div>
             </div>
@@ -135,10 +135,10 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                            {{ optional($program->tarikh_mula)->format('d/m/Y H:i') ?? '-' }}
+                            {{ $program->tarikh_mula ? formatTarikhMasa($program->tarikh_mula) : '-' }}
                         </div>
                         <div class="text-xs text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                            hingga {{ optional($program->tarikh_selesai)->format('d/m/Y H:i') ?? '-' }}
+                            hingga {{ $program->tarikh_selesai ? formatTarikhMasa($program->tarikh_selesai) : '-' }}
                         </div>
                         <div class="text-xs text-gray-400 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
                             Kenderaan: {{ $program->kenderaan->no_plat ?? '-' }}
@@ -146,17 +146,17 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-xs text-gray-500 space-y-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                            <div>Jumlah Kos: RM {{ number_format($jumlahKos, 2) }}</div>
-                            <div>Jumlah Liter: {{ number_format($jumlahLiter, 2) }} L</div>
-                            <div>Purata Kos/Log: RM {{ number_format($purataKos, 2) }}</div>
-                            <div>Purata Liter/Log: {{ number_format($purataLiter, 2) }} L</div>
+                            <div>Jumlah Kos: {{ formatWang($jumlahKos) }}</div>
+                            <div>Jumlah Liter: {{ formatNombor($jumlahLiter, 2) }} L</div>
+                            <div>Purata Kos/Log: {{ formatWang($purataKos) }}</div>
+                            <div>Purata Liter/Log: {{ formatNombor($purataLiter, 2) }} L</div>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-xs text-gray-500 space-y-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                            <div>Jumlah Log: {{ number_format($stats['jumlah_log'] ?? 0) }}</div>
-                            <div>Jarak Direkod: {{ number_format($stats['jumlah_jarak'] ?? 0, 1) }} km</div>
-                            <div>Check-in / Check-out: {{ number_format($stats['jumlah_checkin'] ?? 0) }} / {{ number_format($stats['jumlah_checkout'] ?? 0) }}</div>
+                            <div>Jumlah Log: {{ formatNombor($stats['jumlah_log'] ?? 0) }}</div>
+                            <div>Jarak Direkod: {{ formatNombor($stats['jumlah_jarak'] ?? 0, 1) }} km</div>
+                            <div>Check-in / Check-out: {{ formatNombor($stats['jumlah_checkin'] ?? 0) }} / {{ formatNombor($stats['jumlah_checkout'] ?? 0) }}</div>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
@@ -206,8 +206,8 @@
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">today</span></span>
                             <span class="mobile-card-value">
-                                {{ optional($program->tarikh_mula)->format('d/m/Y H:i') ?? '-' }}
-                                <div class="mobile-card-value-secondary">hingga {{ optional($program->tarikh_selesai)->format('d/m/Y H:i') ?? '-' }}</div>
+                                {{ $program->tarikh_mula ? formatTarikhMasa($program->tarikh_mula) : '-' }}
+                                <div class="mobile-card-value-secondary">hingga {{ $program->tarikh_selesai ? formatTarikhMasa($program->tarikh_selesai) : '-' }}</div>
                             </span>
                         </div>
                         <!-- Pemohon -->
@@ -223,23 +223,23 @@
                         <!-- Kos & Liter -->
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
-                            <span class="mobile-card-value">Jumlah Kos: <strong>RM {{ number_format($jumlahKos, 2) }}</strong></span>
+                            <span class="mobile-card-value">Jumlah Kos: <strong>{{ formatWang($jumlahKos) }}</strong></span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">local_gas_station</span></span>
-                            <span class="mobile-card-value">Jumlah Liter: <strong>{{ number_format($jumlahLiter, 2) }}</strong> L</span>
+                            <span class="mobile-card-value">Jumlah Liter: <strong>{{ formatNombor($jumlahLiter, 2) }}</strong> L</span>
                         </div>
                         <!-- Log & Statistik -->
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">history</span></span>
                             <span class="mobile-card-value">
-                                Log: {{ number_format($stats['jumlah_log'] ?? 0) }}
-                                <div class="mobile-card-value-secondary">Check-in/Check-out: {{ number_format($stats['jumlah_checkin'] ?? 0) }} / {{ number_format($stats['jumlah_checkout'] ?? 0) }}</div>
+                                Log: {{ formatNombor($stats['jumlah_log'] ?? 0) }}
+                                <div class="mobile-card-value-secondary">Check-in/Check-out: {{ formatNombor($stats['jumlah_checkin'] ?? 0) }} / {{ formatNombor($stats['jumlah_checkout'] ?? 0) }}</div>
                             </span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">equalizer</span></span>
-                            <span class="mobile-card-value">Purata Kos/Log: RM {{ number_format($purataKos, 2) }} • Purata Liter/Log: {{ number_format($purataLiter, 2) }} L</span>
+                            <span class="mobile-card-value">Purata Kos/Log: {{ formatWang($purataKos) }} • Purata Liter/Log: {{ formatNombor($purataLiter, 2) }} L</span>
                         </div>
                     </div>
 

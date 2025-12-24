@@ -73,9 +73,6 @@ class UserGroup extends Model
                 'padam' => false,
                 'terima' => false,
                 'tolak' => false,
-                'gantung' => false,
-                'aktifkan' => false,
-                'eksport' => false,
             ],
             'log_pemandu' => [
                 'lihat' => false,

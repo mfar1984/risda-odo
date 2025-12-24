@@ -37,5 +37,7 @@ class AppServiceProvider extends ServiceProvider
         Auth::provider('risda', function ($app, array $config) {
             return new RisdaUserProvider($app->make(RisdaHashService::class), $config['model']);
         });
+
+        // Note: Helper functions (formatTarikh, formatMasa, etc.) are now autoloaded via app/helpers.php
     }
 }

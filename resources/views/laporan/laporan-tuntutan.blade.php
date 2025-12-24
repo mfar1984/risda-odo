@@ -30,41 +30,37 @@
             <x-ui.stat-card 
                 icon="pending_actions" 
                 icon-color="text-yellow-600" 
-                :value="$count_pending" 
+                :value="formatNombor($count_pending)" 
                 label="Pending" 
             />
             <x-ui.stat-card 
                 icon="check_circle" 
                 icon-color="text-green-600" 
-                :value="$count_diluluskan" 
+                :value="formatNombor($count_diluluskan)" 
                 label="Diluluskan" 
             />
             <x-ui.stat-card 
                 icon="payments" 
                 icon-color="text-indigo-600" 
-                :value="number_format($jumlah_keseluruhan, 2)" 
-                prefix="RM " 
+                :value="formatWang($jumlah_keseluruhan)" 
                 label="Jumlah Keseluruhan" 
             />
             <x-ui.stat-card 
                 icon="hourglass_empty" 
                 icon-color="text-orange-600" 
-                :value="number_format($total_pending, 2)" 
-                prefix="RM " 
+                :value="formatWang($total_pending)" 
                 label="Pending (RM)" 
             />
             <x-ui.stat-card 
                 icon="paid" 
                 icon-color="text-emerald-600" 
-                :value="number_format($total_diluluskan, 2)" 
-                prefix="RM " 
+                :value="formatWang($total_diluluskan)" 
                 label="Diluluskan (RM)" 
             />
             <x-ui.stat-card 
                 icon="cancel" 
                 icon-color="text-red-600" 
-                :value="number_format($total_ditolak, 2)" 
-                prefix="RM " 
+                :value="formatWang($total_ditolak)" 
                 label="Ditolak (RM)" 
             />
         </div>
@@ -119,7 +115,7 @@
                             {{ $item->kategori_label }}
                         </div>
                         <div class="text-xs text-gray-500 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                            Tarikh: {{ $item->created_at->format('d/m/Y H:i') }}
+                            Tarikh: {{ formatTarikhMasa($item->created_at) }}
                         </div>
                         <div class="text-xs text-gray-400 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
                             @if($item->keterangan)
@@ -144,7 +140,7 @@
 
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-bold text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                            RM {{ number_format($item->jumlah, 2) }}
+                            {{ formatWang($item->jumlah) }}
                         </div>
                         <div class="mt-2">
                             <x-ui.status-badge 
@@ -155,7 +151,7 @@
                         </div>
                         @if($item->tarikh_diproses)
                             <div class="text-xs text-gray-400 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">
-                                {{ $item->tarikh_diproses->format('d/m/Y') }}
+                                {{ formatTarikh($item->tarikh_diproses) }}
                             </div>
                         @endif
                     </td>
@@ -243,7 +239,7 @@
                     <div class="mobile-card-body">
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">today</span></span>
-                            <span class="mobile-card-value">{{ $item->created_at->format('d/m/Y H:i') }}</span>
+                            <span class="mobile-card-value">{{ formatTarikhMasa($item->created_at) }}</span>
                         </div>
                         @if($item->keterangan)
                         <div class="mobile-card-row">
@@ -264,12 +260,12 @@
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
-                            <span class="mobile-card-value"><strong>RM {{ number_format($item->jumlah, 2) }}</strong></span>
+                            <span class="mobile-card-value"><strong>{{ formatWang($item->jumlah) }}</strong></span>
                         </div>
                         @if($item->tarikh_diproses)
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">event_available</span></span>
-                            <span class="mobile-card-value">{{ $item->tarikh_diproses->format('d/m/Y') }}</span>
+                            <span class="mobile-card-value">{{ formatTarikh($item->tarikh_diproses) }}</span>
                         </div>
                         @endif
                     </div>

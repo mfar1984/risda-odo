@@ -112,12 +112,12 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                            {{ optional($log->tarikh_perjalanan)->translatedFormat('d M Y') ?? '-' }}
+                            {{ formatTarikh($log->tarikh_perjalanan) }}
                         </div>
                         <div class="text-xs text-gray-500 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                            Keluar: {{ $log->masa_keluar ? \Carbon\Carbon::parse($log->masa_keluar)->format('H:i') : '-' }}
+                            Keluar: {{ $log->masa_keluar ? formatMasa($log->masa_keluar) : '-' }}
                             @if($log->masa_masuk)
-                                &bull; Masuk: {{ \Carbon\Carbon::parse($log->masa_masuk)->format('H:i') }}
+                                &bull; Masuk: {{ formatMasa($log->masa_masuk) }}
                             @endif
                         </div>
                     </td>
@@ -139,21 +139,21 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                            Keluar: {{ number_format($log->odometer_keluar ?? 0) }} km
+                            Keluar: {{ formatNombor($log->odometer_keluar ?? 0) }} km
                         </div>
                         <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                            Masuk: {{ $log->odometer_masuk ? number_format($log->odometer_masuk) . ' km' : '-' }}
+                            Masuk: {{ $log->odometer_masuk ? formatNombor($log->odometer_masuk) . ' km' : '-' }}
                         </div>
                         <div class="text-xs text-gray-500 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                            Jarak: {{ $log->jarak ? number_format($log->jarak) . ' km' : '-' }}
+                            Jarak: {{ $log->jarak ? formatNombor($log->jarak) . ' km' : '-' }}
                         </div>
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                            {{ $log->liter_minyak ? number_format($log->liter_minyak, 2) . ' L' : '-' }}
+                            {{ $log->liter_minyak ? formatNombor($log->liter_minyak, 2) . ' L' : '-' }}
                         </div>
                         <div class="text-xs text-gray-500 mt-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                            Kos: {{ $log->kos_minyak ? 'RM ' . number_format($log->kos_minyak, 2) : '-' }}
+                            Kos: {{ $log->kos_minyak ? formatWang($log->kos_minyak) : '-' }}
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -281,12 +281,12 @@
                     {{-- Card Header: Date & Status --}}
                     <div class="mobile-card-header">
                         <div class="mobile-card-title">
-                            <div style="font-weight: 600; font-size: 12px;">{{ optional($log->tarikh_perjalanan)->translatedFormat('d M Y') ?? '-' }}</div>
+                            <div style="font-weight: 600; font-size: 12px;">{{ formatTarikh($log->tarikh_perjalanan) }}</div>
                             <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">
                                 <span class="material-symbols-outlined" style="font-size: 12px; vertical-align: middle;">schedule</span>
-                                {{ $log->masa_keluar ? \Carbon\Carbon::parse($log->masa_keluar)->format('H:i') : '-' }}
+                                {{ $log->masa_keluar ? formatMasa($log->masa_keluar) : '-' }}
                                 @if($log->masa_masuk)
-                                    → {{ \Carbon\Carbon::parse($log->masa_masuk)->format('H:i') }}
+                                    → {{ formatMasa($log->masa_masuk) }}
                                 @endif
                             </div>
                         </div>
@@ -341,10 +341,10 @@
                                 <span class="material-symbols-outlined" style="font-size: 16px; color: #6b7280;">speed</span>
                             </span>
                             <span class="mobile-card-value">
-                                <div>Keluar: <strong>{{ number_format($log->odometer_keluar ?? 0) }}</strong> km</div>
-                                <div>Masuk: <strong>{{ $log->odometer_masuk ? number_format($log->odometer_masuk) : '-' }}</strong> {{ $log->odometer_masuk ? 'km' : '' }}</div>
+                                <div>Keluar: <strong>{{ formatNombor($log->odometer_keluar ?? 0) }}</strong> km</div>
+                                <div>Masuk: <strong>{{ $log->odometer_masuk ? formatNombor($log->odometer_masuk) : '-' }}</strong> {{ $log->odometer_masuk ? 'km' : '' }}</div>
                                 @if($log->jarak)
-                                    <div class="mobile-card-value-secondary">Jarak: {{ number_format($log->jarak) }} km</div>
+                                    <div class="mobile-card-value-secondary">Jarak: {{ formatNombor($log->jarak) }} km</div>
                                 @endif
                             </span>
                         </div>
@@ -355,9 +355,9 @@
                                 <span class="material-symbols-outlined" style="font-size: 16px; color: #6b7280;">local_gas_station</span>
                             </span>
                             <span class="mobile-card-value">
-                                <div>{{ $log->liter_minyak ? number_format($log->liter_minyak, 2) . ' L' : '-' }}</div>
+                                <div>{{ $log->liter_minyak ? formatNombor($log->liter_minyak, 2) . ' L' : '-' }}</div>
                                 @if($log->kos_minyak)
-                                    <div class="mobile-card-value-secondary">RM {{ number_format($log->kos_minyak, 2) }}</div>
+                                    <div class="mobile-card-value-secondary">{{ formatWang($log->kos_minyak) }}</div>
                                 @endif
                             </span>
                         </div>

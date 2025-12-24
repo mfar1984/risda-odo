@@ -336,8 +336,17 @@ class SelenggaraKenderaanController extends Controller
         }
 
         if ($currentUser->jenis_organisasi === 'bahagian') {
+            $stesenIds = $this->getStesenIdsForBahagian($currentUser->organisasi_id, $currentUser->stesen_akses_ids);
+
+            // Allow if maintenance record belongs to same bahagian
             if ($selenggara->jenis_organisasi === 'bahagian' && 
                 $selenggara->organisasi_id == $currentUser->organisasi_id) {
+                return;
+            }
+
+            // Allow if maintenance record belongs to any stesen under this bahagian
+            if ($selenggara->jenis_organisasi === 'stesen' && 
+                $stesenIds->contains((int) $selenggara->organisasi_id)) {
                 return;
             }
         } elseif ($currentUser->jenis_organisasi === 'stesen') {
@@ -359,6 +368,22 @@ class SelenggaraKenderaanController extends Controller
     }
 
     /**
+     * Get stesen IDs for a bahagian. If stesen_akses_ids is empty, returns ALL stesen under bahagian.
+     */
+    private function getStesenIdsForBahagian($bahagianId, $stesenAksesIds = null)
+    {
+        $userStesenIds = collect($stesenAksesIds ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter();
+
+        if ($userStesenIds->isNotEmpty()) {
+            return $userStesenIds;
+        }
+
+        return \App\Models\RisdaStesen::where('risda_bahagian_id', $bahagianId)->pluck('id');
+    }
+
+    /**
      * Ensure the current user has access to the vehicle.
      */
     private function ensureVehicleAccessible(Kenderaan $kenderaan)
@@ -372,7 +397,15 @@ class SelenggaraKenderaanController extends Controller
 
         // Check organizational access based on vehicle's bahagian/stesen
         if ($currentUser->jenis_organisasi === 'bahagian') {
+            $stesenIds = $this->getStesenIdsForBahagian($currentUser->organisasi_id, $currentUser->stesen_akses_ids);
+
+            // Allow if vehicle belongs to same bahagian
             if ($kenderaan->bahagian_id == $currentUser->organisasi_id) {
+                return;
+            }
+
+            // Allow if vehicle belongs to any stesen under this bahagian
+            if ($kenderaan->stesen_id && $stesenIds->contains((int) $kenderaan->stesen_id)) {
                 return;
             }
         } elseif ($currentUser->jenis_organisasi === 'stesen') {

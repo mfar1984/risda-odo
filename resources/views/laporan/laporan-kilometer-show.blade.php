@@ -29,7 +29,7 @@
                         </div>
                         <div>
                             <x-forms.input-label value="Anggaran KM" />
-                            <x-forms.text-input class="mt-1 block w-full" value="{{ $stats['jarak_anggaran'] ? number_format($stats['jarak_anggaran'], 1) . ' km' : '-' }}" readonly />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ $stats['jarak_anggaran'] ? formatNombor($stats['jarak_anggaran'], 1) . ' km' : '-' }}" readonly />
                         </div>
                         <div>
                             <x-forms.input-label value="Pemohon" />
@@ -40,11 +40,11 @@
                     <div class="space-y-3">
                         <div>
                             <x-forms.input-label value="Tarikh Mula" />
-                            <x-forms.text-input class="mt-1 block w-full" value="{{ $program->tarikh_mula?->format('d/m/Y H:i') ?? '-' }}" readonly />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ formatTarikhMasa($program->tarikh_mula) }}" readonly />
                         </div>
                         <div>
                             <x-forms.input-label value="Tarikh Selesai" />
-                            <x-forms.text-input class="mt-1 block w-full" value="{{ $program->tarikh_selesai?->format('d/m/Y H:i') ?? '-' }}" readonly />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ formatTarikhMasa($program->tarikh_selesai) }}" readonly />
                         </div>
                         <div>
                             <x-forms.input-label value="Pemandu Tugasan" />
@@ -59,12 +59,12 @@
             </x-ui.card>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <x-ui.stat-card icon="history" icon-color="text-blue-600" :value="number_format($stats['jumlah_log'])" label="Jumlah Log" />
-                <x-ui.stat-card icon="alt_route" icon-color="text-green-600" :value="number_format($stats['jumlah_jarak'], 1)" suffix=" km" label="Jarak Direkod" />
-                <x-ui.stat-card icon="straighten" icon-color="text-emerald-600" :value="number_format($stats['jarak_anggaran'], 1)" suffix=" km" label="Jarak Anggaran" />
-                <x-ui.stat-card icon="difference" icon-color="text-indigo-600" :value="number_format(($stats['jumlah_jarak'] ?? 0) - ($stats['jarak_anggaran'] ?? 0), 1)" suffix=" km" label="Perbezaan" />
-                <x-ui.stat-card icon="swap_horiz" icon-color="text-rose-600" :value="number_format($stats['jumlah_checkin'])" label="Jumlah Check-in" />
-                <x-ui.stat-card icon="assignment_turned_in" icon-color="text-red-500" :value="number_format($stats['jumlah_checkout'])" label="Jumlah Check-out" />
+                <x-ui.stat-card icon="history" icon-color="text-blue-600" :value="formatNombor($stats['jumlah_log'])" label="Jumlah Log" />
+                <x-ui.stat-card icon="alt_route" icon-color="text-green-600" :value="formatNombor($stats['jumlah_jarak'], 1)" suffix=" km" label="Jarak Direkod" />
+                <x-ui.stat-card icon="straighten" icon-color="text-emerald-600" :value="formatNombor($stats['jarak_anggaran'], 1)" suffix=" km" label="Jarak Anggaran" />
+                <x-ui.stat-card icon="difference" icon-color="text-indigo-600" :value="formatNombor(($stats['jumlah_jarak'] ?? 0) - ($stats['jarak_anggaran'] ?? 0), 1)" suffix=" km" label="Perbezaan" />
+                <x-ui.stat-card icon="swap_horiz" icon-color="text-rose-600" :value="formatNombor($stats['jumlah_checkin'])" label="Jumlah Check-in" />
+                <x-ui.stat-card icon="assignment_turned_in" icon-color="text-red-500" :value="formatNombor($stats['jumlah_checkout'])" label="Jumlah Check-out" />
             </div>
 
             <x-ui.card>
@@ -73,7 +73,7 @@
                         <span class="material-symbols-outlined text-blue-600">receipt_long</span>
                         <h3 class="text-base font-semibold text-gray-900">Senarai Log Kilometer</h3>
                     </div>
-                    <div class="text-xs text-gray-500">Jumlah rekod: {{ number_format($logs->count()) }}</div>
+                    <div class="text-xs text-gray-500">Jumlah rekod: {{ formatNombor($logs->count()) }}</div>
                 </div>
 
                 <!-- Desktop Table -->
@@ -94,8 +94,8 @@
                     @forelse($logs as $log)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 text-sm text-gray-700">
-                                <div>{{ $log->tarikh_perjalanan?->format('d/m/Y') ?? '-' }}</div>
-                                <div class="text-xs text-gray-500">Dicipta: {{ $log->created_at?->format('d/m/Y H:i') ?? '-' }}</div>
+                                <div>{{ formatTarikh($log->tarikh_perjalanan) }}</div>
+                                <div class="text-xs text-gray-500">Dicipta: {{ formatTarikhMasa($log->created_at) }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <div>{{ $log->pemandu->name ?? '-' }}</div>
@@ -106,7 +106,7 @@
                                 <div class="text-xs text-gray-500">{{ trim(($log->kenderaan->jenama ?? '') . ' ' . ($log->kenderaan->model ?? '')) ?: '-' }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
-                                <div>Jarak: {{ $log->jarak ? number_format($log->jarak, 1) . ' km' : '-' }}</div>
+                                <div>Jarak: {{ $log->jarak ? formatNombor($log->jarak, 1) . ' km' : '-' }}</div>
                                 <div class="text-xs text-gray-500">Odometer: {{ $log->odometer_keluar_label ?? '-' }} → {{ $log->odometer_masuk_label ?? '-' }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
@@ -114,7 +114,7 @@
                                 <div>Check-out: {{ $log->masa_masuk_label ?? '-' }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
-                                {{ $log->kos_minyak ? number_format($log->kos_minyak, 2) : '-' }}
+                                {{ formatWang($log->kos_minyak ?? 0) }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <x-ui.status-badge :status="$log->status" />
@@ -133,7 +133,7 @@
                     @forelse($logs as $log)
                         <div class="mobile-card">
                             <div class="mobile-card-header">
-                                <div class="mobile-card-title">{{ $log->tarikh_perjalanan?->format('d/m/Y') ?? '-' }}</div>
+                                <div class="mobile-card-title">{{ formatTarikh($log->tarikh_perjalanan) }}</div>
                                 <div class="mobile-card-badge"><x-ui.status-badge :status="$log->status" /></div>
                             </div>
                             <div class="mobile-card-body">
@@ -147,7 +147,7 @@
                                 </div>
                                 <div class="mobile-card-row">
                                     <span class="mobile-card-label"><span class="material-symbols-outlined">straighten</span></span>
-                                    <span class="mobile-card-value">{{ $log->jarak ? number_format($log->jarak, 1) . ' km' : '-' }}</span>
+                                    <span class="mobile-card-value">{{ $log->jarak ? formatNombor($log->jarak, 1) . ' km' : '-' }}</span>
                                 </div>
                                 <div class="mobile-card-row">
                                     <span class="mobile-card-label"><span class="material-symbols-outlined">swap_horiz</span></span>
@@ -155,7 +155,7 @@
                                 </div>
                                 <div class="mobile-card-row">
                                     <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
-                                    <span class="mobile-card-value">{{ $log->kos_minyak ? number_format($log->kos_minyak, 2) : '-' }}</span>
+                                    <span class="mobile-card-value">{{ formatWang($log->kos_minyak ?? 0) }}</span>
                                 </div>
                             </div>
                         </div>

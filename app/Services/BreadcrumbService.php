@@ -180,6 +180,21 @@ class BreadcrumbService
             'icon' => null,
             'parent' => 'pengurusan',
         ],
+        'pengurusan.tambah-kumpulan' => [
+            'name' => 'Tambah Kumpulan',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-kumpulan',
+        ],
+        'pengurusan.show-kumpulan' => [
+            'name' => 'Lihat Kumpulan',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-kumpulan',
+        ],
+        'pengurusan.edit-kumpulan' => [
+            'name' => 'Kemaskini Kumpulan',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-kumpulan',
+        ],
         'pengurusan.senarai-pengguna' => [
             'name' => 'Senarai Pengguna',
             'icon' => null,
@@ -209,6 +224,21 @@ class BreadcrumbService
             'name' => 'Senarai Kenderaan',
             'icon' => null,
             'parent' => 'pengurusan',
+        ],
+        'pengurusan.tambah-kenderaan' => [
+            'name' => 'Tambah Kenderaan',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-kenderaan',
+        ],
+        'pengurusan.show-kenderaan' => [
+            'name' => 'Lihat Kenderaan',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-kenderaan',
+        ],
+        'pengurusan.edit-kenderaan' => [
+            'name' => 'Kemaskini Kenderaan',
+            'icon' => null,
+            'parent' => 'pengurusan.senarai-kenderaan',
         ],
         'pengurusan.senarai-selenggara' => [
             'name' => 'Senarai Selenggara',

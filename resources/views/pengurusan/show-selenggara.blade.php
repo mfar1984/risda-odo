@@ -97,7 +97,7 @@
                                     type="text"
                                     class="mt-1 block w-full"
                                     style="font-family: Poppins, sans-serif !important; font-size: 12px !important;"
-                                    value="{{ $selenggara->tarikh_mula->format('d/m/Y') }}"
+                                    value="{{ formatTarikh($selenggara->tarikh_mula) }}"
                                     readonly
                                 />
                             </div>
@@ -110,7 +110,7 @@
                                     type="text"
                                     class="mt-1 block w-full"
                                     style="font-family: Poppins, sans-serif !important; font-size: 12px !important;"
-                                    value="{{ $selenggara->tarikh_selesai->format('d/m/Y') }}"
+                                    value="{{ formatTarikh($selenggara->tarikh_selesai) }}"
                                     readonly
                                 />
                             </div>
@@ -126,7 +126,7 @@
                                     type="text"
                                     class="mt-1 block w-full"
                                     style="font-family: Poppins, sans-serif !important; font-size: 12px !important;"
-                                    value="{{ number_format($selenggara->jumlah_kos, 2) }}"
+                                    value="{{ formatNombor($selenggara->jumlah_kos, 2) }}"
                                     readonly
                                 />
                             </div>
@@ -187,7 +187,7 @@
                                     type="text"
                                     class="mt-1 block w-full"
                                     style="font-family: Poppins, sans-serif !important; font-size: 12px !important;"
-                                    value="{{ number_format($selenggara->jangka_hayat_km) }} km"
+                                    value="{{ formatNombor($selenggara->jangka_hayat_km) }} km"
                                     readonly
                                 />
                             </div>
@@ -242,7 +242,7 @@
                                     type="text"
                                     class="mt-1 block w-full"
                                     style="font-family: Poppins, sans-serif !important; font-size: 12px !important;"
-                                    value="{{ $selenggara->created_at->format('d/m/Y H:i') }}"
+                                    value="{{ formatTarikhMasa($selenggara->created_at) }}"
                                     readonly
                                 />
                             </div>

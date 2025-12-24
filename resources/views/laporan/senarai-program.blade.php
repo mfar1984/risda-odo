@@ -12,42 +12,42 @@
             <x-ui.stat-card
                 icon="event"
                 icon-color="text-blue-600"
-                :value="number_format($overallStats['total_program'])"
+                :value="formatNombor($overallStats['total_program'])"
                 label="Jumlah Program"
             />
 
             <x-ui.stat-card
                 icon="group"
                 icon-color="text-blue-600"
-                :value="number_format($overallStats['total_pemandu'])"
+                :value="formatNombor($overallStats['total_pemandu'])"
                 label="Jumlah Pemandu"
             />
 
             <x-ui.stat-card
                 icon="directions_car"
                 icon-color="text-yellow-500"
-                :value="number_format($overallStats['total_kenderaan'])"
+                :value="formatNombor($overallStats['total_kenderaan'])"
                 label="Jumlah Kenderaan"
             />
 
             <x-ui.stat-card
                 icon="history"
                 icon-color="text-green-600"
-                :value="number_format($overallStats['total_log'])"
+                :value="formatNombor($overallStats['total_log'])"
                 label="Jumlah Log"
             />
 
             <x-ui.stat-card
                 icon="swap_horiz"
                 icon-color="text-emerald-600"
-                :value="number_format($overallStats['total_checkin'])"
+                :value="formatNombor($overallStats['total_checkin'])"
                 label="Jumlah Check-in"
             />
 
             <x-ui.stat-card
                 icon="assignment_turned_in"
                 icon-color="text-rose-600"
-                :value="number_format($overallStats['total_checkout'])"
+                :value="formatNombor($overallStats['total_checkout'])"
                 label="Jumlah Check-out"
             />
         </div>
@@ -106,10 +106,10 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                {{ optional($program->tarikh_mula)->format('d/m/Y H:i') ?? '-' }}
+                                {{ $program->tarikh_mula ? formatTarikhMasa($program->tarikh_mula) : '-' }}
                             </div>
                             <div class="text-xs text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                                hingga {{ optional($program->tarikh_selesai)->format('d/m/Y H:i') ?? '-' }}
+                                hingga {{ $program->tarikh_selesai ? formatTarikhMasa($program->tarikh_selesai) : '-' }}
                             </div>
                         </td>
                         <td class="px-6 py-4 max-w-xs">
@@ -118,16 +118,16 @@
                             </div>
                             @if($program->jarak_anggaran)
                                 <div class="text-xs text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                                    Anggaran: {{ number_format($program->jarak_anggaran, 1) }} km
+                                    Anggaran: {{ formatNombor($program->jarak_anggaran, 1) }} km
                                 </div>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-xs text-gray-500 space-y-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                                <div>Log Aktif: {{ $stats['jumlah_aktif'] ?? 0 }}</div>
-                                <div>Log Selesai: {{ $stats['jumlah_selesai'] ?? 0 }}</div>
-                                <div>Log Tertunda: {{ $stats['jumlah_tertunda'] ?? 0 }}</div>
-                                <div>Check-in / Check-out: {{ ($stats['jumlah_checkin'] ?? 0) }} / {{ ($stats['jumlah_checkout'] ?? 0) }}</div>
+                                <div>Log Aktif: {{ formatNombor($stats['jumlah_aktif'] ?? 0) }}</div>
+                                <div>Log Selesai: {{ formatNombor($stats['jumlah_selesai'] ?? 0) }}</div>
+                                <div>Log Tertunda: {{ formatNombor($stats['jumlah_tertunda'] ?? 0) }}</div>
+                                <div>Check-in / Check-out: {{ formatNombor($stats['jumlah_checkin'] ?? 0) }} / {{ formatNombor($stats['jumlah_checkout'] ?? 0) }}</div>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
@@ -185,8 +185,8 @@
                                 <span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
                             </span>
                             <span class="mobile-card-value">
-                                {{ optional($program->tarikh_mula)->format('d/m/Y H:i') ?? '-' }}
-                                <span class="mobile-card-value-secondary">hingga {{ optional($program->tarikh_selesai)->format('d/m/Y H:i') ?? '-' }}</span>
+                                {{ $program->tarikh_mula ? formatTarikhMasa($program->tarikh_mula) : '-' }}
+                                <span class="mobile-card-value-secondary">hingga {{ $program->tarikh_selesai ? formatTarikhMasa($program->tarikh_selesai) : '-' }}</span>
                             </span>
                         </div>
 
@@ -198,7 +198,7 @@
                             <span class="mobile-card-value">
                                 {{ $program->lokasi_program ?? '-' }}
                                 @if($program->jarak_anggaran)
-                                    <span class="mobile-card-value-secondary">({{ number_format($program->jarak_anggaran, 1) }} km)</span>
+                                    <span class="mobile-card-value-secondary">({{ formatNombor($program->jarak_anggaran, 1) }} km)</span>
                                 @endif
                             </span>
                         </div>
@@ -209,7 +209,7 @@
                                 <span class="material-symbols-outlined" style="font-size: 16px;">group</span>
                             </span>
                             <span class="mobile-card-value">
-                                {{ $stats['jumlah_pemandu'] ?? 0 }} Pemandu • {{ $stats['jumlah_kenderaan'] ?? 0 }} Kenderaan
+                                {{ formatNombor($stats['jumlah_pemandu'] ?? 0) }} Pemandu • {{ formatNombor($stats['jumlah_kenderaan'] ?? 0) }} Kenderaan
                             </span>
                         </div>
 
@@ -220,9 +220,9 @@
                             </span>
                             <span class="mobile-card-value">
                                 <div style="display: flex; flex-direction: column; gap: 2px;">
-                                    <span>Aktif: {{ $stats['jumlah_aktif'] ?? 0 }} • Selesai: {{ $stats['jumlah_selesai'] ?? 0 }}</span>
-                                    <span class="mobile-card-value-secondary">Tertunda: {{ $stats['jumlah_tertunda'] ?? 0 }}</span>
-                                    <span class="mobile-card-value-secondary">Check-in: {{ $stats['jumlah_checkin'] ?? 0 }} • Check-out: {{ $stats['jumlah_checkout'] ?? 0 }}</span>
+                                    <span>Aktif: {{ formatNombor($stats['jumlah_aktif'] ?? 0) }} • Selesai: {{ formatNombor($stats['jumlah_selesai'] ?? 0) }}</span>
+                                    <span class="mobile-card-value-secondary">Tertunda: {{ formatNombor($stats['jumlah_tertunda'] ?? 0) }}</span>
+                                    <span class="mobile-card-value-secondary">Check-in: {{ formatNombor($stats['jumlah_checkin'] ?? 0) }} • Check-out: {{ formatNombor($stats['jumlah_checkout'] ?? 0) }}</span>
                                 </div>
                             </span>
                         </div>

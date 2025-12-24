@@ -95,17 +95,17 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                        {{ $selenggara->tarikh_mula->format('d/m/Y') }}
+                        {{ formatTarikh($selenggara->tarikh_mula) }}
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                        {{ $selenggara->tarikh_selesai->format('d/m/Y') }}
+                        {{ formatTarikh($selenggara->tarikh_selesai) }}
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right">
                     <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                        {{ number_format($selenggara->jumlah_kos, 2) }}
+                        {{ formatNombor($selenggara->jumlah_kos, 2) }}
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-center">
@@ -151,15 +151,15 @@
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">calendar_month</span></span>
-                            <span class="mobile-card-value">Mula: {{ $selenggara->tarikh_mula->format('d/m/Y') }}</span>
+                            <span class="mobile-card-value">Mula: {{ formatTarikh($selenggara->tarikh_mula) }}</span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">event_available</span></span>
-                            <span class="mobile-card-value">Tamat: {{ $selenggara->tarikh_selesai->format('d/m/Y') }}</span>
+                            <span class="mobile-card-value">Tamat: {{ formatTarikh($selenggara->tarikh_selesai) }}</span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">attach_money</span></span>
-                            <span class="mobile-card-value">RM {{ number_format($selenggara->jumlah_kos, 2) }}</span>
+                            <span class="mobile-card-value">{{ formatWang($selenggara->jumlah_kos) }}</span>
                         </div>
                     </div>
                     <div class="mobile-card-footer">

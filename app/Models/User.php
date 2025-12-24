@@ -175,6 +175,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get user settings (one-to-one relationship)
+     */
+    public function settings()
+    {
+        return $this->hasOne(UserSetting::class);
+    }
+
+    /**
      * Get multiple stesen akses (accessor method).
      */
     public function getStesenAksesAttribute()

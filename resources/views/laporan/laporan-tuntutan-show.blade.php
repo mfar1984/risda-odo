@@ -36,7 +36,7 @@
                         </div>
                         <div>
                             <x-forms.input-label value="Anggaran KM" />
-                            <x-forms.text-input class="mt-1 block w-full" value="{{ $program->jarak_anggaran ? number_format($program->jarak_anggaran, 1) . ' km' : '-' }}" readonly />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ $program->jarak_anggaran ? formatNombor($program->jarak_anggaran, 1) . ' km' : '-' }}" readonly />
                         </div>
                         <div>
                             <x-forms.input-label value="Pemohon" />
@@ -47,11 +47,11 @@
                     <div class="space-y-3">
                         <div>
                             <x-forms.input-label value="Tarikh Mula" />
-                            <x-forms.text-input class="mt-1 block w-full" value="{{ $program->tarikh_mula?->format('d/m/Y H:i') ?? '-' }}" readonly />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ $program->tarikh_mula ? formatTarikhMasa($program->tarikh_mula) : '-' }}" readonly />
                         </div>
                         <div>
                             <x-forms.input-label value="Tarikh Selesai" />
-                            <x-forms.text-input class="mt-1 block w-full" value="{{ $program->tarikh_selesai?->format('d/m/Y H:i') ?? '-' }}" readonly />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ $program->tarikh_selesai ? formatTarikhMasa($program->tarikh_selesai) : '-' }}" readonly />
                         </div>
                         <div>
                             <x-forms.input-label value="Pemandu Tugasan" />
@@ -67,12 +67,12 @@
 
             {{-- Statistics Cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <x-ui.stat-card icon="receipt_long" icon-color="text-blue-600" :value="number_format($stats['jumlah_tuntutan'])" label="Jumlah Tuntutan" />
-                <x-ui.stat-card icon="payments" icon-color="text-indigo-600" :value="number_format($stats['jumlah_keseluruhan'], 2)" prefix="RM " label="Jumlah Keseluruhan" />
-                <x-ui.stat-card icon="pending_actions" icon-color="text-yellow-600" :value="number_format($stats['pending'])" label="Pending" />
-                <x-ui.stat-card icon="check_circle" icon-color="text-green-600" :value="number_format($stats['diluluskan'])" label="Diluluskan" />
-                <x-ui.stat-card icon="cancel" icon-color="text-red-600" :value="number_format($stats['ditolak'])" label="Ditolak" />
-                <x-ui.stat-card icon="account_balance_wallet" icon-color="text-emerald-600" :value="number_format($stats['jumlah_diluluskan'], 2)" prefix="RM " label="Jumlah Diluluskan" />
+                <x-ui.stat-card icon="receipt_long" icon-color="text-blue-600" :value="formatNombor($stats['jumlah_tuntutan'])" label="Jumlah Tuntutan" />
+                <x-ui.stat-card icon="payments" icon-color="text-indigo-600" :value="formatWang($stats['jumlah_keseluruhan'])" label="Jumlah Keseluruhan" />
+                <x-ui.stat-card icon="pending_actions" icon-color="text-yellow-600" :value="formatNombor($stats['pending'])" label="Pending" />
+                <x-ui.stat-card icon="check_circle" icon-color="text-green-600" :value="formatNombor($stats['diluluskan'])" label="Diluluskan" />
+                <x-ui.stat-card icon="cancel" icon-color="text-red-600" :value="formatNombor($stats['ditolak'])" label="Ditolak" />
+                <x-ui.stat-card icon="account_balance_wallet" icon-color="text-emerald-600" :value="formatWang($stats['jumlah_diluluskan'])" label="Jumlah Diluluskan" />
             </div>
 
             {{-- Maklumat Tuntutan Card --}}
@@ -104,7 +104,7 @@
                         <div>
                             <x-forms.input-label value="Tarikh Perjalanan" />
                             <x-forms.text-input class="mt-1 block w-full" 
-                                value="{{ $tuntutan->logPemandu->tarikh_perjalanan?->format('d/m/Y') ?? '-' }}" readonly />
+                                value="{{ $tuntutan->logPemandu->tarikh_perjalanan ? formatTarikh($tuntutan->logPemandu->tarikh_perjalanan) : '-' }}" readonly />
                         </div>
                         <div>
                             <x-forms.input-label value="Kenderaan" />
@@ -123,12 +123,12 @@
                         <div>
                             <x-forms.input-label value="Jumlah Tuntutan" />
                             <x-forms.text-input class="mt-1 block w-full font-semibold text-blue-700" 
-                                value="RM {{ number_format($tuntutan->jumlah, 2) }}" readonly />
+                                value="{{ formatWang($tuntutan->jumlah) }}" readonly />
                         </div>
                         <div>
                             <x-forms.input-label value="Tarikh Dituntut" />
                             <x-forms.text-input class="mt-1 block w-full" 
-                                value="{{ $tuntutan->created_at->format('d/m/Y H:i') }}" readonly />
+                                value="{{ formatTarikhMasa($tuntutan->created_at) }}" readonly />
                         </div>
                         @if($tuntutan->keterangan)
                         <div>
@@ -172,7 +172,7 @@
                         <span class="material-symbols-outlined text-blue-600">list_alt</span>
                         <h3 class="text-base font-semibold text-gray-900">Senarai Tuntutan</h3>
                     </div>
-                    <div class="text-xs text-gray-500">Jumlah rekod: {{ number_format($relatedClaims->count() + 1) }}</div>
+                    <div class="text-xs text-gray-500">Jumlah rekod: {{ formatNombor($relatedClaims->count() + 1) }}</div>
                 </div>
 
                 <!-- Desktop Table -->
@@ -194,8 +194,8 @@
                     {{-- Current Claim (highlighted) --}}
                     <tr class="bg-blue-50 border-l-4 border-blue-500">
                         <td class="px-6 py-4 text-sm text-gray-700">
-                            <div>{{ $tuntutan->created_at->format('d/m/Y') }}</div>
-                            <div class="text-xs text-gray-500">{{ $tuntutan->created_at->format('H:i') }}</div>
+                            <div>{{ formatTarikh($tuntutan->created_at) }}</div>
+                            <div class="text-xs text-gray-500">{{ formatMasa($tuntutan->created_at) }}</div>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-900">
                             <div>{{ $tuntutan->logPemandu->pemandu->risdaStaf->nama_penuh ?? '-' }}</div>
@@ -205,7 +205,7 @@
                             {{ $tuntutan->kategori_label }}
                         </td>
                         <td class="px-6 py-4 text-sm text-right text-gray-900 font-semibold">
-                            RM {{ number_format($tuntutan->jumlah, 2) }}
+                            {{ formatWang($tuntutan->jumlah) }}
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-900">
                             <x-ui.status-badge 
@@ -236,8 +236,8 @@
                     @forelse($relatedClaims as $claim)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 text-sm text-gray-700">
-                                <div>{{ $claim->created_at->format('d/m/Y') }}</div>
-                                <div class="text-xs text-gray-500">{{ $claim->created_at->format('H:i') }}</div>
+                                <div>{{ formatTarikh($claim->created_at) }}</div>
+                                <div class="text-xs text-gray-500">{{ formatMasa($claim->created_at) }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <div>{{ $claim->logPemandu->pemandu->risdaStaf->nama_penuh ?? '-' }}</div>
@@ -247,7 +247,7 @@
                                 {{ $claim->kategori_label }}
                             </td>
                             <td class="px-6 py-4 text-sm text-right text-gray-900">
-                                RM {{ number_format($claim->jumlah, 2) }}
+                                {{ formatWang($claim->jumlah) }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <x-ui.status-badge 
@@ -292,7 +292,7 @@
                     <!-- Current Claim Highlight -->
                     <div class="mobile-card" style="border-left: 3px solid #2563eb;">
                         <div class="mobile-card-header">
-                            <div class="mobile-card-title">{{ $tuntutan->created_at->format('d/m/Y') }}</div>
+                            <div class="mobile-card-title">{{ formatTarikh($tuntutan->created_at) }}</div>
                             <div class="mobile-card-badge">
                                 <x-ui.status-badge 
                                     :status="$tuntutan->status" 
@@ -312,7 +312,7 @@
                             </div>
                             <div class="mobile-card-row">
                                 <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
-                                <span class="mobile-card-value"><strong>RM {{ number_format($tuntutan->jumlah, 2) }}</strong></span>
+                                <span class="mobile-card-value"><strong>{{ formatWang($tuntutan->jumlah) }}</strong></span>
                             </div>
                         </div>
                         <div class="mobile-card-footer">
@@ -326,7 +326,7 @@
                     @forelse($relatedClaims as $claim)
                         <div class="mobile-card">
                             <div class="mobile-card-header">
-                                <div class="mobile-card-title">{{ $claim->created_at->format('d/m/Y') }}</div>
+                                <div class="mobile-card-title">{{ formatTarikh($claim->created_at) }}</div>
                                 <div class="mobile-card-badge">
                                     <x-ui.status-badge 
                                         :status="$claim->status" 
@@ -346,7 +346,7 @@
                                 </div>
                                 <div class="mobile-card-row">
                                     <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
-                                    <span class="mobile-card-value"><strong>RM {{ number_format($claim->jumlah, 2) }}</strong></span>
+                                    <span class="mobile-card-value"><strong>{{ formatWang($claim->jumlah) }}</strong></span>
                                 </div>
                             </div>
                             <div class="mobile-card-footer">
@@ -382,7 +382,7 @@
                     <div>
                         <x-forms.input-label value="Tarikh Diproses" />
                         <x-forms.text-input class="mt-1 block w-full" 
-                            value="{{ $tuntutan->tarikh_diproses->format('d/m/Y H:i') }}" readonly />
+                            value="{{ formatTarikhMasa($tuntutan->tarikh_diproses) }}" readonly />
                     </div>
                 </div>
 

@@ -12,12 +12,14 @@
             <div>
                 <!-- Remove duplicate text here -->
             </div>
+            @if(auth()->user()->adaKebenaran('program', 'tambah'))
             <a href="{{ route('program.create') }}">
                 <x-buttons.primary-button type="button">
                     <span class="material-symbols-outlined mr-2" style="font-size: 16px;">add_circle</span>
                     Tambah Program
                 </x-buttons.primary-button>
             </a>
+            @endif
         </div>
 
         <!-- Success/Error Messages -->
@@ -94,10 +96,10 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                            {{ $program->tarikh_mula->format('d/m/Y H:i') }}
+                            {{ formatTarikhMasa($program->tarikh_mula) }}
                         </div>
                         <div class="text-sm text-gray-500" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                            hingga {{ $program->tarikh_selesai->format('d/m/Y H:i') }}
+                            hingga {{ formatTarikhMasa($program->tarikh_selesai) }}
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -177,9 +179,9 @@
                         <div class="mobile-card-row">
                             <div class="mobile-card-label">Tarikh:</div>
                             <div class="mobile-card-value">
-                                {{ $program->tarikh_mula->format('d/m/Y H:i') }}
+                                {{ formatTarikhMasa($program->tarikh_mula) }}
                                 <div class="mobile-card-value-secondary">
-                                    hingga {{ $program->tarikh_selesai->format('d/m/Y H:i') }}
+                                    hingga {{ formatTarikhMasa($program->tarikh_selesai) }}
                                 </div>
                             </div>
                         </div>

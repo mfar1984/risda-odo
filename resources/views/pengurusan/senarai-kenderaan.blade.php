@@ -113,7 +113,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm {{ $kenderaan->is_cukai_expired ? 'text-red-600 font-medium' : 'text-gray-900' }}" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                        {{ $kenderaan->cukai_tamat_tempoh->format('d/m/Y') }}
+                        {{ formatTarikh($kenderaan->cukai_tamat_tempoh) }}
                     </div>
                     @if($kenderaan->is_cukai_expired)
                         <div class="text-xs text-red-500" style="font-family: Poppins, sans-serif !important; font-size: 10px !important;">Tamat Tempoh</div>
@@ -177,7 +177,7 @@
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">receipt_long</span></span>
-                            <span class="mobile-card-value">Cukai Tamat: {{ $kenderaan->cukai_tamat_tempoh->format('d/m/Y') }}</span>
+                            <span class="mobile-card-value">Cukai Tamat: {{ formatTarikh($kenderaan->cukai_tamat_tempoh) }}</span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">person</span></span>

@@ -27,6 +27,7 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
+        $risdaStaf = $user->risdaStaf;
         
         // Store old values for logging
         $oldName = $user->name;
@@ -42,6 +43,28 @@ class ProfileController extends Controller
         }
 
         $user->save();
+
+        // Update RISDA Staf if exists
+        if ($risdaStaf) {
+            $risdaStafData = $request->only([
+                'no_pekerja',
+                'nama_penuh',
+                'no_kad_pengenalan',
+                'jantina',
+                'jawatan',
+                'no_telefon',
+                'email',
+                'no_fax',
+                'alamat_1',
+                'alamat_2',
+                'poskod',
+                'bandar',
+                'negeri',
+                'negara',
+            ]);
+
+            $risdaStaf->update($risdaStafData);
+        }
 
         // Prepare changes
         $changes = [];
@@ -61,6 +84,7 @@ class ProfileController extends Controller
                 'user_agent' => $request->userAgent(),
                 'changes' => $changes,
                 'email_verification_reset' => $emailChanged,
+                'risda_staf_updated' => $risdaStaf ? true : false,
             ])
             ->event('updated_profile')
             ->log("Profile '{$user->name}' telah dikemaskini");

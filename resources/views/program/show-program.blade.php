@@ -55,7 +55,7 @@
                                 name="jarak_anggaran"
                                 type="text"
                                 class="mt-1 block w-full"
-                                value="{{ $program->jarak_anggaran ? number_format($program->jarak_anggaran, 1) . ' km' : '-' }}"
+                                value="{{ $program->jarak_anggaran ? formatNombor($program->jarak_anggaran, 1) . ' km' : '-' }}"
                                 readonly
                             />
                         </div>
@@ -67,7 +67,7 @@
                             <x-forms.text-input
                                 type="text"
                                 class="mt-1 block w-full"
-                                value="{{ number_format($program->lokasi_lat, 6) }}, {{ number_format($program->lokasi_long, 6) }}"
+                                value="{{ formatNombor($program->lokasi_lat, 6) }}, {{ formatNombor($program->lokasi_long, 6) }}"
                                 readonly
                             />
                         </div>
@@ -138,7 +138,7 @@
                                 name="tarikh_mula"
                                 type="text"
                                 class="mt-1 block w-full"
-                                value="{{ $program->tarikh_mula->format('d/m/Y H:i') }}"
+                                value="{{ formatTarikhMasa($program->tarikh_mula) }}"
                                 readonly
                             />
                         </div>
@@ -150,7 +150,7 @@
                                 name="tarikh_selesai"
                                 type="text"
                                 class="mt-1 block w-full"
-                                value="{{ $program->tarikh_selesai->format('d/m/Y H:i') }}"
+                                value="{{ formatTarikhMasa($program->tarikh_selesai) }}"
                                 readonly
                             />
                         </div>
@@ -256,11 +256,11 @@
                                         {{ $program->pemohon->jawatan ?? 'N/A' }}
                                     </td>
                                     <td data-label="Permohonan:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
-                                        {{ $program->created_at->format('d/m/Y') }}
+                                        {{ formatTarikh($program->created_at) }}
                                     </td>
                                     <td data-label="Kelulusan:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->tarikh_kelulusan)
-                                            {{ $program->tarikh_kelulusan->format('d/m/Y H:i') }}
+                                            {{ formatTarikhMasa($program->tarikh_kelulusan) }}
                                         @else
                                             -
                                         @endif
@@ -312,14 +312,14 @@
                                     </td>
                                     <td data-label="Tarikh Aktif:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->tarikh_mula_aktif)
-                                            {{ $program->tarikh_mula_aktif->format('d/m/Y H:i') }}
+                                            {{ formatTarikhMasa($program->tarikh_mula_aktif) }}
                                         @else
                                             -
                                         @endif
                                     </td>
                                     <td data-label="Tarikh Selesai:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->tarikh_sebenar_selesai)
-                                            {{ $program->tarikh_sebenar_selesai->format('d/m/Y H:i') }}
+                                            {{ formatTarikhMasa($program->tarikh_sebenar_selesai) }}
                                         @else
                                             -
                                         @endif
@@ -370,7 +370,7 @@
                                     </td>
                                     <td data-label="Cukai Tamat:" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300" style="font-family: Poppins, sans-serif !important; font-size: 12px !important;">
                                         @if($program->kenderaan && $program->kenderaan->cukai_tamat_tempoh)
-                                            {{ $program->kenderaan->cukai_tamat_tempoh->format('d/m/Y') }}
+                                            {{ formatTarikh($program->kenderaan->cukai_tamat_tempoh) }}
                                             @if($program->kenderaan->is_cukai_expired)
                                                 <br><span class="text-red-500 text-xs">Tamat Tempoh</span>
                                             @endif
@@ -400,7 +400,7 @@
                                 name="created_at"
                                 type="text"
                                 class="mt-1 block w-full"
-                                value="{{ $program->created_at->format('d/m/Y H:i:s') }}"
+                                value="{{ formatTarikhMasa($program->created_at) }}"
                                 readonly
                             />
                         </div>
@@ -412,7 +412,7 @@
                                 name="updated_at"
                                 type="text"
                                 class="mt-1 block w-full"
-                                value="{{ $program->updated_at->format('d/m/Y H:i:s') }}"
+                                value="{{ formatTarikhMasa($program->updated_at) }}"
                                 readonly
                             />
                         </div>
@@ -465,8 +465,8 @@ function exportProgram() {
     const exportData = {
         'Nama Program': "{{ $program->nama_program }}",
         'Lokasi Program': "{{ $program->lokasi_program }}",
-        'Tarikh Mula': "{{ $program->tarikh_mula->format('d/m/Y H:i') }}",
-        'Tarikh Selesai': "{{ $program->tarikh_selesai->format('d/m/Y H:i') }}",
+        'Tarikh Mula': "{{ formatTarikhMasa($program->tarikh_mula) }}",
+        'Tarikh Selesai': "{{ formatTarikhMasa($program->tarikh_selesai) }}",
         'Status': "{{ $program->status_label }}",
         'Penerangan': "{{ $program->penerangan ?? 'Tiada penerangan' }}",
         'Pemohon': "{{ $program->pemohon->nama_penuh ?? 'N/A' }}",

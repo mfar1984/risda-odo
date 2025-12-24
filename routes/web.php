@@ -23,10 +23,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Settings Route
-    Route::get('/settings', function () {
-        return view('settings.index');
-    })->name('settings.index');
+    // Settings Routes
+    Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings/data-eksport', [App\Http\Controllers\SettingsController::class, 'updateDataEksport'])->name('settings.update-data-eksport');
+    Route::post('/settings/data-eksport/reset', [App\Http\Controllers\SettingsController::class, 'resetDataEksport'])->name('settings.reset-data-eksport');
 
     // Notification Routes (Web - for Bell Icon)
     Route::prefix('notifications')->name('notifications.')->group(function () {

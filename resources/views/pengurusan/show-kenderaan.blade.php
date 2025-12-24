@@ -149,7 +149,7 @@
                                 name="cukai_tamat_tempoh"
                                 type="text"
                                 class="mt-1 block w-full {{ $kenderaan->is_cukai_expired ? 'text-red-600 font-medium' : '' }}"
-                                value="{{ $kenderaan->cukai_tamat_tempoh->format('d/m/Y') }}"
+                                value="{{ formatTarikh($kenderaan->cukai_tamat_tempoh) }}"
                                 readonly
                             />
                             @if($kenderaan->is_cukai_expired)
@@ -171,7 +171,7 @@
                                 name="tarikh_pendaftaran"
                                 type="text"
                                 class="mt-1 block w-full"
-                                value="{{ $kenderaan->tarikh_pendaftaran->format('d/m/Y') }}"
+                                value="{{ formatTarikh($kenderaan->tarikh_pendaftaran) }}"
                                 readonly
                             />
                         </div>
@@ -209,10 +209,10 @@
                                                 {{ $dokumen['original_name'] ?? 'Dokumen ' . ($index + 1) }}
                                             </p>
                                             <div class="flex items-center mt-1 text-xs text-gray-500">
-                                                <span>{{ isset($dokumen['size']) ? number_format($dokumen['size'] / 1024, 1) . ' KB' : '' }}</span>
+                                                <span>{{ isset($dokumen['size']) ? formatNombor($dokumen['size'] / 1024, 1) . ' KB' : '' }}</span>
                                                 @if(isset($dokumen['uploaded_at']))
                                                     <span class="mx-2">•</span>
-                                                    <span>{{ \Carbon\Carbon::parse($dokumen['uploaded_at'])->format('d/m/Y') }}</span>
+                                                    <span>{{ formatTarikh($dokumen['uploaded_at']) }}</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -239,7 +239,7 @@
                             <div>
                                 <h4 class="text-sm font-medium text-red-800">Cukai Tamat Tempoh</h4>
                                 <p class="text-sm text-red-700 mt-1">
-                                    Cukai kenderaan ini telah tamat tempoh pada {{ $kenderaan->cukai_tamat_tempoh->format('d/m/Y') }}.
+                                    Cukai kenderaan ini telah tamat tempoh pada {{ formatTarikh($kenderaan->cukai_tamat_tempoh) }}.
                                 </p>
                             </div>
                         </div>

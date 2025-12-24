@@ -46,12 +46,12 @@
             </x-ui.card>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <x-ui.stat-card icon="history" icon-color="text-blue-600" :value="number_format($stats['jumlah_log'])" label="Jumlah Log" />
-                <x-ui.stat-card icon="alt_route" icon-color="text-green-600" :value="number_format($stats['jumlah_jarak'], 1)" suffix=" km" label="Jarak Direkod" />
-                <x-ui.stat-card icon="payments" icon-color="text-emerald-600" :value="number_format($stats['jumlah_kos'], 2)" prefix="RM " label="Kos Direkod" />
-                <x-ui.stat-card icon="water_drop" icon-color="text-indigo-600" :value="number_format($stats['jumlah_liter'], 2)" suffix=" L" label="Liter Digunakan" />
-                <x-ui.stat-card icon="equalizer" icon-color="text-rose-600" :value="number_format($stats['purata_jarak'], 2)" suffix=" km" label="Purata Jarak/Log" />
-                <x-ui.stat-card icon="savings" icon-color="text-yellow-600" :value="number_format($stats['purata_kos'], 2)" prefix="RM " label="Purata Kos/Log" />
+                <x-ui.stat-card icon="history" icon-color="text-blue-600" :value="formatNombor($stats['jumlah_log'])" label="Jumlah Log" />
+                <x-ui.stat-card icon="alt_route" icon-color="text-green-600" :value="formatNombor($stats['jumlah_jarak'], 1)" suffix=" km" label="Jarak Direkod" />
+                <x-ui.stat-card icon="payments" icon-color="text-emerald-600" :value="formatNombor($stats['jumlah_kos'], 2)" prefix="RM " label="Kos Direkod" />
+                <x-ui.stat-card icon="water_drop" icon-color="text-indigo-600" :value="formatNombor($stats['jumlah_liter'], 2)" suffix=" L" label="Liter Digunakan" />
+                <x-ui.stat-card icon="equalizer" icon-color="text-rose-600" :value="formatNombor($stats['purata_jarak'], 2)" suffix=" km" label="Purata Jarak/Log" />
+                <x-ui.stat-card icon="savings" icon-color="text-yellow-600" :value="formatNombor($stats['purata_kos'], 2)" prefix="RM " label="Purata Kos/Log" />
             </div>
 
             <x-ui.card>
@@ -70,7 +70,7 @@
                         </x-buttons.primary-button>
                         <a href="{{ route('laporan.laporan-pemandu.show', ['driver' => $driver->getKey()]) }}" class="ml-2 text-xs text-blue-600 hover:text-blue-800">Reset</a>
                     </form>
-                    <div class="text-xs text-gray-500">Jumlah rekod: {{ number_format($logs->count()) }}</div>
+                    <div class="text-xs text-gray-500">Jumlah rekod: {{ formatNombor($logs->count()) }}</div>
                 </div>
                 </div>
 
@@ -91,7 +91,7 @@
                     @forelse($logs as $log)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 text-sm text-gray-700">
-                                <div>{{ $log->tarikh_perjalanan?->format('d/m/Y') ?? '-' }}</div>
+                                <div>{{ formatTarikh($log->tarikh_perjalanan) }}</div>
                                 <div class="text-xs text-gray-500">Check-in: {{ $log->masa_keluar_label ?? '-' }}</div>
                                 <div class="text-xs text-gray-500">Check-out: {{ $log->masa_masuk_label ?? '-' }}</div>
                             </td>
@@ -104,10 +104,10 @@
                                 <div class="text-xs text-gray-500">{{ trim(($log->kenderaan->jenama ?? '') . ' ' . ($log->kenderaan->model ?? '')) ?: '-' }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
-                                {{ $log->jarak ? number_format($log->jarak, 1) : '0.0' }} km
+                                {{ formatNombor($log->jarak ?? 0, 1) }} km
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
-                                RM {{ $log->kos_minyak ? number_format($log->kos_minyak, 2) : '0.00' }}
+                                {{ formatWang($log->kos_minyak ?? 0) }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <x-ui.status-badge :status="$log->status" />
@@ -126,7 +126,7 @@
                     @forelse($logs as $log)
                         <div class="mobile-card">
                             <div class="mobile-card-header">
-                                <div class="mobile-card-title">{{ $log->tarikh_perjalanan?->format('d/m/Y') ?? '-' }}</div>
+                                <div class="mobile-card-title">{{ formatTarikh($log->tarikh_perjalanan) }}</div>
                                 <div class="mobile-card-badge"><x-ui.status-badge :status="$log->status" /></div>
                             </div>
                             <div class="mobile-card-body">
@@ -140,11 +140,11 @@
                                 </div>
                                 <div class="mobile-card-row">
                                     <span class="mobile-card-label"><span class="material-symbols-outlined">straighten</span></span>
-                                    <span class="mobile-card-value">{{ $log->jarak ? number_format($log->jarak, 1) : '0.0' }} km</span>
+                                    <span class="mobile-card-value">{{ formatNombor($log->jarak ?? 0, 1) }} km</span>
                                 </div>
                                 <div class="mobile-card-row">
                                     <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
-                                    <span class="mobile-card-value">RM {{ $log->kos_minyak ? number_format($log->kos_minyak, 2) : '0.00' }}</span>
+                                    <span class="mobile-card-value">{{ formatWang($log->kos_minyak ?? 0) }}</span>
                                 </div>
                                 <div class="mobile-card-row">
                                     <span class="mobile-card-label"><span class="material-symbols-outlined">swap_horiz</span></span>
@@ -182,9 +182,9 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 text-sm text-gray-900">{{ $row['nama_program'] }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-900">{{ ucfirst($row['status']) }}</td>
-                                <td class="px-6 py-4 text-sm text-center text-gray-900">{{ number_format($row['jumlah_log']) }}</td>
-                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ number_format($row['jumlah_jarak'], 1) }}</td>
-                                <td class="px-6 py-4 text-sm text-right text-gray-900">RM {{ number_format($row['jumlah_kos'], 2) }}</td>
+                                <td class="px-6 py-4 text-sm text-center text-gray-900">{{ formatNombor($row['jumlah_log']) }}</td>
+                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ formatNombor($row['jumlah_jarak'], 1) }}</td>
+                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ formatWang($row['jumlah_kos']) }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -212,9 +212,9 @@
                         @forelse($kenderaanSummary as $row)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 text-sm text-gray-900">{{ $row['no_plat'] }}<br><span class="text-xs text-gray-500">{{ $row['nama'] }}</span></td>
-                                <td class="px-6 py-4 text-sm text-center text-gray-900">{{ number_format($row['jumlah_log']) }}</td>
-                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ number_format($row['jumlah_jarak'], 1) }}</td>
-                                <td class="px-6 py-4 text-sm text-right text-gray-900">RM {{ number_format($row['jumlah_kos'], 2) }}</td>
+                                <td class="px-6 py-4 text-sm text-center text-gray-900">{{ formatNombor($row['jumlah_log']) }}</td>
+                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ formatNombor($row['jumlah_jarak'], 1) }}</td>
+                                <td class="px-6 py-4 text-sm text-right text-gray-900">{{ formatWang($row['jumlah_kos']) }}</td>
                             </tr>
                         @empty
                             <tr>

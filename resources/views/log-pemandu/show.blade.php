@@ -31,11 +31,11 @@
                     <div style="display: flex; gap: 20px;">
                         <div style="flex: 1;">
                             <x-forms.input-label value="Tarikh Mula Program" />
-                            <x-forms.text-input class="mt-1 block w-full" value="{{ $log->program && $log->program->tarikh_mula ? $log->program->tarikh_mula->format('d/m/Y H:i') : '-' }}" readonly />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ $log->program && $log->program->tarikh_mula ? formatTarikhMasa($log->program->tarikh_mula) : '-' }}" readonly />
                         </div>
                         <div style="flex: 1;">
                             <x-forms.input-label value="Tarikh Selesai Program" />
-                            <x-forms.text-input class="mt-1 block w-full" value="{{ $log->program && $log->program->tarikh_selesai ? $log->program->tarikh_selesai->format('d/m/Y H:i') : '-' }}" readonly />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ $log->program && $log->program->tarikh_selesai ? formatTarikhMasa($log->program->tarikh_selesai) : '-' }}" readonly />
                         </div>
                     </div>
                     <div style="display: flex; gap: 20px;">
@@ -195,7 +195,7 @@
                         </div>
                         <div style="flex: 1;">
                             <x-forms.input-label value="Tarikh Cipta" />
-                            <x-forms.text-input class="mt-1 block w-full" value="{{ $log->created_at ? $log->created_at->format('d/m/Y H:i:s') : '-' }}" readonly />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ $log->created_at ? formatTarikhMasa($log->created_at) : '-' }}" readonly />
                         </div>
                     </div>
                     <div style="display: flex; gap: 20px;">
@@ -205,7 +205,7 @@
                         </div>
                         <div style="flex: 1;">
                             <x-forms.input-label value="Tarikh Dikemaskini" />
-                            <x-forms.text-input class="mt-1 block w-full" value="{{ $log->updated_at ? $log->updated_at->format('d/m/Y H:i:s') : '-' }}" readonly />
+                            <x-forms.text-input class="mt-1 block w-full" value="{{ $log->updated_at ? formatTarikhMasa($log->updated_at) : '-' }}" readonly />
                         </div>
                     </div>
                 </div>
@@ -240,10 +240,10 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900" style="font-family: Poppins, sans-serif !important;">{{ $tuntutan->kategori_label }}</div>
-                                        <div class="text-xs text-gray-500" style="font-family: Poppins, sans-serif !important;">{{ $tuntutan->created_at->format('d/m/Y H:i') }}</div>
+                                        <div class="text-xs text-gray-500" style="font-family: Poppins, sans-serif !important;">{{ formatTarikhMasa($tuntutan->created_at) }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-bold text-gray-900" style="font-family: Poppins, sans-serif !important;">RM {{ number_format($tuntutan->jumlah, 2) }}</div>
+                                        <div class="text-sm font-bold text-gray-900" style="font-family: Poppins, sans-serif !important;">{{ formatWang($tuntutan->jumlah) }}</div>
                                         @if($tuntutan->keterangan)
                                         <div class="text-xs text-gray-500" style="font-family: Poppins, sans-serif !important;">{{ Str::limit($tuntutan->keterangan, 40) }}</div>
                                         @endif
@@ -268,7 +268,7 @@
                             <tfoot class="bg-gray-50">
                                 <tr>
                                     <td colspan="1" class="px-6 py-3 text-right text-sm font-bold text-gray-900" style="font-family: Poppins, sans-serif !important;">JUMLAH TUNTUTAN:</td>
-                                    <td class="px-6 py-3 text-sm font-bold text-green-700" style="font-family: Poppins, sans-serif !important;">RM {{ number_format($total_tuntutan, 2) }}</td>
+                                    <td class="px-6 py-3 text-sm font-bold text-green-700" style="font-family: Poppins, sans-serif !important;">{{ formatWang($total_tuntutan) }}</td>
                                     <td colspan="2"></td>
                                 </tr>
                             </tfoot>

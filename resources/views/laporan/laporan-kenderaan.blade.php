@@ -30,39 +30,38 @@
             <x-ui.stat-card
                 icon="directions_car"
                 icon-color="text-blue-600"
-                :value="number_format($overallStats['total_kenderaan'] ?? 0)"
+                :value="formatNombor($overallStats['total_kenderaan'] ?? 0)"
                 label="Jumlah Kenderaan"
             />
             <x-ui.stat-card
                 icon="history"
                 icon-color="text-green-600"
-                :value="number_format($overallStats['total_log'] ?? 0)"
+                :value="formatNombor($overallStats['total_log'] ?? 0)"
                 label="Jumlah Log"
             />
             <x-ui.stat-card
                 icon="group"
                 icon-color="text-emerald-600"
-                :value="number_format($overallStats['total_pemandu'] ?? 0)"
+                :value="formatNombor($overallStats['total_pemandu'] ?? 0)"
                 label="Pemandu Terlibat"
             />
             <x-ui.stat-card
                 icon="event"
                 icon-color="text-indigo-600"
-                :value="number_format($overallStats['total_program'] ?? 0)"
+                :value="formatNombor($overallStats['total_program'] ?? 0)"
                 label="Program Disertai"
             />
             <x-ui.stat-card
                 icon="alt_route"
                 icon-color="text-rose-600"
-                :value="number_format($overallStats['jumlah_jarak'] ?? 0, 1)"
+                :value="formatNombor($overallStats['jumlah_jarak'] ?? 0, 1)"
                 suffix=" km"
                 label="Jarak Direkod"
             />
             <x-ui.stat-card
                 icon="payments"
                 icon-color="text-red-500"
-                :value="number_format($overallStats['jumlah_kos'] ?? 0, 2)"
-                prefix="RM "
+                :value="formatWang($overallStats['jumlah_kos'] ?? 0)"
                 label="Kos Bahan Api"
             />
         </div>
@@ -139,16 +138,16 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-xs text-gray-500 space-y-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                            <div>Jumlah Log: {{ number_format($stats['jumlah_log'] ?? 0) }}</div>
-                            <div>Aktif / Selesai / Tertunda: {{ number_format($stats['jumlah_aktif'] ?? 0) }} / {{ number_format($stats['jumlah_selesai'] ?? 0) }} / {{ number_format($stats['jumlah_tertunda'] ?? 0) }}</div>
-                            <div>Check-in / Check-out: {{ number_format($stats['jumlah_checkin'] ?? 0) }} / {{ number_format($stats['jumlah_checkout'] ?? 0) }}</div>
+                            <div>Jumlah Log: {{ formatNombor($stats['jumlah_log'] ?? 0) }}</div>
+                            <div>Aktif / Selesai / Tertunda: {{ formatNombor($stats['jumlah_aktif'] ?? 0) }} / {{ formatNombor($stats['jumlah_selesai'] ?? 0) }} / {{ formatNombor($stats['jumlah_tertunda'] ?? 0) }}</div>
+                            <div>Check-in / Check-out: {{ formatNombor($stats['jumlah_checkin'] ?? 0) }} / {{ formatNombor($stats['jumlah_checkout'] ?? 0) }}</div>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-xs text-gray-500 space-y-1" style="font-family: Poppins, sans-serif !important; font-size: 11px !important;">
-                            <div>Jarak: {{ number_format($stats['jumlah_jarak'] ?? 0, 1) }} km</div>
-                            <div>Kos: RM {{ number_format($stats['jumlah_kos'] ?? 0, 2) }}</div>
-                            <div>Program: {{ number_format($stats['jumlah_program'] ?? 0) }}</div>
+                            <div>Jarak: {{ formatNombor($stats['jumlah_jarak'] ?? 0, 1) }} km</div>
+                            <div>Kos: {{ formatWang($stats['jumlah_kos'] ?? 0) }}</div>
+                            <div>Program: {{ formatNombor($stats['jumlah_program'] ?? 0) }}</div>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
@@ -216,24 +215,24 @@
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">history</span></span>
                             <span class="mobile-card-value">
-                                Jumlah Log: <strong>{{ number_format($stats['jumlah_log'] ?? 0) }}</strong>
-                                <div class="mobile-card-value-secondary">Aktif / Selesai / Tertunda: {{ number_format($stats['jumlah_aktif'] ?? 0) }} / {{ number_format($stats['jumlah_selesai'] ?? 0) }} / {{ number_format($stats['jumlah_tertunda'] ?? 0) }}</div>
-                                <div class="mobile-card-value-secondary">Check-in / Check-out: {{ number_format($stats['jumlah_checkin'] ?? 0) }} / {{ number_format($stats['jumlah_checkout'] ?? 0) }}</div>
+                                Jumlah Log: <strong>{{ formatNombor($stats['jumlah_log'] ?? 0) }}</strong>
+                                <div class="mobile-card-value-secondary">Aktif / Selesai / Tertunda: {{ formatNombor($stats['jumlah_aktif'] ?? 0) }} / {{ formatNombor($stats['jumlah_selesai'] ?? 0) }} / {{ formatNombor($stats['jumlah_tertunda'] ?? 0) }}</div>
+                                <div class="mobile-card-value-secondary">Check-in / Check-out: {{ formatNombor($stats['jumlah_checkin'] ?? 0) }} / {{ formatNombor($stats['jumlah_checkout'] ?? 0) }}</div>
                             </span>
                         </div>
 
                         <!-- Jarak & Kos -->
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">straighten</span></span>
-                            <span class="mobile-card-value">Jarak: <strong>{{ number_format($stats['jumlah_jarak'] ?? 0, 1) }}</strong> km</span>
+                            <span class="mobile-card-value">Jarak: <strong>{{ formatNombor($stats['jumlah_jarak'] ?? 0, 1) }}</strong> km</span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">payments</span></span>
-                            <span class="mobile-card-value">Kos: <strong>RM {{ number_format($stats['jumlah_kos'] ?? 0, 2) }}</strong></span>
+                            <span class="mobile-card-value">Kos: <strong>{{ formatWang($stats['jumlah_kos'] ?? 0) }}</strong></span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label"><span class="material-symbols-outlined">event</span></span>
-                            <span class="mobile-card-value">Program: {{ number_format($stats['jumlah_program'] ?? 0) }}</span>
+                            <span class="mobile-card-value">Program: {{ formatNombor($stats['jumlah_program'] ?? 0) }}</span>
                         </div>
                     </div>
 

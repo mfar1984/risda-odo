@@ -12,12 +12,14 @@
             <div>
                 <!-- Remove duplicate text here -->
             </div>
+            @if(auth()->user()->adaKebenaran('senarai_kumpulan', 'tambah'))
             <a href="{{ route('pengurusan.tambah-kumpulan') }}">
                 <x-buttons.primary-button type="button">
                     <span class="material-symbols-outlined mr-2" style="font-size: 16px;">add_circle</span>
                     Kumpulan
                 </x-buttons.primary-button>
             </a>
+            @endif
         </div>
 
         <!-- Success/Error Messages -->

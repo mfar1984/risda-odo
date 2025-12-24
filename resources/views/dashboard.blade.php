@@ -14,7 +14,7 @@
                   ->where('jenis_organisasi', 'stesen');
             })
             ->when($currentUser->jenis_organisasi === 'bahagian', function($q) use ($currentUser) {
-                $stesenIds = \App\Models\RisdaStesen::where('bahagian_id', $currentUser->organisasi_id)
+                $stesenIds = \App\Models\RisdaStesen::where('risda_bahagian_id', $currentUser->organisasi_id)
                     ->pluck('id');
                 $q->where('jenis_organisasi', 'stesen')
                   ->whereIn('organisasi_id', $stesenIds);
