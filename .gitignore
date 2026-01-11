@@ -20,3 +20,8 @@ yarn-error.log
 cookies.txt
 Archive.zip
 *.zip
+
+# IDE and tool folders
+.augment/
+.cursor/
+.kiro/
