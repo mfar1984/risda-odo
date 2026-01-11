@@ -11,7 +11,8 @@ export default defineConfig({
                 'resources/js/tuntutan-actions.js',
                 'resources/js/program-actions.js',
                 'resources/js/delete-actions.js',
-                'resources/js/support-actions.js'
+                'resources/js/support-actions.js',
+                'resources/js/audit-trail.js'
             ],
             refresh: true,
         }),
