@@ -40,9 +40,16 @@ class RisdaStafController extends Controller
             $query->where('status', $request->status);
         }
 
-        $stafs = $query->orderBy('created_at', 'desc')->get();
+        $stafs = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        return view('pengurusan.senarai-risda', compact('stafs'));
+        // Return different view based on user type
+        if ($this->isAdministrator()) {
+            // Admin uses the main senarai-risda view (with tabs)
+            return view('pengurusan.senarai-risda', compact('stafs'));
+        }
+
+        // Non-admin uses dedicated senarai-staf view
+        return view('pengurusan.senarai-staf', compact('stafs'));
     }
 
     /**
@@ -111,7 +118,12 @@ class RisdaStafController extends Controller
             ->event('created')
             ->log("Staf '{$staf->nama_penuh}' telah ditambah");
 
-        return redirect()->route('pengurusan.senarai-risda')
+        // Redirect based on user type
+        $redirectRoute = $this->isAdministrator() 
+            ? 'pengurusan.senarai-risda' 
+            : 'pengurusan.senarai-staf';
+
+        return redirect()->route($redirectRoute)
             ->with('success', 'RISDA Staf berjaya ditambah!');
     }
 
@@ -199,7 +211,12 @@ class RisdaStafController extends Controller
             ->event('updated')
             ->log("Staf '{$risdaStaf->nama_penuh}' telah dikemaskini (" . count($changes) . " medan diubah)");
 
-        return redirect()->route('pengurusan.senarai-risda')
+        // Redirect based on user type
+        $redirectRoute = $this->isAdministrator() 
+            ? 'pengurusan.senarai-risda' 
+            : 'pengurusan.senarai-staf';
+
+        return redirect()->route($redirectRoute)
             ->with('success', 'RISDA Staf berjaya dikemaskini!');
     }
 
@@ -227,7 +244,12 @@ class RisdaStafController extends Controller
             ->event('deleted')
             ->log("Staf '{$name}' telah dipadam");
 
-        return redirect()->route('pengurusan.senarai-risda')
+        // Redirect based on user type
+        $redirectRoute = $this->isAdministrator() 
+            ? 'pengurusan.senarai-risda' 
+            : 'pengurusan.senarai-staf';
+
+        return redirect()->route($redirectRoute)
             ->with('success', 'RISDA Staf berjaya dipadam!');
     }
 

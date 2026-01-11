@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Services\AuditTrailService;
 
 class LoginRequest extends FormRequest
 {
@@ -44,8 +45,57 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
+            // Log failed login attempt
+            $user = \App\Models\User::where('email', $this->email)->first();
+            if ($user) {
+                activity()
+                    ->causedBy($user)
+                    ->withProperties([
+                        'ip' => $this->ip(),
+                        'user_agent' => $this->userAgent(),
+                        'email' => $this->email,
+                    ])
+                    ->event('login_failed')
+                    ->log('Cubaan log masuk gagal untuk ' . $user->name);
+            }
+
+            // Record audit trail for failed login
+            app(AuditTrailService::class)->recordFailedLogin(
+                $this->email,
+                'Kata laluan tidak sah',
+                $this
+            );
+
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        // Check if account is locked (status = tidak_aktif)
+        $user = Auth::user();
+        if ($user && $user->status === 'tidak_aktif') {
+            Auth::logout();
+            
+            // Log locked account login attempt
+            activity()
+                ->causedBy($user)
+                ->withProperties([
+                    'ip' => $this->ip(),
+                    'user_agent' => $this->userAgent(),
+                    'email' => $this->email,
+                ])
+                ->event('login_blocked')
+                ->log('Cubaan log masuk ke akaun terkunci untuk ' . $user->name);
+
+            // Record audit trail for blocked login
+            app(AuditTrailService::class)->recordFailedLogin(
+                $this->email,
+                'Akaun dikunci',
+                $this
+            );
+
+            throw ValidationException::withMessages([
+                'email' => 'Akaun anda telah dikunci. Sila hubungi pentadbir sistem.',
             ]);
         }
 

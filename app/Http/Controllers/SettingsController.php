@@ -17,7 +17,34 @@ class SettingsController extends Controller
         $user = auth()->user();
         $settings = UserSetting::getOrCreateForUser($user->id);
         
-        return view('settings.index', compact('settings'));
+        // Get security data
+        $twoFactorEnabled = $user->two_factor_enabled ?? false;
+        
+        // Get active sessions
+        $activeSessions = \DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->orderBy('last_activity', 'desc')
+            ->get()
+            ->map(function ($session) {
+                return (object) [
+                    'id' => $session->id,
+                    'ip_address' => $session->ip_address,
+                    'user_agent' => $session->user_agent,
+                    'last_activity' => $session->last_activity,
+                    'is_current' => $session->id === session()->getId(),
+                ];
+            });
+        
+        // Get login history from activity log
+        // Login events use 'event' field and 'causer_id' (not log_name and subject_id)
+        $loginHistory = \Spatie\Activitylog\Models\Activity::where('causer_type', \App\Models\User::class)
+            ->where('causer_id', $user->id)
+            ->whereIn('event', ['login_success', 'login_failed', 'login_blocked'])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+        
+        return view('settings.index', compact('settings', 'twoFactorEnabled', 'activeSessions', 'loginHistory'));
     }
 
     /**
@@ -74,6 +101,42 @@ class SettingsController extends Controller
         UserSettingsHelper::clearCache($user->id);
 
         return back()->with('success', 'Tetapan Data & Eksport telah dikembalikan ke nilai asal.');
+    }
+
+    /**
+     * Logout a specific session
+     */
+    public function logoutSession(Request $request)
+    {
+        $sessionId = $request->input('session_id');
+        
+        if (!$sessionId) {
+            return back()->with('error', 'Session ID tidak sah.');
+        }
+        
+        // Delete the session
+        \DB::table('sessions')
+            ->where('id', $sessionId)
+            ->where('user_id', auth()->id())
+            ->delete();
+        
+        return back()->with('success', 'Sesi berjaya dilog keluar.');
+    }
+
+    /**
+     * Logout all other sessions
+     */
+    public function logoutOtherSessions(Request $request)
+    {
+        $currentSessionId = session()->getId();
+        
+        // Delete all sessions except current
+        \DB::table('sessions')
+            ->where('user_id', auth()->id())
+            ->where('id', '!=', $currentSessionId)
+            ->delete();
+        
+        return back()->with('success', 'Semua sesi lain berjaya dilog keluar.');
     }
 }
 

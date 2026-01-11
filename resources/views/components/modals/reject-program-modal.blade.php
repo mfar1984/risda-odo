@@ -78,6 +78,8 @@
                     </button>
                     <button type="submit" id="rejectProgramSubmitBtn"
                             class="h-8 px-4 text-[11px] font-medium rounded-sm bg-orange-600 text-white hover:bg-orange-700 transition-colors inline-flex items-center gap-1.5"
+                            data-audit-track="reject-program"
+                            data-audit-action="Tolak Program"
                             disabled>
                         <span class="material-symbols-outlined text-[16px]">cancel</span>
                         Tolak Program

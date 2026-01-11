@@ -78,6 +78,8 @@
                     </button>
                     <button type="submit" id="approveProgramSubmitBtn"
                             class="h-8 px-4 text-[11px] font-medium rounded-sm bg-green-600 text-white hover:bg-green-700 transition-colors inline-flex items-center gap-1.5"
+                            data-audit-track="approve-program"
+                            data-audit-action="Luluskan Program"
                             disabled>
                         <span class="material-symbols-outlined text-[16px]">check_circle</span>
                         Lulus Program

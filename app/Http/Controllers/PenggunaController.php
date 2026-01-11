@@ -10,6 +10,7 @@ use App\Models\RisdaStesen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use App\Services\UserSecurityService;
 
 class PenggunaController extends Controller
 {
@@ -331,7 +332,11 @@ class PenggunaController extends Controller
     public function show(User $pengguna)
     {
         $pengguna->load(['kumpulan']);
-        return view('pengurusan.show-pengguna', compact('pengguna'));
+        
+        // Get active sessions count and last login info for security section
+        $activeSessions = $pengguna->getActiveSessionsCount();
+        
+        return view('pengurusan.show-pengguna', compact('pengguna', 'activeSessions'));
     }
 
     /**
@@ -615,5 +620,112 @@ class PenggunaController extends Controller
         // Only users with jenis_organisasi = 'semua' are true administrators
         // This ensures only admin@jara.my (or similar) have full access
         return $user->jenis_organisasi === 'semua';
+    }
+
+    /**
+     * Reset Two-Factor Authentication for a user
+     */
+    public function reset2FA(User $pengguna)
+    {
+        $securityService = app(UserSecurityService::class);
+        $result = $securityService->reset2FA($pengguna, auth()->user());
+        
+        if ($result) {
+            return back()->with('success', '2FA telah direset untuk ' . $pengguna->name);
+        }
+        
+        return back()->with('error', 'Gagal mereset 2FA. Sila cuba lagi.');
+    }
+
+    /**
+     * Force logout all active sessions for a user
+     */
+    public function forceLogoutAllSessions(User $pengguna)
+    {
+        $securityService = app(UserSecurityService::class);
+        $count = $securityService->forceLogoutAllSessions($pengguna, auth()->user());
+        
+        return back()->with('success', "Berjaya log keluar {$count} sesi untuk " . $pengguna->name);
+    }
+
+    /**
+     * Reset/change user password
+     */
+    public function resetPassword(Request $request, User $pengguna)
+    {
+        $validator = Validator::make($request->all(), [
+            'new_password' => 'required|string|min:8|confirmed',
+        ], [
+            'new_password.required' => 'Kata laluan baharu diperlukan.',
+            'new_password.min' => 'Kata laluan baharu mestilah sekurang-kurangnya 8 aksara.',
+            'new_password.confirmed' => 'Pengesahan kata laluan tidak sepadan.',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+        
+        $securityService = app(UserSecurityService::class);
+        $result = $securityService->resetPassword($pengguna, auth()->user(), $request->new_password);
+        
+        if ($result) {
+            return back()->with('success', 'Kata laluan telah direset untuk ' . $pengguna->name);
+        }
+        
+        return back()->with('error', 'Gagal mereset kata laluan. Sila cuba lagi.');
+    }
+
+    /**
+     * Lock user account
+     */
+    public function lockAccount(Request $request, User $pengguna)
+    {
+        // Prevent locking Administrator accounts
+        if ($pengguna->jenis_organisasi === 'semua') {
+            return back()->with('error', 'Tidak boleh mengunci akaun Administrator!');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+        
+        $securityService = app(UserSecurityService::class);
+        $result = $securityService->lockAccount($pengguna, auth()->user(), $request->reason);
+        
+        if ($result) {
+            return back()->with('success', 'Akaun telah dikunci untuk ' . $pengguna->name);
+        }
+        
+        return back()->with('error', 'Gagal mengunci akaun. Sila cuba lagi.');
+    }
+
+    /**
+     * Unlock user account
+     */
+    public function unlockAccount(User $pengguna)
+    {
+        $securityService = app(UserSecurityService::class);
+        $result = $securityService->unlockAccount($pengguna, auth()->user());
+        
+        if ($result) {
+            return back()->with('success', 'Akaun telah dibuka kunci untuk ' . $pengguna->name);
+        }
+        
+        return back()->with('error', 'Gagal membuka kunci akaun. Sila cuba lagi.');
+    }
+
+    /**
+     * View security logs for a user
+     */
+    public function viewSecurityLogs(User $pengguna)
+    {
+        $securityService = app(UserSecurityService::class);
+        $logs = $securityService->getSecurityLogs($pengguna);
+        
+        return view('pengurusan.security-logs', compact('pengguna', 'logs'));
     }
 }

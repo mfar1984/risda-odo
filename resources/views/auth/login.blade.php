@@ -17,11 +17,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <style>
+        [x-cloak] { display: none !important; }
+        
         @keyframes pulse-glow {
             0%, 100% {
                 transform: scale(1);
@@ -136,17 +139,31 @@
                 </div>
 
                 <!-- Footer Links -->
-                <div class="mt-6 text-center w-full">
+                <div class="mt-6 text-center w-full" x-data>
                     <div class="flex items-center justify-between text-gray-500" style="font-size: 11px;">
-                        <a href="#" class="hover:text-gray-700 hover:underline">Penafian</a>
+                        <a href="#" @click.prevent="$dispatch('open-disclaimer')" class="hover:text-gray-700 hover:underline cursor-pointer">Penafian</a>
                         <span>/</span>
-                        <a href="#" class="hover:text-gray-700 hover:underline">Privasi</a>
+                        <a href="#" @click.prevent="$dispatch('open-privacy')" class="hover:text-gray-700 hover:underline cursor-pointer">Privasi</a>
                         <span>/</span>
-                        <a href="#" class="hover:text-gray-700 hover:underline">Terma Penggunaan</a>
+                        <a href="#" @click.prevent="$dispatch('open-terms')" class="hover:text-gray-700 hover:underline cursor-pointer">Terma Penggunaan</a>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    {{-- Policy Modals - Outside main container for proper z-index --}}
+    <div x-data="{
+        disclaimerModal: false,
+        privacyModal: false,
+        termsModal: false
+    }"
+    @open-disclaimer.window="disclaimerModal = true"
+    @open-privacy.window="privacyModal = true"
+    @open-terms.window="termsModal = true">
+        @include('help.partials.policy-disclaimer-modal')
+        @include('help.partials.policy-privacy-modal')
+        @include('help.partials.policy-terms-modal')
     </div>
 </body>
 </html>

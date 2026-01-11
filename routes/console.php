@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Schedule auto-update program status every hour
 Schedule::command('program:update-status')->hourly();
+
+// Schedule audit trail cleanup daily at midnight
+Schedule::command('audit-trail:cleanup --days=30')->daily();

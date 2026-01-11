@@ -33,6 +33,11 @@ class User extends Authenticatable
         'organisasi_id',
         'stesen_akses_ids',
         'status',
+        'two_factor_enabled',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'last_login_at',
+        'last_login_ip',
     ];
 
     /**
@@ -56,6 +61,9 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'stesen_akses_ids' => 'array',
+            'two_factor_enabled' => 'boolean',
+            'two_factor_recovery_codes' => 'array',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -222,5 +230,73 @@ class User extends Authenticatable
         }
 
         return $this->kumpulan->adaKebenaran($modul, $aksi);
+    }
+
+    /**
+     * Enable Two-Factor Authentication for user
+     *
+     * @param string $secret
+     * @param array $recoveryCodes
+     * @return void
+     */
+    public function enable2FA(string $secret, array $recoveryCodes): void
+    {
+        $this->update([
+            'two_factor_enabled' => true,
+            'two_factor_secret' => encrypt($secret),
+            'two_factor_recovery_codes' => $recoveryCodes,
+        ]);
+    }
+
+    /**
+     * Disable Two-Factor Authentication for user
+     *
+     * @return void
+     */
+    public function disable2FA(): void
+    {
+        $this->update([
+            'two_factor_enabled' => false,
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+        ]);
+    }
+
+    /**
+     * Get count of active sessions for user
+     *
+     * @return int
+     */
+    public function getActiveSessionsCount(): int
+    {
+        return \DB::table('sessions')
+            ->where('user_id', $this->id)
+            ->count();
+    }
+
+    /**
+     * Invalidate all sessions for user
+     *
+     * @return int Number of sessions invalidated
+     */
+    public function invalidateAllSessions(): int
+    {
+        return \DB::table('sessions')
+            ->where('user_id', $this->id)
+            ->delete();
+    }
+
+    /**
+     * Update last login information
+     *
+     * @param string $ipAddress
+     * @return void
+     */
+    public function updateLastLogin(string $ipAddress): void
+    {
+        $this->update([
+            'last_login_at' => now(),
+            'last_login_ip' => $ipAddress,
+        ]);
     }
 }

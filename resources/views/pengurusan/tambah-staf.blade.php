@@ -313,7 +313,12 @@
 
                     <!-- Action Buttons -->
                     <div class="flex items-center justify-between mt-6">
-                        <a href="{{ route('pengurusan.senarai-risda') }}">
+                        @php
+                            $backRoute = auth()->user()->jenis_organisasi === 'semua' 
+                                ? route('pengurusan.senarai-risda') 
+                                : route('pengurusan.senarai-staf');
+                        @endphp
+                        <a href="{{ $backRoute }}">
                             <x-buttons.secondary-button type="button">
                                 <span class="material-symbols-outlined mr-2" style="font-size: 16px;">arrow_back</span>
                                 Batal

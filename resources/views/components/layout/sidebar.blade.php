@@ -198,6 +198,10 @@
                     <a href="{{ route('pengurusan.senarai-risda') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.senarai-risda') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Senarai RISDA</a>
                     @endif
 
+                    @if($currentUser && $currentUser->adaKebenaran('senarai_risda_staf', 'lihat') && !$isAdministrator)
+                    <a href="{{ route('pengurusan.senarai-staf') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.senarai-staf') || request()->routeIs('pengurusan.tambah-staf') || request()->routeIs('pengurusan.show-staf') || request()->routeIs('pengurusan.edit-staf') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Senarai RISDA Staf</a>
+                    @endif
+
                     @if($currentUser && $currentUser->adaKebenaran('senarai_kumpulan', 'lihat'))
                     <a href="{{ route('pengurusan.senarai-kumpulan') }}" class="submenu-item sidebar-nav-item {{ request()->routeIs('pengurusan.senarai-kumpulan') ? 'sidebar-nav-item-active' : 'sidebar-nav-item-inactive' }} text-sm">Senarai Kumpulan</a>
                     @endif

@@ -33,15 +33,19 @@
             ->where('status', 'aktif')
             ->orderBy('no_plat')
             ->get();
+        
+        // Check if user has permission to generate reports
+        $canJanaLaporan = $currentUser->adaKebenaran('dashboard', 'jana');
     @endphp
 
     <!-- Dashboard Container -->
+    @if($canJanaLaporan)
     <x-ui.page-header
         title="Jana Laporan"
         description="Penapis laporan — pilih jenis, julat tarikh, dan parameter, kemudian klik Generate"
     >
         <div x-data="{ 
-            reportType: 'kenderaan', 
+            reportType: 'penggunaan_kenderaan', 
             profile: { 
                 namaPenuh: '{{ $currentStaf ? $currentStaf->nama_penuh : $currentUser->name }}', 
                 noPekerja: '{{ $currentStaf ? $currentStaf->no_pekerja : "-" }}', 
@@ -441,9 +445,8 @@
                 <div>
                     <x-forms.input-label for="jenis_laporan" value="Jenis Laporan" />
                     <select x-model="reportType" id="jenis_laporan" name="jenis_laporan" class="form-select mt-1">
-                        <option value="ot">Kerja Lebih Masa</option>
-                        <option value="kenderaan">Kenderaan</option>
                         <option value="penggunaan_kenderaan">Penggunaan Kenderaan</option>
+                        <option value="ot">Kerja Lebih Masa</option>
                         <option value="tuntutan">Tuntutan</option>
                     </select>
                 </div>
@@ -507,7 +510,7 @@
                     </div>
                 </template>
 
-                <template x-if="reportType === 'kenderaan' || reportType === 'penggunaan_kenderaan'">
+                <template x-if="reportType === 'penggunaan_kenderaan'">
                     <div class="relative" @click.away="vehicleDropdownOpen = false">
                         <x-forms.input-label for="kenderaan_id" value="Kenderaan" />
                         <div @click="vehicleDropdownOpen = !vehicleDropdownOpen" 
@@ -1285,4 +1288,18 @@
             </div>
         </div>
     </x-ui.page-header>
+    @else
+    <!-- No permission to generate reports -->
+    <x-ui.page-header
+        title="Dashboard"
+        description="Selamat datang ke sistem"
+    >
+        <div class="flex flex-col items-center justify-center py-16 text-gray-500">
+            <span class="material-symbols-outlined text-6xl mb-4 text-gray-300">lock</span>
+            <p class="text-lg font-medium mb-2" style="font-family: Poppins, sans-serif; font-size: 14px;">Tiada Kebenaran Jana Laporan</p>
+            <p class="text-sm text-gray-400" style="font-family: Poppins, sans-serif; font-size: 12px;">Anda tidak mempunyai kebenaran untuk menjana laporan.</p>
+            <p class="text-sm text-gray-400 mt-1" style="font-family: Poppins, sans-serif; font-size: 11px;">Sila hubungi pentadbir untuk mendapatkan akses.</p>
+        </div>
+    </x-ui.page-header>
+    @endif
 </x-dashboard-layout>

@@ -18,6 +18,10 @@ Route::post('/dashboard/generate-report', [App\Http\Controllers\TuntutanControll
     ->middleware(['auth', 'verified'])
     ->name('dashboard.generate-report');
 
+// Two-Factor Authentication Verification (outside auth middleware)
+Route::get('/two-factor/verify', [App\Http\Controllers\TwoFactorController::class, 'showVerify'])->name('two-factor.show-verify');
+Route::post('/two-factor/verify', [App\Http\Controllers\TwoFactorController::class, 'verify'])->name('two-factor.verify');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -27,6 +31,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings/data-eksport', [App\Http\Controllers\SettingsController::class, 'updateDataEksport'])->name('settings.update-data-eksport');
     Route::post('/settings/data-eksport/reset', [App\Http\Controllers\SettingsController::class, 'resetDataEksport'])->name('settings.reset-data-eksport');
+    Route::post('/settings/logout-session', [App\Http\Controllers\SettingsController::class, 'logoutSession'])->name('settings.logout-session');
+    Route::post('/settings/logout-other-sessions', [App\Http\Controllers\SettingsController::class, 'logoutOtherSessions'])->name('settings.logout-other-sessions');
+
+    // Two-Factor Authentication Routes
+    Route::get('/two-factor/setup', [App\Http\Controllers\TwoFactorController::class, 'setup'])->name('two-factor.setup');
+    Route::post('/two-factor/enable', [App\Http\Controllers\TwoFactorController::class, 'enable'])->name('two-factor.enable');
+    Route::post('/two-factor/disable', [App\Http\Controllers\TwoFactorController::class, 'disable'])->name('two-factor.disable');
 
     // Notification Routes (Web - for Bell Icon)
     Route::prefix('notifications')->name('notifications.')->group(function () {
@@ -155,7 +166,25 @@ Route::middleware('auth')->group(function () {
 
 
 
-        // RISDA Routes (Administrator Only)
+        // RISDA Staf Routes (Permission-based - boleh diakses oleh admin bahagian/stesen)
+        // MUST be before admin routes to avoid conflict with dynamic {risdaBahagian} route
+        Route::middleware('permission:senarai_risda_staf,lihat')->group(function () {
+            Route::get('/senarai-risda/senarai-staf', [App\Http\Controllers\RisdaStafController::class, 'index'])->name('senarai-staf');
+            Route::get('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'show'])->name('show-staf');
+        });
+        Route::middleware('permission:senarai_risda_staf,tambah')->group(function () {
+            Route::get('/senarai-risda/tambah-staf', [App\Http\Controllers\RisdaStafController::class, 'create'])->name('tambah-staf');
+            Route::post('/senarai-risda/tambah-staf', [App\Http\Controllers\RisdaStafController::class, 'store'])->name('store-staf');
+        });
+        Route::middleware('permission:senarai_risda_staf,kemaskini')->group(function () {
+            Route::get('/senarai-risda/staf/{risdaStaf}/edit', [App\Http\Controllers\RisdaStafController::class, 'edit'])->name('edit-staf');
+            Route::put('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'update'])->name('update-staf');
+        });
+        Route::middleware('permission:senarai_risda_staf,padam')->group(function () {
+            Route::delete('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'destroy'])->name('delete-staf');
+        });
+
+        // RISDA Routes (Administrator Only) - Bahagian & Stesen
         Route::middleware('admin')->group(function () {
             Route::get('/senarai-risda', [App\Http\Controllers\RisdaBahagianController::class, 'index'])->name('senarai-risda');
 
@@ -170,14 +199,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/senarai-risda/stesen/{risdaStesen}/edit', [App\Http\Controllers\RisdaStesenController::class, 'edit'])->name('edit-stesen');
         Route::put('/senarai-risda/stesen/{risdaStesen}', [App\Http\Controllers\RisdaStesenController::class, 'update'])->name('update-stesen');
         Route::delete('/senarai-risda/stesen/{risdaStesen}', [App\Http\Controllers\RisdaStesenController::class, 'destroy'])->name('delete-stesen');
-
-        // RISDA Staf specific routes
-        Route::get('/senarai-risda/tambah-staf', [App\Http\Controllers\RisdaStafController::class, 'create'])->name('tambah-staf');
-        Route::post('/senarai-risda/tambah-staf', [App\Http\Controllers\RisdaStafController::class, 'store'])->name('store-staf');
-        Route::get('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'show'])->name('show-staf');
-        Route::get('/senarai-risda/staf/{risdaStaf}/edit', [App\Http\Controllers\RisdaStafController::class, 'edit'])->name('edit-staf');
-        Route::put('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'update'])->name('update-staf');
-        Route::delete('/senarai-risda/staf/{risdaStaf}', [App\Http\Controllers\RisdaStafController::class, 'destroy'])->name('delete-staf');
 
             // RISDA Bahagian dynamic routes (must be last)
             Route::get('/senarai-risda/{risdaBahagian}', [App\Http\Controllers\RisdaBahagianController::class, 'show'])->name('show-bahagian');
@@ -224,6 +245,18 @@ Route::middleware('auth')->group(function () {
         });
         Route::middleware('permission:senarai_pengguna,padam')->group(function () {
             Route::delete('/senarai-pengguna/{pengguna}', [App\Http\Controllers\PenggunaController::class, 'destroy'])->name('delete-pengguna');
+        });
+
+        // Security Management Routes (Permission-based)
+        Route::middleware('permission:senarai_pengguna,kemaskini')->group(function () {
+            Route::post('/senarai-pengguna/{pengguna}/reset-2fa', [App\Http\Controllers\PenggunaController::class, 'reset2FA'])->name('reset-2fa-pengguna');
+            Route::post('/senarai-pengguna/{pengguna}/force-logout', [App\Http\Controllers\PenggunaController::class, 'forceLogoutAllSessions'])->name('force-logout-pengguna');
+            Route::post('/senarai-pengguna/{pengguna}/reset-password', [App\Http\Controllers\PenggunaController::class, 'resetPassword'])->name('reset-password-pengguna');
+            Route::post('/senarai-pengguna/{pengguna}/lock-account', [App\Http\Controllers\PenggunaController::class, 'lockAccount'])->name('lock-account-pengguna');
+            Route::post('/senarai-pengguna/{pengguna}/unlock-account', [App\Http\Controllers\PenggunaController::class, 'unlockAccount'])->name('unlock-account-pengguna');
+        });
+        Route::middleware('permission:senarai_pengguna,lihat')->group(function () {
+            Route::get('/senarai-pengguna/{pengguna}/security-logs', [App\Http\Controllers\PenggunaController::class, 'viewSecurityLogs'])->name('security-logs-pengguna');
         });
 
 
@@ -296,6 +329,16 @@ Route::middleware('auth')->group(function () {
         Route::middleware('permission:aktiviti_log,lihat')->group(function () {
             Route::get('/aktiviti-log', [App\Http\Controllers\AktivitiLogController::class, 'index'])->name('aktiviti-log');
         });
+
+        // Audit Trail Routes (Admin only)
+        Route::middleware('admin')->group(function () {
+            Route::post('/audit-trail/generate', [App\Http\Controllers\AktivitiLogController::class, 'generateAuditTrail'])->name('audit-trail.generate');
+            Route::get('/audit-trail/export-pdf', [App\Http\Controllers\AktivitiLogController::class, 'exportAuditTrailPdf'])->name('audit-trail.export-pdf');
+        });
+
+        // Audit Trail AJAX tracking (for web browser)
+        Route::post('/audit-trail/click', [App\Http\Controllers\Api\AuditTrailApiController::class, 'recordClick'])->name('audit-trail.click');
+        Route::post('/audit-trail/form-submit', [App\Http\Controllers\Api\AuditTrailApiController::class, 'recordFormSubmit'])->name('audit-trail.form-submit');
 
         // Aktiviti Log Keselamatan Routes removed as requested
     });

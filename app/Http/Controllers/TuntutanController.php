@@ -588,6 +588,14 @@ class TuntutanController extends Controller
      */
     public function getDashboardReport(Request $request)
     {
+        // Check permission for generating reports
+        if (!Auth::user()->adaKebenaran('dashboard', 'jana')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak mempunyai kebenaran untuk menjana laporan'
+            ], 403);
+        }
+
         $jenisLaporan = $request->input('jenis_laporan');
 
         if ($jenisLaporan === 'tuntutan') {
@@ -812,40 +820,59 @@ class TuntutanController extends Controller
      */
     private function getOTReport(Request $request)
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        // Get negeri for holiday detection
-        // Priority: selected staf's negeri (pemandu), then current viewer
-        if ($request->filled('staf_id')) {
-            $negeri = $this->getNegeriByPemanduId($request->staf_id) ?: $this->getUserNegeri($user);
-        } else {
-            $negeri = $this->getUserNegeri($user);
-        }
+            // Get negeri for holiday detection
+            // Priority: selected staf's negeri (pemandu), then current viewer
+            if ($request->filled('staf_id')) {
+                $negeri = $this->getNegeriByPemanduId($request->staf_id) ?: $this->getUserNegeri($user);
+            } else {
+                $negeri = $this->getUserNegeri($user);
+            }
 
-        // Get holidays for this negeri
-        $year = $request->filled('tarikh_mula') 
-            ? \Carbon\Carbon::parse($request->tarikh_mula)->year 
-            : date('Y');
+            // Get holidays for this negeri
+            $year = $request->filled('tarikh_mula') 
+                ? \Carbon\Carbon::parse($request->tarikh_mula)->year 
+                : date('Y');
 
-        $cutiUmumList = $this->getCutiUmumList($negeri, $year);
+            $cutiUmumList = $this->getCutiUmumList($negeri, $year);
 
-        // Get logs for OT calculation
-        $query = LogPemandu::with([
-            'pemandu.risdaStaf',
-            'program',
-        ]);
+            // Get logs for OT calculation
+            $query = LogPemandu::with([
+                'pemandu.risdaStaf',
+                'program',
+            ]);
 
-        // Apply user scope (data isolation)
-        if ($user->jenis_organisasi === 'stesen') {
-            $query->whereHas('pemandu', function ($q) use ($user) {
-                $q->where('organisasi_id', $user->organisasi_id);
-            });
-        } elseif ($user->jenis_organisasi === 'bahagian') {
-            $stesenIds = \App\Models\RisdaStesen::where('bahagian_id', $user->organisasi_id)->pluck('id');
-            $query->whereHas('pemandu', function ($q) use ($stesenIds) {
-                $q->whereIn('organisasi_id', $stesenIds);
-            });
-        }
+            // Apply user scope (data isolation)
+            if ($user->jenis_organisasi === 'stesen') {
+                $query->whereHas('pemandu', function ($q) use ($user) {
+                    $q->where('organisasi_id', $user->organisasi_id)
+                      ->where('jenis_organisasi', 'stesen');
+                });
+            } elseif ($user->jenis_organisasi === 'bahagian') {
+                $stesenIds = \App\Models\RisdaStesen::where('risda_bahagian_id', $user->organisasi_id)->pluck('id');
+                if ($stesenIds->isNotEmpty()) {
+                    $query->whereHas('pemandu', function ($q) use ($stesenIds, $user) {
+                        $q->where(function($inner) use ($stesenIds, $user) {
+                            // Pemandu yang ada di stesen-stesen bawah bahagian ini
+                            $inner->whereIn('organisasi_id', $stesenIds)
+                                  ->where('jenis_organisasi', 'stesen');
+                        })->orWhere(function($inner) use ($user) {
+                            // Atau pemandu yang terus di bawah bahagian
+                            $inner->where('organisasi_id', $user->organisasi_id)
+                                  ->where('jenis_organisasi', 'bahagian');
+                        });
+                    });
+                } else {
+                    // Tiada stesen, cari pemandu terus di bawah bahagian
+                    $query->whereHas('pemandu', function ($q) use ($user) {
+                        $q->where('organisasi_id', $user->organisasi_id)
+                          ->where('jenis_organisasi', 'bahagian');
+                    });
+                }
+            }
+            // Admin (jenis_organisasi = 'semua') - no filter, see all
 
         // Filter by date range (date-only to avoid time issues)
         if ($request->filled('tarikh_mula') && $request->filled('tarikh_akhir')) {
@@ -1025,6 +1052,19 @@ class TuntutanController extends Controller
                 ],
             ]
         ]);
+        } catch (\Exception $e) {
+            \Log::error('OT Report Error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'jenis_organisasi' => Auth::user()->jenis_organisasi ?? 'unknown',
+                'organisasi_id' => Auth::user()->organisasi_id ?? 'unknown',
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Ralat menjana laporan OT: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

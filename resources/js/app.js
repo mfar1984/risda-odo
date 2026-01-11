@@ -6,6 +6,9 @@ import '@maptiler/sdk/dist/maptiler-sdk.css';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+// Import audit trail tracker
+import './audit-trail';
+
 window.Alpine = Alpine;
 window.maptilersdk = maptilersdk;
 window.L = L;

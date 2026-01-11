@@ -59,6 +59,12 @@ Route::middleware(['api.token', 'api.cors', 'auth:sanctum'])->group(function () 
         Route::post('/logout-all', [AuthController::class, 'logoutAll']);
     });
 
+    // Audit Trail tracking endpoints
+    Route::prefix('audit-trail')->group(function () {
+        Route::post('/click', [\App\Http\Controllers\Api\AuditTrailApiController::class, 'recordClick'])->name('api.audit-trail.click');
+        Route::post('/form-submit', [\App\Http\Controllers\Api\AuditTrailApiController::class, 'recordFormSubmit'])->name('api.audit-trail.form-submit');
+    });
+
     // User Profile Management
     Route::prefix('user')->group(function () {
         Route::post('/profile-picture', [\App\Http\Controllers\Api\UserProfileController::class, 'uploadProfilePicture']);

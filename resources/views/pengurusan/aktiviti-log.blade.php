@@ -28,6 +28,32 @@
             </x-ui.error-alert>
         @endif
 
+        {{-- Tab Navigation (Admin sees 2 tabs, others see 1) --}}
+        @if($isAdmin ?? false)
+        <div class="mb-6" x-data="{ activeTab: '{{ request('tab', 'aktiviti-log') }}' }">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button @click="activeTab = 'aktiviti-log'"
+                            :class="activeTab === 'aktiviti-log' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="whitespace-nowrap py-3 px-2 font-medium transition-colors duration-200 flex items-center gap-2"
+                            :style="activeTab === 'aktiviti-log' ? 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid #2563eb !important; color: #2563eb !important;' : 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid transparent !important;'">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">history</span>
+                        Aktiviti Log
+                    </button>
+                    <button @click="activeTab = 'audit-trail'"
+                            :class="activeTab === 'audit-trail' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="whitespace-nowrap py-3 px-2 font-medium transition-colors duration-200 flex items-center gap-2"
+                            :style="activeTab === 'audit-trail' ? 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid #2563eb !important; color: #2563eb !important;' : 'font-family: Poppins, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; border-bottom: 3px solid transparent !important;'">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">policy</span>
+                        Audit Trail
+                    </button>
+                </nav>
+            </div>
+
+            {{-- TAB 1: Aktiviti Log --}}
+            <div x-show="activeTab === 'aktiviti-log'" x-transition class="mt-6">
+        @endif
+
         <!-- Filter Section -->
         <x-ui.search-filter
             :action="route('pengurusan.aktiviti-log')"
@@ -224,6 +250,18 @@
         <div class="mt-6">
             <x-ui.pagination :paginator="$activities" record-label="aktiviti" />
         </div>
+
+        {{-- Close TAB 1 and add TAB 2 for Admin --}}
+        @if($isAdmin ?? false)
+            </div>
+
+            {{-- TAB 2: Audit Trail (Admin Only) --}}
+            <div x-show="activeTab === 'audit-trail'" x-transition class="mt-6">
+                @include('pengurusan.partials.audit-trail-tab')
+            </div>
+        </div>
+        @endif
+
     </x-ui.page-header>
 
     <!-- Modal Popup (Beautiful Design) -->

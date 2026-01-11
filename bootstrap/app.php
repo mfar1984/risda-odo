@@ -18,7 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission_any' => \App\Http\Middleware\PermissionAnyMiddleware::class,
             'api.token' => \App\Http\Middleware\ApiTokenMiddleware::class,
             'api.cors' => \App\Http\Middleware\ApiCorsMiddleware::class,
+            'audit.trail' => \App\Http\Middleware\AuditTrailMiddleware::class,
         ]);
+
+        // Add audit trail middleware to web group
+        $middleware->appendToGroup('web', \App\Http\Middleware\AuditTrailMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

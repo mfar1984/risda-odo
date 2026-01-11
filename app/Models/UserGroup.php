@@ -65,6 +65,7 @@ class UserGroup extends Model
         return [
             'dashboard' => [
                 'lihat' => false,
+                'jana' => false,
             ],
             'program' => [
                 'tambah' => false,
@@ -177,6 +178,12 @@ class UserGroup extends Model
             'aktiviti_log_keselamatan' => [
                 'lihat' => false,
             ],
+            'senarai_risda_staf' => [
+                'tambah' => false,
+                'lihat' => false,
+                'kemaskini' => false,
+                'padam' => false,
+            ],
             // Letakkan modul sokongan di bawah sekali seperti diminta
             'sokongan' => [
                 'tambah' => false,
@@ -197,6 +204,7 @@ class UserGroup extends Model
         return [
             'tambah' => 'Tambah',
             'lihat' => 'Lihat',
+            'jana' => 'Jana',
             'kemaskini' => 'Kemaskini',
             'padam' => 'Padam',
             'terima' => 'Terima',
@@ -239,6 +247,7 @@ class UserGroup extends Model
             'tetapan_umum' => 'Tetapan Umum',
             'aktiviti_log' => 'Aktiviti Log',
             'aktiviti_log_keselamatan' => 'Aktiviti Log Keselamatan',
+            'senarai_risda_staf' => 'Senarai RISDA Staf',
             'sokongan' => 'Sokongan (Tiket Bantuan)',
         ];
     }
